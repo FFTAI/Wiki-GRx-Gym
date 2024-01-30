@@ -64,6 +64,6 @@ This repository provides an environment used to train GR1T1 (and other robots) t
 
 - `conda activate env_name` 将`env_name`替换为自定义的环境名
 - `cd legged_gym/legged_gym/scripts/`
-- `python train.py --task=gr1t1 -num_envs=512`
+- `python train.py --task=gr1t1 --num_envs=512`
 如果能出现机器人的训练画面，则环境配置成功，进入了训练过程。
 

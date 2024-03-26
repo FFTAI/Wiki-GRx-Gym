@@ -46,15 +46,25 @@ This repository provides an environment used to train GR1T1 (and other robots) t
         +-----------------------------------------------------------------------------+
         ```
 
-3. 创建python虚拟环境，将`env_name`替换为自定义的环境名。
+3. 创建python虚拟环境，默认环境名为`rlgpu`。
     ```
     cd ./IsaacGym_Preview_4_Package/isaacgym && ./create_conda_env.sh
     ```
 
 4. 验证Isaac Gym 安装：
+
+    - 激活 `conda` 环境;
+
+    ```
+    conda activate rlgpu
+    ```
+
+    - 运行预装示例;
+
     ```
     cd examples && python 1080_balls_of_solitude.py
     ```
+
     - 疑问参考 [isaacgym/docs/index.html](IsaacGym_Preview_4_Package/isaacgym/docs/index.html)
 
 5. 安装 rsl_rl, [rsl_rl/README](rsl_rl/README.md)
@@ -68,10 +78,13 @@ This repository provides an environment used to train GR1T1 (and other robots) t
 8. 其他依赖``
     - `pip install numpy==1.20.0`, 部分函数使用旧版变量类型，故 `numpy`版本大于1.24会报错
 
-### 测试安装 ###
+9. 测试安装；
 
-- `conda activate env_name` 将`env_name`替换为自定义的环境名
-- `cd legged_gym/legged_gym/scripts/`
-- `python train.py --task=gr1t1 --num_envs=512`
-如果能出现机器人的训练画面，则环境配置成功，进入了训练过程。
+    ``` 
+    cd legged_gym/legged_gym/scripts && python ./train.py --task gr1t1 --num_envs 32
+    ```
+
+10. 其他：
+
+    - 目前版本头部及手腕为未激活状态。
 

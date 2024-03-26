@@ -13,9 +13,8 @@ This repository provides an environment used to train GR1T1 (and other robots) t
     * 官方镜像：https://releases.ubuntu.com/focal/
     * 安装教程：https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview
 1. 安装Anaconda: https://www.anaconda.com/download/
-2. 创建python虚拟环境，将`env_name`替换为自定义的环境名。
-    - `conda create -n env_name python=3.8`
-3. 安装nvidia驱动
+
+2. 安装nvidia驱动
     - 使用 Ubuntu 20.04 自带的软件 Software & Updates 安装 Nvidia 显卡驱动。
 
     - 需要确保在终端使用命令行 `nvidia-smi` 能看到显卡信息和 CUDA 信息。如图示例所示：
@@ -46,18 +45,26 @@ This repository provides an environment used to train GR1T1 (and other robots) t
         |    0   N/A  N/A      3721      G   ...RendererForSitePerProcess       20MiB |
         +-----------------------------------------------------------------------------+
         ```
-4. 安装pytorch, https://pytorch.org/get-started/locally/
-    - `conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia`
-5. 安装 Isaac Gym
-    - 从官网(https://developer.nvidia.com/isaac-gym)下载 Isaac Gym, 仓库中已有为preview 4.
-    - `cd IsaacGym_Preview_4_Package/isaacgym/python/ && pip install -e .`
-    - 试运行程序 `cd examples && python 1080_balls_of_solitude.py` 以确认安装成功
+
+3. 创建python虚拟环境，将`env_name`替换为自定义的环境名。
+    ```
+    cd ./IsaacGym_Preview_4_Package/isaacgym && ./create_conda_env.sh
+    ```
+
+4. 验证Isaac Gym 安装：
+    ```
+    cd examples && python 1080_balls_of_solitude.py
+    ```
     - 疑问参考 [isaacgym/docs/index.html](IsaacGym_Preview_4_Package/isaacgym/docs/index.html)
-6. 安装 rsl_rl, [rsl_rl/README](rsl_rl/README.md)
-    - `cd rsl_rl && git checkout v1.0.2 && pip install -e .`
+
+5. 安装 rsl_rl, [rsl_rl/README](rsl_rl/README.md)
+    ```cd rsl_rl && git checkout v1.0.2 && pip install -e .```
+
 7. 安装 legged_gym, [legged_gym/README](legged_gym/README.md)
-    - `cd legged_gym && pip install -e .`
-8. 其他依赖
+
+    ```cd legged_gym && pip install -e .```
+    
+8. 其他依赖``
     - `pip install numpy==1.20.0`, 部分函数使用旧版变量类型，故 `numpy`版本大于1.24会报错
 
 ### 测试安装 ###

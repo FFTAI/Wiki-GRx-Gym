@@ -78,25 +78,26 @@ class Gr1t1Cfg(LeggedRobotCfg):
     class control(LeggedRobotCfg.control):
         # PD Drive parameters:
         stiffness = {
-            'hip_roll': 251.625, 'hip_yaw': 453.15, 'hip_pitch': 285.8131,
-            'knee_pitch': 285.8131,
-            'ankle_pitch': 21.961, 'ankle_roll': 2.0761,  # 'ankleRoll': 0.0,
-            'waist_yaw': 453.15, 'waist_pitch': 453.15, 'waist_roll': 453.15,
+            'hip_roll': 251.625, 'hip_yaw': 362.52, 'hip_pitch': 200,
+            'knee_pitch': 200,
+            'ankle_pitch': 10.98, 'ankle_roll': 0.0,  # 'ankleRoll': 0.0,
+            'waist_yaw': 362.52, 'waist_pitch': 362.52, 'waist_roll': 362.52,
             'head_yaw': 10.0, 'head_pitch': 10.0, 'head_roll': 10.0,
             'shoulder_pitch': 92.85, 'shoulder_roll': 92.85, 'shoulder_yaw': 112.06,
             'elbow_pitch': 112.06,
             'wrist_yaw': 10.0, 'wrist_roll': 10.0, 'wrist_pitch': 10.0
         }  # [N*m/rad]
         damping = {
-            'hip_roll': 14.72, 'hip_yaw': 50.4164, 'hip_pitch': 16.5792,
-            'knee_pitch': 16.5792,
-            'ankle_pitch': 1.195, 'ankle_roll': 0.1233,
-            'waist_yaw': 50.4164, 'waist_pitch': 50.4164, 'waist_roll': 50.4164,
+            'hip_roll': 14.72, 'hip_yaw': 10.08, 'hip_pitch': 11,
+            'knee_pitch': 11,
+            'ankle_pitch': 0.60, 'ankle_roll': 0.1,
+            'waist_yaw': 10.08, 'waist_pitch': 10.08, 'waist_roll': 10.08,
             'head_yaw': 1.0, 'head_pitch': 1.0, 'head_roll': 1.0,
             'shoulder_pitch': 2.575, 'shoulder_roll': 2.575, 'shoulder_yaw': 3.1,
             'elbow_pitch': 3.1,
             'wrist_yaw': 1.0, 'wrist_roll': 1.0, 'wrist_pitch': 1.0
-        }
+        }       
+
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.5
         # decimation: Number of control action updates @ sim DT per policy DT

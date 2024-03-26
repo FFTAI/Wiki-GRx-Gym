@@ -50,7 +50,7 @@ This repository provides an environment used to train GR1T1 (and other robots) t
 
 3. 创建python虚拟环境，默认环境名为`rlgpu`。
     ```
-    cd ./IsaacGym_Preview_4_Package/isaacgym && ./create_conda_env.sh
+    cd ./IsaacGym_Preview_4_Package/isaacgym && ./create_conda_env_rlgpu.sh
     ```
 
 4. 验证Isaac Gym 安装：

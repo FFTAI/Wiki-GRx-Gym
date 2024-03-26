@@ -75,7 +75,8 @@ This repository provides an environment used to train GR1T1 (and other robots) t
 
     ```cd legged_gym && pip install -e .```
     
-8. 其他依赖``
+8. 其他依赖
+
     - `pip install numpy==1.20.0`, 部分函数使用旧版变量类型，故 `numpy`版本大于1.24会报错
 
 9. 测试安装；

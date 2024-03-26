@@ -9,9 +9,11 @@ This repository provides an environment used to train GR1T1 (and other robots) t
 
 ### 安装说明 ###
 
-0. 安装Ubuntu 20.04，由于 Issac Gym 最高只能在 Ubuntu 20.04 环境下运行，因此只能安装 Ubuntu 20.04 系统。
+0. 安装**Ubuntu 20.04**，由于 Issac Gym 最高只能在 Ubuntu 20.04 环境下运行，因此只能安装 Ubuntu 20.04 系统。
+
     * 官方镜像：https://releases.ubuntu.com/focal/
     * 安装教程：https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview
+
 1. 安装Anaconda: https://www.anaconda.com/download/
 
 2. 安装nvidia驱动

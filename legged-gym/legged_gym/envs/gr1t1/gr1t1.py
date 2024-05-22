@@ -156,7 +156,6 @@ class GR1T1(LeggedRobotFFTAI):
         self.env_ids_for_walk_command = list(range(self.num_envs))
 
         self._init_buffer_orient()
-        self._init_buffers_gait_phase()
 
     def _init_buffers_joint_indices(self):
 
@@ -359,8 +358,6 @@ class GR1T1(LeggedRobotFFTAI):
 
         # gait cycle ---------------------------------------
 
-        self.ranges_phase_ratio = class_to_dict(self.cfg.commands.ranges_phase_ratio)
-        self.ranges_gait_cycle = class_to_dict(self.cfg.commands.ranges_gait_cycle)
         self.ranges_swing_feet_height = class_to_dict(self.cfg.commands.ranges_swing_feet_height)
 
         # gait cycle ---------------------------------------
@@ -452,7 +449,6 @@ class GR1T1(LeggedRobotFFTAI):
             self.measured_heights_supervisor = self._get_heights_supervisor()
 
         self._calculate_feet_orient()
-        self._calculate_gait_phase()
 
     def _calculate_feet_orient(self):
         # feet

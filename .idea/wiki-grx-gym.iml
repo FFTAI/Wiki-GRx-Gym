@@ -3,7 +3,6 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/IsaacGym_Preview_4_Package/isaacgym/python" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/legged-gym" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/legged-gym/legged_gym" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/rsl-rl/rsl_rl" isTestSource="false" />
     </content>

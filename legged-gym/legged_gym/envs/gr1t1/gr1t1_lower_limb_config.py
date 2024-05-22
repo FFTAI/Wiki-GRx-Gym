@@ -8,7 +8,6 @@ class GR1T1LowerLimbCfg(LeggedRobotCfg):
         num_envs = 4096  # 4096, number of instances trained in parallel
         num_actions = 32  # number of actuators on robot
 
-        obs_profile = 'GR1T1-airtime-pri'
         size_mh = [11, 11]
 
         # IMPORTANT, num_observations should match the dimension of following items (subject to robot configurations) that included in observation instance

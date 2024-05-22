@@ -8,7 +8,6 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         num_envs = 8192  # NVIDIA 4090 has 16384 CUDA cores
         episode_length_s = 20  # episode length in seconds
 
-        obs_profile = 'GR1T1'
         size_mh = [0, 0]
         num_mh = size_mh[0] * size_mh[1]
         num_obs = 121
@@ -291,90 +290,16 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         sigma_action_dof_pos_diff_ankle = -0.5
 
         sigma_action_diff = -0.1
-        sigma_action_diff_leg = -0.5
-        sigma_action_diff_hip = -1.0
-        sigma_action_diff_hip_roll = -1.0
-        sigma_action_diff_hip_yaw = -1.0
-        sigma_action_diff_hip_pitch = -1.0
-        sigma_action_diff_knee = -1.0
-        sigma_action_diff_ankle = -1.0
-        sigma_action_diff_ankle_pitch = -1.0
-        sigma_action_diff_ankle_roll = -1.0
-        sigma_action_diff_waist_yaw = -1.0
-        sigma_action_diff_waist_pitch = -1.0
-        sigma_action_diff_waist_roll = -1.0
-        sigma_action_diff_head = -0.5
-        sigma_action_diff_arm = -0.5
-        sigma_action_diff_shoulder_roll = -1.0
-        sigma_action_diff_shoulder_yaw = -1.0
-
-        sigma_action_low_pass = -0.1
 
         sigma_dof_vel_new = -0.01
-        sigma_dof_vel_new_leg = -0.1
-        sigma_dof_vel_new_knee = -1.0
-        sigma_dof_vel_new_waist_roll = -1.0
-        sigma_dof_vel_new_waist_pitch = -1.0
-        sigma_dof_vel_new_head = -0.1
-        sigma_dof_vel_new_arm = -0.1
-        sigma_dof_vel_new_wrist = -0.1
-
         sigma_dof_acc_new = -0.00005
-        sigma_dof_acc_new_knee = -0.0005
-        sigma_dof_acc_new_waist = -0.0005
-        sigma_dof_acc_new_waist_roll = -0.005
-        sigma_dof_acc_new_waist_pitch = -0.005
-        sigma_dof_acc_new_head = -0.0005
-        sigma_dof_acc_new_arm = -0.00005
-        sigma_dof_acc_new_wrist = -0.0005
 
         sigma_dof_tor_new = -0.00005
-        sigma_dof_tor_new_leg = -0.0001
-        sigma_dof_tor_new_waist = -0.0001
-        sigma_dof_tor_new_head = -0.0001
-        sigma_dof_tor_new_arm = -0.0001
-
-        sigma_dof_tor_new_hip = -0.002
         sigma_dof_tor_new_hip_roll = -0.002
-        sigma_dof_tor_new_hip_yaw = -0.002
-        sigma_dof_tor_new_knee = -0.002
-        sigma_dof_tor_new_ankle = -0.002
-        sigma_dof_tor_new_ankle_pitch = -0.002
-        sigma_dof_tor_new_ankle_roll = -0.002
-        sigma_dof_tor_new_shoulder_yaw = -0.002
-        sigma_dof_tor_new_elbow = -0.002
-        sigma_dof_tor_new_wrist = -0.002
-        sigma_dof_tor_new_wrist_yaw = -0.002
-        sigma_dof_tor_new_wrist_pitch = -0.002
 
         sigma_dof_tor_ankle_feet_lift_up = -1.0
 
         sigma_pose_offset = -0.1
-        sigma_pose_offset_leg = -0.5
-        sigma_pose_offset_waist = -0.5
-        sigma_pose_offset_arm = -0.5
-
-        sigma_pose_offset_hip_roll = -1.0
-        sigma_pose_offset_hip_yaw = -1.0
-        sigma_pose_offset_hip_roll_x = -1.0
-        sigma_pose_offset_hip_yaw_x = -1.0
-        sigma_pose_offset_knee = -1.0
-        sigma_pose_offset_ankle = -1.0
-        sigma_pose_offset_ankle_roll = -1.0
-        sigma_pose_offset_waist_yaw = -1.0
-        sigma_pose_offset_waist_roll = -1.0
-        sigma_pose_offset_waist_pitch = -1.0
-        sigma_pose_offset_head = -1.0
-        sigma_pose_offset_head_roll = -1.0
-        sigma_pose_offset_head_pitch = -1.0
-        sigma_pose_offset_shoulder_roll = -1.0
-        sigma_pose_offset_shoulder_pitch = -1.0
-        sigma_pose_offset_shoulder_yaw = -1.0
-        sigma_pose_offset_elbow = -1.0
-        sigma_pose_offset_wrist = -1.0
-        sigma_pose_offset_wrist_yaw = -1.0
-        sigma_pose_offset_wrist_roll = -1.0
-        sigma_pose_offset_wrist_pitch = -1.0
 
         sigma_pose_vel_waist = -0.1
         sigma_pose_vel_head = -0.1

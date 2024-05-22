@@ -34,7 +34,6 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 
 class LeggedRobotFFTAICfg(LeggedRobotCfg):
     class env(LeggedRobotCfg.env):
-        obs_profile = ''
         size_mh = [0, 0]
         num_mh = 0
         num_obs = 1

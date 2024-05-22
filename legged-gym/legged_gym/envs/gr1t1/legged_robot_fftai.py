@@ -103,10 +103,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def _calculate_air_time(self):
         # detect feet contact
-        # contact = 0, last_contact = 0, contact_filt = 0 --> last_contact = 0 & air_time > 0 --> first_contact = 0
-        # contact = 0, last_contact = 1, contact_filt = 1 --> last_contact = 0 & air_time = 0 --> first_contact = 0
-        # contact = 1, last_contact = 0, contact_filt = 1 --> last_contact = 1 & air_time > 0 --> first_contact = 1
-        # contact = 1, last_contact = 1, contact_filt = 1 --> last_contact = 1 & air_time = 0 --> first_contact = 0
         self.feet_contact = self.contact_forces[:, self.feet_indices, 2] > 1.
         self.feet_contact_filt = torch.logical_or(self.feet_contact, self.feet_contact_last)
         self.feet_contact_last = self.feet_contact
@@ -125,10 +121,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def _calculate_land_time(self):
         # detect feet contact
-        # contact = 0, last_contact = 0, contact_filt = 0 --> last_contact = 0 & land_time = 0 --> first_contact = 0
-        # contact = 0, last_contact = 1, contact_filt = 1 --> last_contact = 0 & land_time > 0 --> first_contact = 0
-        # contact = 1, last_contact = 0, contact_filt = 1 --> last_contact = 1 & land_time = 0 --> first_contact = 1
-        # contact = 1, last_contact = 1, contact_filt = 1 --> last_contact = 1 & land_time > 0 --> first_contact = 0
         self.feet_contact = self.contact_forces[:, self.feet_indices, 2] > 1.
         self.feet_contact_last = self.feet_contact
 

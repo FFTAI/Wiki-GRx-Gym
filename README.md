@@ -70,13 +70,13 @@ This repository provides an environment used to train GRx to walk on rough terra
 
     - 疑问参考 [isaacgym/docs/index.html](IsaacGym_Preview_4_Package/isaacgym/docs/index.html)
 
-5. 安装 rsl_rl, [rsl_rl/README](rsl_rl/README.md)
+5. 安装 rsl_rl, [rsl_rl/README](rsl-rl/README.md)
 
     ```
     cd rsl_rl && git checkout v1.0.2 && pip install -e .
     ```
 
-7. 安装 legged_gym, [legged_gym/README](legged_gym/README.md)
+7. 安装 legged_gym, [legged_gym/README](legged-gym/README.md)
 
     ```
     cd legged_gym && pip install -e .

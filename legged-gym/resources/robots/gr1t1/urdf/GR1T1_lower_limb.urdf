@@ -31,14 +31,14 @@
                         rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
             </material>
         </visual>
-<!--        <collision>-->
-<!--            <origin-->
-<!--                    xyz="0 0 0.0"-->
-<!--                    rpy="0 0 0"/>-->
-<!--            <geometry>-->
-<!--                <cylinder length="0.1" radius="0.1"/>-->
-<!--            </geometry>-->
-<!--        </collision>-->
+        <!--        <collision>-->
+        <!--            <origin-->
+        <!--                    xyz="0 0 0.0"-->
+        <!--                    rpy="0 0 0"/>-->
+        <!--            <geometry>-->
+        <!--                <cylinder length="0.1" radius="0.1"/>-->
+        <!--            </geometry>-->
+        <!--        </collision>-->
         <!-- <origin
           xyz="0 0 0"
           rpy="0 0 0" />
@@ -102,7 +102,7 @@
         <limit
                 lower="-0.09"
                 upper="0.79"
-                effort="100"
+                effort="60"
                 velocity="12.15"/>
     </joint>
     <link
@@ -160,7 +160,7 @@
         <limit
                 lower="-0.7"
                 upper="0.7"
-                effort="82.5"
+                effort="45"
                 velocity="16.76"/>
     </joint>
     <link
@@ -224,7 +224,7 @@
         <limit
                 lower="-1.75"
                 upper="0.7"
-                effort="160"
+                effort="130"
                 velocity="37.38"/>
     </joint>
     <link
@@ -288,7 +288,7 @@
         <limit
                 lower="-0.09"
                 upper="1.92"
-                effort="160"
+                effort="130"
                 velocity="37.38"/>
     </joint>
     <link
@@ -346,7 +346,7 @@
         <limit
                 lower="-1.05"
                 upper="0.52"
-                effort="8"
+                effort="16"
                 velocity="20.32"/>
     </joint>
     <link
@@ -403,7 +403,7 @@
     </link>
     <joint
             name="l_ankle_roll"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 0 0"
                 rpy="0 0 0"/>
@@ -416,9 +416,11 @@
         <limit
                 lower="-0.44"
                 upper="0.44"
-                effort="3"
+                effort="8"
                 velocity="20.32"/>
     </joint>
+
+
     <link
             name="r_thigh_roll">
         <inertial>
@@ -474,7 +476,7 @@
         <limit
                 lower="-0.79"
                 upper="0.09"
-                effort="100"
+                effort="60"
                 velocity="12.15"/>
     </joint>
     <link
@@ -532,7 +534,7 @@
         <limit
                 lower="-0.7"
                 upper="0.7"
-                effort="82.5"
+                effort="45"
                 velocity="16.76"/>
     </joint>
     <link
@@ -596,7 +598,7 @@
         <limit
                 lower="-1.75"
                 upper="0.7"
-                effort="160"
+                effort="130"
                 velocity="37.38"/>
     </joint>
     <link
@@ -660,7 +662,7 @@
         <limit
                 lower="-0.09"
                 upper="1.92"
-                effort="160"
+                effort="130"
                 velocity="37.38"/>
     </joint>
     <link
@@ -718,7 +720,7 @@
         <limit
                 lower="-1.05"
                 upper="0.52"
-                effort="8"
+                effort="16"
                 velocity="20.32"/>
     </joint>
     <link
@@ -775,7 +777,7 @@
     </link>
     <joint
             name="r_ankle_roll"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 0 0"
                 rpy="0 0 0"/>
@@ -788,7 +790,7 @@
         <limit
                 lower="-0.44"
                 upper="0.44"
-                effort="3"
+                effort="8"
                 velocity="20.32"/>
     </joint>
     <link
@@ -839,7 +841,7 @@
     </link>
     <joint
             name="waist_yaw"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 0 0.0065"
                 rpy="0 0 0"/>
@@ -852,7 +854,7 @@
         <limit
                 lower="-1.05"
                 upper="1.05"
-                effort="82.5"
+                effort="45"
                 velocity="16.76"/>
     </joint>
     <link
@@ -897,7 +899,7 @@
     </link>
     <joint
             name="waist_pitch"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 0 0.055"
                 rpy="0 0 0"/>
@@ -910,7 +912,7 @@
         <limit
                 lower="-0.52"
                 upper="1.22"
-                effort="82.5"
+                effort="45"
                 velocity="16.76"/>
     </joint>
     <link
@@ -963,7 +965,7 @@
     </link>
     <joint
             name="waist_roll"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 0 0.085"
                 rpy="0 0 0"/>
@@ -976,7 +978,7 @@
         <limit
                 lower="-0.7"
                 upper="0.7"
-                effort="82.5"
+                effort="45"
                 velocity="16.76"/>
     </joint>
     <link
@@ -1021,7 +1023,7 @@
     </link>
     <joint
             name="head_yaw"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 -2.3548E-05 0.34453"
                 rpy="0 0 0"/>
@@ -1079,7 +1081,7 @@
     </link>
     <joint
             name="head_roll"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 0 0.1225"
                 rpy="0 0 0"/>
@@ -1125,14 +1127,14 @@
                         rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
             </material>
         </visual>
-<!--        <collision>-->
-<!--            <origin-->
-<!--                    xyz="0 0 0"-->
-<!--                    rpy="0 0 0"/>-->
-<!--            <geometry>-->
-<!--                <sphere radius="0.07"/>-->
-<!--            </geometry>-->
-<!--        </collision>-->
+        <!--        <collision>-->
+        <!--            <origin-->
+        <!--                    xyz="0 0 0"-->
+        <!--                    rpy="0 0 0"/>-->
+        <!--            <geometry>-->
+        <!--                <sphere radius="0.07"/>-->
+        <!--            </geometry>-->
+        <!--        </collision>-->
         <!-- <origin
           xyz="0 0 0"
           rpy="0 0 0" />
@@ -1143,7 +1145,7 @@
     </link>
     <joint
             name="head_pitch"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 0 0"
                 rpy="0 0 0"/>
@@ -1201,7 +1203,7 @@
     </link>
     <joint
             name="l_shoulder_pitch"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 0.12661 0.21727"
                 rpy="0.4364 0 0"/>
@@ -1214,7 +1216,7 @@
         <limit
                 lower="-2.79"
                 upper="1.92"
-                effort="38"
+                effort="18"
                 velocity="9.11"/>
     </joint>
     <link
@@ -1247,14 +1249,14 @@
                         rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
             </material>
         </visual>
-<!--        <collision>-->
-<!--            <origin-->
-<!--                    xyz="0 0 0"-->
-<!--                    rpy="0 0 0"/>-->
-<!--            <geometry>-->
-<!--                <sphere radius="0.03"/>-->
-<!--            </geometry>-->
-<!--        </collision>-->
+        <!--        <collision>-->
+        <!--            <origin-->
+        <!--                    xyz="0 0 0"-->
+        <!--                    rpy="0 0 0"/>-->
+        <!--            <geometry>-->
+        <!--                <sphere radius="0.03"/>-->
+        <!--            </geometry>-->
+        <!--        </collision>-->
         <!-- <origin
           xyz="0 0 0"
           rpy="0 0 0" />
@@ -1266,12 +1268,10 @@
     <joint
             name="l_shoulder_roll"
             type="fixed">
-<!--        <origin-->
-<!--                xyz="0 0.067 0"-->
-<!--                rpy="-0.4364 0 0"/>-->
         <origin
                 xyz="0 0.067 0"
-                rpy="-0.1364 0 0"/>
+                rpy="-0.2364 0 0"/>
+        <!--                rpy="-0.4364 0 0"/>-->
         <parent
                 link="l_upper_arm_pitch"/>
         <child
@@ -1281,7 +1281,7 @@
         <limit
                 lower="-0.57"
                 upper="3.27"
-                effort="38"
+                effort="18"
                 velocity="9.11"/>
     </joint>
     <link
@@ -1345,7 +1345,7 @@
         <limit
                 lower="-2.97"
                 upper="2.97"
-                effort="30"
+                effort="18"
                 velocity="7.33"/>
     </joint>
     <link
@@ -1393,7 +1393,7 @@
             type="fixed">
         <origin
                 xyz="0 1.28869477361571E-05 -0.188546025627068"
-                rpy="0 0 0"/>
+                rpy="0 -0.3 0"/>
         <parent
                 link="l_upper_arm_yaw"/>
         <child
@@ -1403,7 +1403,7 @@
         <limit
                 lower="-2.27"
                 upper="2.27"
-                effort="30"
+                effort="18"
                 velocity="7.33"/>
     </joint>
     <link
@@ -1634,7 +1634,7 @@
     </link>
     <joint
             name="r_shoulder_pitch"
-            type="revolute">
+            type="fixed">
         <origin
                 xyz="0 -0.12664 0.21725"
                 rpy="-0.43627 0 0"/>
@@ -1647,7 +1647,7 @@
         <limit
                 lower="-2.79"
                 upper="1.92"
-                effort="38"
+                effort="18"
                 velocity="9.11"/>
     </joint>
     <link
@@ -1680,14 +1680,14 @@
                         rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
             </material>
         </visual>
-<!--        <collision>-->
-<!--            <origin-->
-<!--                    xyz="0 0 0"-->
-<!--                    rpy="0 0 0"/>-->
-<!--            <geometry>-->
-<!--                <sphere radius="0.03"/>-->
-<!--            </geometry>-->
-<!--        </collision>-->
+        <!--        <collision>-->
+        <!--            <origin-->
+        <!--                    xyz="0 0 0"-->
+        <!--                    rpy="0 0 0"/>-->
+        <!--            <geometry>-->
+        <!--                <sphere radius="0.03"/>-->
+        <!--            </geometry>-->
+        <!--        </collision>-->
         <!-- <origin
           xyz="0 0 0"
           rpy="0 0 0" />
@@ -1699,12 +1699,10 @@
     <joint
             name="r_shoulder_roll"
             type="fixed">
-<!--        <origin-->
-<!--                xyz="0 -0.067 0"-->
-<!--                rpy="0.43627 0 0"/>-->
         <origin
                 xyz="0 -0.067 0"
-                rpy="0.13627 0 0"/>
+                rpy="0.23627 0 0"/>
+        <!--                rpy="0.43627 0 0"/>-->
         <parent
                 link="r_upper_arm_pitch"/>
         <child
@@ -1714,7 +1712,7 @@
         <limit
                 lower="-3.27"
                 upper="0.57"
-                effort="38"
+                effort="18"
                 velocity="9.11"/>
     </joint>
     <link
@@ -1778,7 +1776,7 @@
         <limit
                 lower="-2.97"
                 upper="2.97"
-                effort="30"
+                effort="18"
                 velocity="7.33"/>
     </joint>
     <link
@@ -1826,7 +1824,7 @@
             type="fixed">
         <origin
                 xyz="0 1.28858724863512E-05 -0.188530329837713"
-                rpy="0 0 0"/>
+                rpy="0 -0.3 0"/>
         <parent
                 link="r_upper_arm_yaw"/>
         <child
@@ -1836,7 +1834,7 @@
         <limit
                 lower="-2.27"
                 upper="2.27"
-                effort="30"
+                effort="18"
                 velocity="7.33"/>
     </joint>
     <link
@@ -2025,5 +2023,27 @@
                 effort="3.95"
                 velocity="27.96"/>
     </joint>
+
+
+    <!-- ############################################################ -->
+
+    <link name="z_link_imu">
+        <visual>
+            <geometry>
+                <box size="0.05 0.05 0.02"/>
+            </geometry>
+            <material name="">
+                <color rgba="0.75294 0.75294 0.75294 1"/>
+            </material>
+        </visual>
+    </link>
+    <joint name="z_joint_imu" type="fixed">
+        <origin xyz="-0.0648 0 -0.1015" rpy="0 0 0"/>
+        <parent link="base"/>
+        <child link="z_link_imu"/>
+    </joint>
+
+    <!-- ############################################################ -->
+
 
 </robot>

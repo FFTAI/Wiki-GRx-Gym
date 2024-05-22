@@ -17,9 +17,7 @@ class LeggedRobotFFTAI(LeggedRobot):
     def _init_cfg(self, cfg: LeggedRobotFFTAICfg):
         super()._init_cfg(cfg)
 
-        self.size_mh = self.cfg.env.size_mh
         self.num_mh = self.cfg.env.num_mh
-        self.num_stack = self.cfg.env.num_stack
 
         self.encoder_profile = self.cfg.env.encoder_profile
         self.num_encoder_input = self.cfg.env.num_encoder_input

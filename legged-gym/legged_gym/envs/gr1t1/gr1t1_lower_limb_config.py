@@ -8,17 +8,6 @@ class GR1T1LowerLimbCfg(LeggedRobotCfg):
         num_envs = 4096  # 4096, number of instances trained in parallel
         num_actions = 32  # number of actuators on robot
 
-        size_mh = [11, 11]
-
-        # IMPORTANT, num_observations should match the dimension of following items (subject to robot configurations) that included in observation instance
-        # | `base_lin_vel`              | 3    |
-        # | `base_ang_vel`              | 3    |
-        # | `projected_gravity`         | 3    |
-        # | `commands`                  | 3(4) |
-        # | `dof_pos`                   | 32   |
-        # | `dof_vel`                   | 32   |
-        # | `action`                    | 32   |
-        # | `num_measured_heights`      | 11*11|    meshgrid defined in `terrian` if `measure_heights` is `True`
         num_obs = 39
         num_pri_obs = 168
         actor_num_output = 10
@@ -68,10 +57,6 @@ class GR1T1LowerLimbCfg(LeggedRobotCfg):
     class commands(LeggedRobotCfg.commands):
         curriculum = False
         heading_command = False  # if true: compute ang vel command from heading error
-
-        resample_command_profiles = [
-            "GR1T1-walk"
-        ]
 
         ranges_swing_feet_height = [0.05, 0.05]  # min max [m]
 

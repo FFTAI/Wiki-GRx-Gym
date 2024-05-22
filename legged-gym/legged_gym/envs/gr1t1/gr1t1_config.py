@@ -8,10 +8,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         num_envs = 8192  # NVIDIA 4090 has 16384 CUDA cores
         episode_length_s = 20  # episode length in seconds
 
-        size_mh = [0, 0]
-        num_mh = size_mh[0] * size_mh[1]
         num_obs = 121
-        num_stack = 1
         actor_num_output = 32
 
         encoder_profile = None
@@ -41,15 +38,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         num_commands = 3  # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
         heading_command = False  # if true: compute ang vel command from heading error
 
-        resampling_time = 10.  # time before command are changed[s]
-        resample_command_profiles = [
-            "GR1T1-walk"
-        ]
-        resample_command_profiles_randomize = False
-        resample_command_log = False
-        resample_command_plot = False
-
-        class ranges_walk:
+        class ranges(LeggedRobotFFTAICfg.commands.ranges):
             lin_vel_x = [-0.50, 0.50]  # min max [m/s]
             lin_vel_y = [-0.50, 0.50]  # min max [m/s]
             ang_vel_yaw = [-0.50, 0.50]  # min max [rad/s]
@@ -349,7 +338,6 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         class scales(LeggedRobotFFTAICfg.rewards.scales):
             termination = 0.0
 
-        class scales_walk:
             dof_vel = -0.001  # -0.01  # -0.001
             dof_acc = -1.e-7  # -1.e-6  # -1.e-7
 

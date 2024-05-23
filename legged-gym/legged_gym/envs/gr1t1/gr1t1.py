@@ -465,47 +465,6 @@ class GR1T1(LeggedRobotFFTAI):
         # print("noise_vec: ", noise_vec)
         return noise_vec
 
-    def _resample_commands_profile(self,
-                                   env_ids,
-                                   select_command_profile=None):
-
-        # random swing feet height
-        self.swing_feet_height_target[env_ids, 0] = torch_rand_float(self.ranges_swing_feet_height[0],
-                                                                     self.ranges_swing_feet_height[1],
-                                                                     (len(env_ids), 1),
-                                                                     device=self.device).squeeze(1)
-
-        # commands
-        self.commands[env_ids, 0] = torch_rand_float(self.command_ranges_walk["lin_vel_x"][0],
-                                                     self.command_ranges_walk["lin_vel_x"][1],
-                                                     (len(env_ids), 1),
-                                                     device=self.device).squeeze(1)
-        self.commands[env_ids, 1] = torch_rand_float(self.command_ranges_walk["lin_vel_y"][0],
-                                                     self.command_ranges_walk["lin_vel_y"][1],
-                                                     (len(env_ids), 1),
-                                                     device=self.device).squeeze(1)
-
-        # set small commands to zero
-        self.commands[env_ids, :2] *= (torch.norm(self.commands[env_ids, :2], dim=1) > 0.1).unsqueeze(1)
-
-        # using heading command to auto change the yaw command
-        if self.cfg.commands.heading_command:
-            self.commands_heading[env_ids] = torch_rand_float(self.command_ranges_walk["heading"][0],
-                                                              self.command_ranges_walk["heading"][1],
-                                                              (len(env_ids), 1),
-                                                              device=self.device).squeeze(1)
-        else:
-            self.commands[env_ids, 2] = torch_rand_float(self.command_ranges_walk["ang_vel_yaw"][0],
-                                                         self.command_ranges_walk["ang_vel_yaw"][1],
-                                                         (len(env_ids), 1),
-                                                         device=self.device).squeeze(1)
-
-        self._resample_commands_log()
-
-    def _resample_commands_log(self):
-        if self.cfg.commands.resample_command_log:
-            print("self.commands: \n", self.commands)
-
     # ----------------------------------------------
 
     # 惩罚 上半身 Orientation 不水平

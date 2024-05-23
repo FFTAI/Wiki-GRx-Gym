@@ -83,10 +83,10 @@ class OnPolicyRunner:
 
         actor_critic_class = eval(self.cfg["policy_class_name"])
 
-        actor_critic: ActorCritic = actor_critic_class(actor_num_input,
-                                                       critic_num_input,
-                                                       actor_num_output,
-                                                       **self.policy_cfg).to(self.device)
+        actor_critic: ActorCriticMLP = actor_critic_class(actor_num_input,
+                                                          critic_num_input,
+                                                          actor_num_output,
+                                                          **self.policy_cfg).to(self.device)
 
         # PPO
         alg_class = eval(self.cfg["algorithm_class_name"])

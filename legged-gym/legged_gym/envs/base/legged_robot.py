@@ -338,6 +338,9 @@ class LeggedRobot(BaseTask):
         self.reset_buf = torch.any(torch.norm(
             self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
 
+        # detect base tilt too much (roll and pitch)
+        self.reset_buf = self.reset_buf | (torch.norm(self.base_projected_gravity[:, :2], dim=-1) > 0.7)
+
         # no terminal reward for time-outs
         self.time_out_buf = self.episode_length_buf > self.max_episode_length
 

@@ -125,16 +125,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         self.feet_land_time = self.feet_land_time * self.feet_contact
 
     # ----------------------------------------------
-    def check_termination(self):
-        """ Check if environments need to be reset
-        """
-        self.reset_buf = torch.any(torch.norm(
-            self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
-
-        # no terminal reward for time-outs
-        self.time_out_buf = self.episode_length_buf > self.max_episode_length
-
-        self.reset_buf |= self.time_out_buf
 
     def reset_idx(self, env_ids):
         super().reset_idx(env_ids)

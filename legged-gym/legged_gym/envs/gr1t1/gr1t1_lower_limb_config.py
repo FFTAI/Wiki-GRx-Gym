@@ -121,7 +121,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             # action_rate 惩罚的是机器人的动作
             # 如果设置太大，会导致机器人不敢动
             # 尝试方式：设置一个较大的值，然后观察机器人的行为，如果机器人不敢动，则逐渐调小（该方法有问题，不能这么做!）
-            action_diff = -2.0
+            action_diff = -1.0
             action_diff_knee = -0.2
 
             action_diff_diff = -1.0

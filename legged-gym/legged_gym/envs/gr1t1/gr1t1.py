@@ -29,9 +29,6 @@ class GR1T1(LeggedRobotFFTAI):
         self.sea_hidden_state_per_env = self.sea_hidden_state.view(2, self.num_envs, self.actor_num_output, 3)
         self.sea_cell_state_per_env = self.sea_cell_state.view(2, self.num_envs, self.actor_num_output, 3)
 
-    def _init_cfg(self, cfg: GR1T1Cfg):
-        super()._init_cfg(cfg)
-
     def _create_envs_get_indices(self, body_names, env_handle, actor_handle):
         """ Creates a list of indices for different bodies of the robot.
         """

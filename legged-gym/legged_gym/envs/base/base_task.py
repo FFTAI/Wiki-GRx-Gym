@@ -34,6 +34,7 @@ from isaacgym import gymutil
 import numpy as np
 import torch
 
+
 # Base class for RL tasks
 class BaseTask():
 
@@ -47,20 +48,18 @@ class BaseTask():
         self.headless = headless
 
         # env device is GPU only if sim is on GPU and use_gpu_pipeline=True, otherwise returned tensors are copied to CPU by physX.
-        if sim_device_type=='cuda' and sim_params.use_gpu_pipeline:
+        if sim_device_type == 'cuda' and sim_params.use_gpu_pipeline:
             self.device = self.sim_device
         else:
             self.device = 'cpu'
 
         # graphics device for rendering, -1 for no rendering
         self.graphics_device_id = self.sim_device_id
+
         if self.headless == True:
             self.graphics_device_id = -1
 
-        self.num_envs = cfg.env.num_envs
-        self.num_obs = cfg.env.num_observations
-        self.num_privileged_obs = cfg.env.num_privileged_obs
-        self.num_actions = cfg.env.num_actions
+        self._init_cfg(cfg)
 
         # optimization flags for pytorch JIT
         torch._C._jit_set_profiling_mode(False)
@@ -72,11 +71,9 @@ class BaseTask():
         self.reset_buf = torch.ones(self.num_envs, device=self.device, dtype=torch.long)
         self.episode_length_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.long)
         self.time_out_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
-        if self.num_privileged_obs is not None:
-            self.privileged_obs_buf = torch.zeros(self.num_envs, self.num_privileged_obs, device=self.device, dtype=torch.float)
-        else: 
-            self.privileged_obs_buf = None
-            # self.num_privileged_obs = self.num_obs
+
+        if self.num_pri_obs is not None:
+            self.pri_obs_buf = torch.zeros(self.num_envs, self.num_privileged_obs, device=self.device, dtype=torch.float)
 
         self.extras = {}
 
@@ -91,18 +88,27 @@ class BaseTask():
         # if running with a viewer, set up keyboard shortcuts and camera
         if self.headless == False:
             # subscribe to keyboard shortcuts
-            self.viewer = self.gym.create_viewer(
-                self.sim, gymapi.CameraProperties())
-            self.gym.subscribe_viewer_keyboard_event(
-                self.viewer, gymapi.KEY_ESCAPE, "QUIT")
-            self.gym.subscribe_viewer_keyboard_event(
-                self.viewer, gymapi.KEY_V, "toggle_viewer_sync")
+            self.camera_setting = gymapi.CameraProperties()
+            self.camera_setting.height = 1080
+            self.camera_setting.width = 1920
+
+            self.viewer = self.gym.create_viewer(self.sim, gymapi.CameraProperties())
+            self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_ESCAPE, "QUIT")
+            self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_V, "toggle_viewer_sync")
+
+    def _init_cfg(self, cfg):
+        self.cfg = cfg
+
+        self.num_envs = cfg.env.num_envs
+        self.num_obs = cfg.env.num_obs
+        self.num_pri_obs = cfg.env.num_pri_obs
+        self.actor_num_output = cfg.env.actor_num_output
 
     def get_observations(self):
         return self.obs_buf
-    
+
     def get_privileged_observations(self):
-        return self.privileged_obs_buf
+        return self.pri_obs_buf
 
     def reset_idx(self, env_ids):
         """Reset selected robots"""

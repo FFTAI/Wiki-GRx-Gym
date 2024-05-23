@@ -48,9 +48,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    def before_actions_update(self):
-        pass
-
     def during_physics_step(self):
 
         # set delay (random from normal distribution, mean from config)

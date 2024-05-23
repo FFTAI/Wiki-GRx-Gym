@@ -22,13 +22,6 @@ class GR1T1(LeggedRobotFFTAI):
                                                    dtype=torch.float, device=self.device, requires_grad=False) \
                                         * self.cfg.rewards.swing_feet_height_target
 
-        # additionally initialize actuator network hidden state tensors
-        self.sea_input = torch.zeros(self.num_envs * self.actor_num_output, 1, 2, device=self.device, requires_grad=False)
-        self.sea_hidden_state = torch.zeros(2, self.num_envs * self.actor_num_output, 3, device=self.device, requires_grad=False)
-        self.sea_cell_state = torch.zeros(2, self.num_envs * self.actor_num_output, 3, device=self.device, requires_grad=False)
-        self.sea_hidden_state_per_env = self.sea_hidden_state.view(2, self.num_envs, self.actor_num_output, 3)
-        self.sea_cell_state_per_env = self.sea_cell_state.view(2, self.num_envs, self.actor_num_output, 3)
-
     def _create_envs_get_indices(self, body_names, env_handle, actor_handle):
         """ Creates a list of indices for different bodies of the robot.
         """
@@ -136,23 +129,14 @@ class GR1T1(LeggedRobotFFTAI):
         super()._init_buffers()
 
         # Jason 2023-09-19:
-        # change from actor_num_output to num_dof
+        # change from num_actions to num_dof
         self.actions = torch.zeros(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
         self.last_actions = torch.zeros(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
-
-        self.dof_pos_leg = torch.zeros(self.num_envs, len(self.leg_indices), dtype=torch.float, device=self.device, requires_grad=False)
-        self.dof_vel_leg = torch.zeros(self.num_envs, len(self.leg_indices), dtype=torch.float, device=self.device, requires_grad=False)
 
         # commands
         self.commands = torch.zeros(self.num_envs, self.cfg.commands.num_commands, dtype=torch.float, device=self.device, requires_grad=False)
         self.commands_heading = torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
         self.commands_scale = torch.ones_like(self.commands, dtype=torch.float, device=self.device, requires_grad=False)
-
-        # resample stand command env_ids
-        self.env_ids_for_stand_command = list(range(self.num_envs))
-        self.env_ids_for_walk_command = list(range(self.num_envs))
-
-        self._init_buffer_orient()
 
     def _init_buffers_joint_indices(self):
 
@@ -207,14 +191,6 @@ class GR1T1(LeggedRobotFFTAI):
         self.wrist_roll_indices = []
         self.wrist_pitch_indices = []
 
-        self.leg_indices = []
-        self.arm_indices = []
-
-        self.left_leg_indices = []
-        self.right_leg_indices = []
-        self.left_arm_indices = []
-        self.right_arm_indices = []
-
         for i in range(self.num_dof):
             name = self.dof_names[i]
 
@@ -241,7 +217,6 @@ class GR1T1(LeggedRobotFFTAI):
 
             if hip_names in name:
                 self.hip_indices.append(i)
-                self.leg_indices.append(i)
 
             if hip_roll_names in name:
                 self.hip_roll_indices.append(i)
@@ -254,11 +229,9 @@ class GR1T1(LeggedRobotFFTAI):
 
             if knee_names in name:
                 self.knee_indices.append(i)
-                self.leg_indices.append(i)
 
             if ankle_names in name:
                 self.ankle_indices.append(i)
-                self.leg_indices.append(i)
 
             if ankle_pitch_names in name:
                 self.ankle_pitch_indices.append(i)
@@ -268,7 +241,6 @@ class GR1T1(LeggedRobotFFTAI):
 
             if shoulder_names in name:
                 self.shoulder_indices.append(i)
-                self.arm_indices.append(i)
 
             if shoulder_pitch_names in name:
                 self.shoulder_pitch_indices.append(i)
@@ -281,11 +253,9 @@ class GR1T1(LeggedRobotFFTAI):
 
             if elbow_names in name:
                 self.elbow_indices.append(i)
-                self.arm_indices.append(i)
 
             if wrist_names in name:
                 self.wrist_indices.append(i)
-                self.arm_indices.append(i)
 
             if wrist_yaw_names in name:
                 self.wrist_yaw_indices.append(i)
@@ -322,87 +292,9 @@ class GR1T1(LeggedRobotFFTAI):
         print("self.wrist_roll_indices: " + str(self.wrist_roll_indices))
         print("self.wrist_pitch_indices: " + str(self.wrist_pitch_indices))
 
-        print("self.leg_indices: " + str(self.leg_indices))
-        print("self.arm_indices: " + str(self.arm_indices))
-
-        self.left_leg_indices = self.leg_indices[:len(self.leg_indices) // 2]
-        self.right_leg_indices = self.leg_indices[len(self.leg_indices) // 2:]
-        self.left_arm_indices = self.arm_indices[:len(self.arm_indices) // 2]
-        self.right_arm_indices = self.arm_indices[len(self.arm_indices) // 2:]
-
-        print("self.left_leg_indices: " + str(self.left_leg_indices))
-        print("self.right_leg_indices: " + str(self.right_leg_indices))
-        print("self.left_arm_indices: " + str(self.left_arm_indices))
-        print("self.right_arm_indices: " + str(self.right_arm_indices))
-
-    def _init_buffers_measure_heights(self):
-        super()._init_buffers_measure_heights()
-
-        # measured height supervisor
-        if self.cfg.terrain.measure_heights_supervisor:
-            self.height_points_supervisor = self._init_height_points_supervisor()
-        self.measured_heights_supervisor = None
-
-    def _init_buffer_orient(self):
-        self._calculate_feet_orient()
-        self._calculate_imu_orient()
-
-    def _parse_cfg(self):
-
-        print("----------------------------------------")
-
-        super()._parse_cfg()
-
-        self.ranges_swing_feet_height = class_to_dict(self.cfg.commands.ranges_swing_feet_height)
-
-    def post_physics_step_update_state(self):
-        super().post_physics_step_update_state()
-
-        if self.cfg.terrain.measure_heights_supervisor:
-            self.measured_heights_supervisor = self._get_heights_supervisor()
-
-        self._calculate_feet_orient()
-
-    def _calculate_feet_orient(self):
-        # feet
-        self.left_feet_orient_projected = \
-            quat_rotate_inverse(self.rigid_body_states[:, self.feet_indices][:, 0, 3:7], self.gravity_vec)
-        self.right_feet_orient_projected = \
-            quat_rotate_inverse(self.rigid_body_states[:, self.feet_indices][:, 1, 3:7], self.gravity_vec)
-        self.feet_orient_projected = torch.cat((
-            self.left_feet_orient_projected.unsqueeze(1),
-            self.right_feet_orient_projected.unsqueeze(1)
-        ), dim=1)
-
-    def check_termination(self):
-        super().check_termination()
-
-        # detect chest tilt too much (roll and pitch)
-        if len(self.chest_indices) > 0:
-            chest_projected_gravity = quat_rotate_inverse(self.rigid_body_states[:, self.chest_indices][:, 0, 3:7],
-                                                          self.gravity_vec)
-            self.reset_buf = self.reset_buf | (torch.norm(chest_projected_gravity[:, :2], dim=-1)
-                                               > self.cfg.asset.terminate_after_base_projected_gravity_greater_than)
-
-        # detect forehead tilt too much (roll and pitch)
-        if len(self.forehead_indices) > 0:
-            forehead_projected_gravity = quat_rotate_inverse(
-                self.rigid_body_states[:, self.forehead_indices][:, 0, 3:7],
-                self.gravity_vec)
-            self.reset_buf = self.reset_buf | (torch.norm(forehead_projected_gravity[:, :2], dim=-1)
-                                               > self.cfg.asset.terminate_after_base_projected_gravity_greater_than)
-
     def compute_observation_profile(self):
         self.obs_buf = torch.cat(
             (
-                # unobservable proprioception
-                # self.base_lin_vel * self.obs_scales.lin_vel * self.lin_vel_scales,
-                # self.base_heights_offset.unsqueeze(1) * self.obs_scales.height_measurements,
-
-                # imu related
-                # self.imu_ang_vel,
-                # self.imu_projected_gravity,
-
                 # base related
                 self.base_ang_vel * self.obs_scales.ang_vel,
                 self.base_projected_gravity,
@@ -417,12 +309,8 @@ class GR1T1(LeggedRobotFFTAI):
         self.pri_obs_buf = torch.cat(
             (
                 # unobservable proprioception
-                self.base_lin_vel * self.obs_scales.lin_vel * self.lin_vel_scales,
+                self.base_lin_vel * self.obs_scales.lin_vel,
                 self.base_heights_offset.unsqueeze(1) * self.obs_scales.height_measurements,
-
-                # imu related
-                # self.imu_ang_vel,
-                # self.imu_projected_gravity,
 
                 # base related
                 self.base_ang_vel * self.obs_scales.ang_vel,
@@ -435,7 +323,7 @@ class GR1T1(LeggedRobotFFTAI):
                 self.actions,
 
                 # height related
-                self.surround_heights_offset_supervisor,
+                self.surround_heights_offset,
 
                 # contact
                 self.feet_contact,
@@ -503,15 +391,14 @@ class GR1T1(LeggedRobotFFTAI):
 
     # ----------------------------------------------
 
-    def _reward_action_diff_diff_hip_roll(self):
-        error_action_diff = (self.last_actions[:, self.hip_indices] - self.actions[:, self.hip_indices]) \
+    # 惩罚 膝关节 action 差异
+    def _reward_action_diff_knee(self):
+        error_action_diff = (self.last_actions[:, self.knee_indices] - self.actions[:, self.knee_indices]) \
                             * self.cfg.control.action_scale
-        error_action_diff_last = (self.last_last_actions[:, self.hip_indices] - self.last_actions[:, self.hip_indices]) \
-                                 * self.cfg.control.action_scale
-        error_action_diff_diff = torch.sum(torch.abs(error_action_diff - error_action_diff_last), dim=1)
-        reward_action_diff_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff_diff_hip_roll
-                                                * error_action_diff_diff)
-        return reward_action_diff_diff
+        error_action_diff = torch.sum(torch.abs(error_action_diff), dim=1)
+        reward_knee_action_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff_knee
+                                                * error_action_diff)
+        return reward_knee_action_diff
 
     # ----------------------------------------------
 
@@ -524,9 +411,9 @@ class GR1T1(LeggedRobotFFTAI):
     # ----------------------------------------------
     def _reward_dof_tor_ankle_feet_lift_up(self):
         left_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights_supervisor, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights, dim=1)
         right_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights_supervisor, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights, dim=1)
 
         error_torques_ankle_left_foot_lift_up = torch.sum(
             torch.abs(self.torques[:, self.ankle_indices[:len(self.ankle_indices) // 2]]), dim=1) \
@@ -550,9 +437,9 @@ class GR1T1(LeggedRobotFFTAI):
     # 惩罚 脚部 接近地面时不水平
     def _reward_orient_diff_feet_put_down(self):
         left_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights_supervisor, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights, dim=1)
         right_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights_supervisor, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights, dim=1)
 
         # Jason 2023-12-27:
         # normalize the error by the target height
@@ -573,9 +460,9 @@ class GR1T1(LeggedRobotFFTAI):
 
     def _reward_orient_diff_feet_lift_up(self):
         left_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights_supervisor, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights, dim=1)
         right_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights_supervisor, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights, dim=1)
 
         # Jason 2023-12-27:
         # normalize the error by the target height
@@ -598,9 +485,9 @@ class GR1T1(LeggedRobotFFTAI):
 
     def _reward_feet_speed_xy_close_to_ground(self):
         left_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights_supervisor, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights, dim=1)
         right_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights_supervisor, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights, dim=1)
 
         error_left_foot_speed_xy_close_to_ground = \
             torch.norm(self.avg_feet_speed_xyz[:, 0, :2], dim=1) \
@@ -621,10 +508,10 @@ class GR1T1(LeggedRobotFFTAI):
     def _reward_feet_speed_z_close_to_height_target(self):
         left_foot_height = torch.mean(
             self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1)
-            - self.measured_heights_supervisor, dim=1)
+            - self.measured_heights, dim=1)
         right_foot_height = torch.mean(
             self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1)
-            - self.measured_heights_supervisor, dim=1)
+            - self.measured_heights, dim=1)
 
         error_left_foot_speed_z_close_to_height_target = \
             torch.abs(self.avg_feet_speed_xyz[:, 0, 2]) \
@@ -662,11 +549,11 @@ class GR1T1(LeggedRobotFFTAI):
     def _reward_feet_air_height(self):
         left_foot_height = torch.mean(
             self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1)
-            - self.measured_heights_supervisor,
+            - self.measured_heights,
             dim=1)
         right_foot_height = torch.mean(
             self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1)
-            - self.measured_heights_supervisor,
+            - self.measured_heights,
             dim=1)
 
         stack_feet_height = torch.stack((left_foot_height,
@@ -704,9 +591,9 @@ class GR1T1(LeggedRobotFFTAI):
         return reward_feet_air_height
 
     def _reward_feet_air_force(self):
-        reward_feet_air_force_left_foot = torch.exp(self.cfg.rewards.sigma_feet_force
+        reward_feet_air_force_left_foot = torch.exp(self.cfg.rewards.sigma_feet_air_force
                                                     * torch.abs(self.avg_feet_contact_force[:, 0]))
-        reward_feet_air_force_right_foot = torch.exp(self.cfg.rewards.sigma_feet_force
+        reward_feet_air_force_right_foot = torch.exp(self.cfg.rewards.sigma_feet_air_force
                                                      * torch.abs(self.avg_feet_contact_force[:, 1]))
 
         reward_feet_air_force = torch.stack((reward_feet_air_force_left_foot,
@@ -744,18 +631,6 @@ class GR1T1(LeggedRobotFFTAI):
         # use exponential to make the reward more sparse
         reward_jumping = jumping_error
         return reward_jumping
-
-    # ----------------------------------------------
-
-    def _reward_hip_yaw(self):
-        # print(torch.sum(torch.abs(self.dof_pos[:,[1,7]]- self.default_dof_pos[:,[1,7]]),dim=1))
-        # print(torch.abs(self.commands[:, 2]))
-        return torch.sum(torch.abs(self.dof_pos[:, [1, 7]]), dim=1)
-
-    def _reward_hip_roll(self):
-        # print(torch.sum(torch.abs(self.dof_pos[:,[1,7]]- self.default_dof_pos[:,[1,7]]),dim=1))
-        # print(torch.abs(self.commands[:, 2]))
-        return torch.sum(torch.abs(self.dof_vel[:, [0, 6]]), dim=1)
 
     # ----------------------------------------------
 

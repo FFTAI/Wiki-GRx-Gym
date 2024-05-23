@@ -34,15 +34,8 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 
 class LeggedRobotFFTAICfg(LeggedRobotCfg):
     class env(LeggedRobotCfg.env):
-        num_mh = 0
         num_obs = 1
-        num_stack = 1
-        actor_num_output = 1
-
-        # encoder
-        encoder_profile = None
-        num_encoder_input = 0
-        num_encoder_output = 0
+        num_actions = 1
 
     class control(LeggedRobotCfg.control):
         # decimation: Number of control action updates @ sim DT per policy DT
@@ -53,8 +46,8 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
         delay_std = 0
 
     class rewards(LeggedRobotCfg.rewards):
+        sigma_action_diff = -0.1
         sigma_action_diff_diff = -1.0
-        sigma_action_diff_diff_hip_roll = -1.0
 
     class sim(LeggedRobotCfg.sim):
         dt = 0.001

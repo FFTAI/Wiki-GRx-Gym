@@ -38,11 +38,3 @@ class VecEnv(ABC):
     @abstractmethod
     def get_privileged_observations(self) -> Union[torch.Tensor, None]:
         pass
-
-    @abstractmethod
-    def get_reflect_observations(self, obs) -> Union[torch.Tensor, None]:
-        pass
-
-    @abstractmethod
-    def get_reflect_actions(self, actions_from_reflect_obs) -> Union[torch.Tensor, None]:
-        pass

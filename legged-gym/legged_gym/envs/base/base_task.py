@@ -73,7 +73,7 @@ class BaseTask():
         self.time_out_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
 
         if self.num_pri_obs is not None:
-            self.pri_obs_buf = torch.zeros(self.num_envs, self.num_privileged_obs, device=self.device, dtype=torch.float)
+            self.pri_obs_buf = torch.zeros(self.num_envs, self.num_pri_obs, device=self.device, dtype=torch.float)
 
         self.extras = {}
 
@@ -102,7 +102,7 @@ class BaseTask():
         self.num_envs = cfg.env.num_envs
         self.num_obs = cfg.env.num_obs
         self.num_pri_obs = cfg.env.num_pri_obs
-        self.actor_num_output = cfg.env.actor_num_output
+        self.num_actions = cfg.env.num_actions
 
     def get_observations(self):
         return self.obs_buf

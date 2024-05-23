@@ -11,17 +11,10 @@ from .legged_robot_fftai_config import LeggedRobotFFTAICfg
 
 class LeggedRobotFFTAI(LeggedRobot):
     def __init__(self, cfg, sim_params, physics_engine, sim_device, headless):
-
         super().__init__(cfg, sim_params, physics_engine, sim_device, headless)
 
     def _init_cfg(self, cfg: LeggedRobotFFTAICfg):
         super()._init_cfg(cfg)
-
-        self.num_mh = self.cfg.env.num_mh
-
-        self.encoder_profile = self.cfg.env.encoder_profile
-        self.num_encoder_input = self.cfg.env.num_encoder_input
-        self.num_encoder_output = self.cfg.env.num_encoder_output
 
     # ----------------------------------------------
 
@@ -33,7 +26,11 @@ class LeggedRobotFFTAI(LeggedRobot):
         self.default_dof_pos_tenors = self.default_dof_pos_tenors * self.default_dof_pos
 
         # actions
-        self.last_last_actions = torch.zeros(self.num_envs, self.actor_num_output, dtype=torch.float, device=self.device, requires_grad=False)
+        self.last_last_actions = torch.zeros(self.num_envs, self.num_actions, dtype=torch.float, device=self.device, requires_grad=False)
+
+        # average values
+        self.avg_feet_contact_force = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
+        self.avg_feet_speed = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
 
         # contact
         self.feet_contact = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.bool, device=self.device, requires_grad=False)
@@ -48,21 +45,17 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    def during_physics_step(self):
+    def before_physics_step(self):
+        self.avg_feet_contact_force = 0.0
 
-        # set delay (random from normal distribution, mean from config)
-        delay = numpy.random.normal(loc=self.cfg.control.delay_mean, scale=self.cfg.control.delay_std, size=1)[0]
-        delay = max(0, delay)
+        self.avg_feet_speed = torch.zeros(self.num_envs, len(self.feet_indices), device=self.device, requires_grad=False)
+        self.avg_feet_speed_xyz = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
+
+    def during_physics_step(self):
 
         for i in range(self.cfg.control.decimation):
 
-            # delay the actions for a few steps (to simulate the delay in real robots)
-            if i < delay:
-                self.torques = self._compute_torques(self.last_actions).view(self.torques.shape)
-            else:
-                self.torques = self._compute_torques(self.actions).view(self.torques.shape)
-
-            self.torques *= self.motor_strength
+            self.torques = self._compute_torques(self.last_actions).view(self.torques.shape)
             self.torques = torch.clip(self.torques, -self.torque_limits, self.torque_limits)
 
             # simulate
@@ -79,6 +72,14 @@ class LeggedRobotFFTAI(LeggedRobot):
 
             # compute some quantities
             self.dof_acc = (self.last_dof_vel - self.dof_vel) / self.dt
+
+            self.avg_feet_contact_force += torch.norm(self.contact_forces[:, self.feet_indices, :3], dim=-1)
+            self.avg_feet_speed += torch.norm(self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 7:10], dim=-1)
+            self.avg_feet_speed_xyz += torch.abs(self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 7:10])
+
+        self.avg_feet_contact_force /= self.cfg.control.decimation
+        self.avg_feet_speed /= self.cfg.control.decimation
+        self.avg_feet_speed_xyz /= self.cfg.control.decimation
 
     def post_physics_step(self):
         reset_env_ids = super().post_physics_step()
@@ -132,35 +133,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         self.reset_buf = torch.any(torch.norm(
             self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
 
-        # Jason : wrong model will create very high contact force.
-        # if self.reset_buf.any():
-        #     print("self.reset_buf = \n", self.reset_buf)
-        #     print("self.contact_forces[:, self.termination_contact_indices, :] = \n",
-        #           self.contact_forces[:, self.termination_contact_indices, :])
-
-        # detect base tilt too much (roll and pitch)
-        self.reset_buf = self.reset_buf | (torch.norm(self.base_projected_gravity[:, :2], dim=-1)
-                                           > self.cfg.asset.terminate_after_base_projected_gravity_greater_than)
-
-        # detect base velocity too much
-        if self.cfg.asset.terminate_after_base_lin_vel_greater_than is not None:
-            pass
-            self.reset_buf = self.reset_buf | (torch.abs(self.base_lin_vel[:, 0])
-                                               > self.cfg.asset.terminate_after_base_lin_vel_greater_than)
-            self.reset_buf = self.reset_buf | (torch.abs(self.base_lin_vel[:, 1])
-                                               > self.cfg.asset.terminate_after_base_lin_vel_greater_than)
-            # self.reset_buf = self.reset_buf | (torch.abs(self.base_lin_vel[:, 2])
-            #                                    > self.cfg.asset.terminate_after_base_lin_vel_greater_than)
-
-        if self.cfg.asset.terminate_after_base_ang_vel_greater_than is not None:
-            pass
-            self.reset_buf = self.reset_buf | (torch.abs(self.base_ang_vel[:, 0])
-                                               > self.cfg.asset.terminate_after_base_ang_vel_greater_than)
-            # self.reset_buf = self.reset_buf | (torch.abs(self.base_ang_vel[:, 1])
-            #                                    > self.cfg.asset.terminate_after_base_ang_vel_greater_than)
-            # self.reset_buf = self.reset_buf | (torch.abs(self.base_ang_vel[:, 2])
-            #                                    > self.cfg.asset.terminate_after_base_ang_vel_greater_than)
-
         # no terminal reward for time-outs
         self.time_out_buf = self.episode_length_buf > self.max_episode_length
 
@@ -168,6 +140,9 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def reset_idx(self, env_ids):
         super().reset_idx(env_ids)
+
+        self.avg_feet_contact_force[env_ids] = 0.0
+        self.avg_feet_speed[env_ids] = 0.0
 
         self.last_last_actions[env_ids] = 0.0
 
@@ -286,16 +261,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    # 惩罚 action, joint position 差异
-    def _reward_action_dof_pos_diff(self):
-        error_action_dof_pos_diff = (self.actions) * self.cfg.control.action_scale - (self.dof_pos - self.default_dof_pos)
-        error_action_dof_pos_diff = torch.sum(torch.abs(error_action_dof_pos_diff), dim=1)
-        reward_action_dof_pos_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_dof_pos_diff
-                                                   * error_action_dof_pos_diff)
-        return reward_action_dof_pos_diff
-
-    # ----------------------------------------------
-
     # 惩罚 action 差异
     def _reward_action_diff(self):
         error_action_diff = (self.last_actions - self.actions) \
@@ -313,17 +278,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         reward_action_diff_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff_diff
                                                 * error_action_diff_diff)
         return reward_action_diff_diff
-
-    def _reward_action_low_pass(self):
-        error_action_low_pass = torch.abs(self.actions - self.filtered_actions) \
-                                * self.cfg.control.action_scale
-        error_action_low_pass = (error_action_low_pass - self.cfg.rewards.action_low_pass_filter_threshold) \
-                                * (error_action_low_pass > self.cfg.rewards.action_low_pass_filter_threshold)
-        error_action_low_pass = torch.sum(error_action_low_pass, dim=1)
-
-        reward_action_low_pass = 1 - torch.exp(self.cfg.rewards.sigma_action_low_pass
-                                               * error_action_low_pass)
-        return reward_action_low_pass
 
     # ----------------------------------------------
 
@@ -365,7 +319,7 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # 惩罚 指令接近位置上限
     def _reward_limits_actions(self):
-        related_indexes = list(range(self.actor_num_output))
+        related_indexes = list(range(self.num_actions))
 
         out_of_limits = -(self.actions[:, related_indexes] * self.cfg.control.action_scale
                           - self.dof_pos_limits[:, 0][related_indexes]).clip(max=0.)  # lower limit
@@ -380,7 +334,7 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # 惩罚 接近位置上限
     def _reward_limits_dof_pos(self):
-        related_indexes = list(range(self.actor_num_output))
+        related_indexes = list(range(self.num_actions))
 
         out_of_limits = -(self.dof_pos[:, related_indexes] -
                           self.dof_pos_limits[:, 0][related_indexes]).clip(max=0.)  # lower limit

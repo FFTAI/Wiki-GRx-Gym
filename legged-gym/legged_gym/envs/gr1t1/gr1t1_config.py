@@ -1,6 +1,6 @@
 import numpy
 
-from .legged_robot_fftai_config import LeggedRobotFFTAICfg, LeggedRobotFFTAICfgPPO
+from legged_gym.envs.fftai.legged_robot_fftai_config import LeggedRobotFFTAICfg, LeggedRobotFFTAICfgPPO
 
 
 class GR1T1Cfg(LeggedRobotFFTAICfg):
@@ -9,11 +9,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         episode_length_s = 20  # episode length in seconds
 
         num_obs = 121
-        actor_num_output = 32
-
-        encoder_profile = None
-        num_encoder_input = 0
-        num_encoder_output = 0
+        num_actions = 32
 
     class terrain(LeggedRobotFFTAICfg.terrain):
         mesh_type = 'plane'  # "heightfield" # none, plane, heightfield or trimesh
@@ -25,11 +21,6 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         measure_heights = True
         measured_points_x = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
         measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
-
-        # 1mx1m rectangle (without center line)
-        measure_heights_supervisor = True
-        measured_points_x_supervisor = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
-        measured_points_y_supervisor = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
 
     class commands(LeggedRobotFFTAICfg.commands):
         curriculum = False
@@ -120,10 +111,6 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         # decimation: Number of control action updates @ sim DT per policy DT
         decimation = 10
 
-        # delay: Number of control action delayed @ sim DT
-        delay_mean = 0.0
-        delay_std = 0.0
-
     class asset(LeggedRobotFFTAICfg.asset):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/GR1T1/urdf/GR1T1.urdf'
         name = "GR1T1"
@@ -150,8 +137,8 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         # for link name
         thigh_name = 'thigh'
         shank_name = 'shank'
-        foot_name = 'foot_roll'  # 产生接触力的部分
-        sole_name = 'sole'  # 限定脚掌范围的部分
+        foot_name = 'foot_roll'
+        sole_name = 'sole'
         upper_arm_name = 'upper_arm'
         lower_arm_name = 'lower_arm'
         hand_name = 'hand'
@@ -181,9 +168,6 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
 
         penalize_contacts_on = []
         terminate_after_contacts_on = ['waist', 'thigh', 'shoulder', 'elbow', 'hand']
-        terminate_after_base_projected_gravity_greater_than = 0.7  # [m/s^2]
-        terminate_after_base_lin_vel_greater_than = None  # [m/s]
-        terminate_after_base_ang_vel_greater_than = None  # [rad/s]
 
         disable_gravity = False
         collapse_fixed_joints = False  # 显示 fixed joint 的信息
@@ -209,28 +193,14 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         added_com_range_y = [-0.1, 0.1]  # unit : m
         added_com_range_z = [-0.1, 0.1]  # unit : m
 
-        # randomize motor strength
-        randomize_motor_strength = True
-        motor_strength = [0.90, 1.1]
-
-        # randomize observations
-        randomize_obs_lin_vel = False
-        obs_lin_vel = [0.8, 1.2]
-
         # randomize external forces
-        randomize_impulse_push_robots = True
-        impulse_push_interval_s = 5.5
-        impulse_push_max_vel_xy = 0.5
+        push_robots = True
+        push_interval_s = 5.5
+        max_push_vel_xy = 0.5
 
-        # randomize init velocity
+        # randomize init dof pos and base velocity
         randomize_init_dof_pos = True
         randomize_init_velocity = True
-
-        # Jason 2024-03-01:
-        # Should be False at the first training,
-        # because falling down will make all robots to be stand command.
-        # randomize stand command
-        randomize_stand_command = False
 
     class rewards(LeggedRobotFFTAICfg.rewards):
         tracking_sigma = 1.0  # tracking reward = exp(-error^2/sigma)
@@ -242,19 +212,15 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         only_positive_rewards = False
         base_height_target = 0.90  # 期望的机器人身体高度
         swing_feet_height_target = 0.10  # 期望的脚抬起高度
-        swing_contact_force_limit = 55.0 * 9.81 * 1.1  # 55 kg
-        swing_height_offset_target = swing_feet_height_target / 4.0  # over half of the foot height can get reward
-        swing_feet_distance_offset_target = [0.00, 0.22]
 
         feet_stumble_ratio = 5.0  # ratio = fxy / fz
-        foot_contact_threshold = 1.0  # unit: N
 
         # ---------------------------------------------------------------
 
         feet_air_time_target = 0.5  # 期望的脚空中时间
         feet_land_time_max = 1.5  # 最大的脚着地时间
 
-        # sigma ---------------------------------------------------------------
+        # ---------------------------------------------------------------
 
         # Jason 2024-03-15:
         # sigma is like the sensitivity of the reward function
@@ -275,14 +241,11 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         sigma_cmd_diff_chest_orient = -20.0
         sigma_cmd_diff_forehead_orient = -20.0
 
-        sigma_action_dof_pos_diff = -0.1
-        sigma_action_dof_pos_diff_ankle = -0.5
-
         sigma_action_diff = -0.1
+        sigma_action_diff_knee = -1.0
 
         sigma_dof_vel_new = -0.01
         sigma_dof_acc_new = -0.00005
-
         sigma_dof_tor_new = -0.00005
         sigma_dof_tor_new_hip_roll = -0.002
 
@@ -290,8 +253,9 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
 
         sigma_pose_offset = -0.1
 
-        sigma_pose_vel_waist = -0.1
-        sigma_pose_vel_head = -0.1
+        sigma_limits_dof_pos = -10.0
+        sigma_limits_dof_vel = -10.0
+        sigma_limits_dof_tor = -10.0
 
         sigma_feet_speed_xy_close_to_ground = -100.0
         sigma_feet_speed_z_close_to_height_target = -20.0
@@ -304,77 +268,12 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
 
         sigma_on_the_air = -1.0
 
-        sigma_feet_force = -0.005
-        sigma_feet_speed = -1.0  # -0.03
-        sigma_feet_orient = -10.0
-
-        sigma_orient_diff_feet_put_down = -100.0
-        sigma_orient_diff_feet_lift_up = -100.0
-
-        sigma_limits_actions = -10.0
-        sigma_limits_dof_pos = -10.0
-        sigma_limits_dof_vel = -10.0
-        sigma_limits_dof_tor = -10.0
-
-        sigma_swing_tracking = -1.0
-        sigma_swing_contact_force = -0.002
-        sigma_swing_height_target = -20.0
-        sigma_swing_height_offset = -10.0
-        sigma_swing_arm = -10.0
-        sigma_swing_symmetric = -10.0
-        sigma_swing_feet_distance = -10.0
-        sigma_swing_orient = -10.0
-
-        sigma_hip_yaw = -0.5
-
-        sigma_step_on_terrain_edge = -1.0
-
         sigma_feet_stumble = -1.0
-
-        sigma_follow_teacher = -1.0
 
         # sigma ---------------------------------------------------------------
 
         class scales(LeggedRobotFFTAICfg.rewards.scales):
             termination = 0.0
-
-            dof_vel = -0.001  # -0.01  # -0.001
-            dof_acc = -1.e-7  # -1.e-6  # -1.e-7
-
-            torques = -25.e-6  # -30.e-6
-            ankle_torques = -5.0e-6  # -0.005  # -0.001# -0.005
-            knee_torques = -25.e-6  # -0.0001
-
-            feet_force = 0.8
-            feet_speed = 0.6
-
-            x_vel_diff = 1.0
-            y_vel_diff = 0.5
-            z_vel_diff = 0.2
-            ang_vel_xy = 0.1
-            ang_vel_diff = 0.4
-
-            base_orientation_diff = 0.2
-            feet_orien_diff = 0.2
-
-            action_diff = 0.15
-            ankle_action_diff = 0.6
-            arm_action_diff = 1.0
-            hip_yaw = 0.3
-            dof_acc_diff = 0.15
-            dof_pos_limits = 0.8
-
-            swing_tracking = -0.2
-            swing_contact_force = -1.0
-            swing_height_target = -0.2
-            swing_height_offset = 0.2
-            swing_arm = 0.2
-            swing_symmetric = 0.2
-            feet_distance = 0.2
-
-            arm_pose = -0.3
-            torso_orientation_diff = -1.0
-            torso_ang_vel_xy = -0.1
 
     class noise(LeggedRobotFFTAICfg.noise):
         add_noise = True
@@ -427,16 +326,15 @@ class GR1T1CfgPPO(LeggedRobotFFTAICfgPPO, GR1T1Cfg):
     runner_class_name = 'OnPolicyRunner'
 
     class runner(LeggedRobotFFTAICfgPPO.runner):
-        # policy_class_name = 'ActorCriticRecurrent'
         algorithm_class_name = 'PPO'
         policy_class_name = 'ActorCriticMLP'
 
-        log_root = 'synology'
         experiment_name = 'GR1T1'
+        num_steps_per_env = 64
+
         run_name = ''
-        num_steps_per_env = 50
-        max_iterations = 500  # number of policy updates -> 500 * 1.0s = 500s data collection
-        save_interval = 100  # check for potential saves every this many iterations
+        max_iterations = 2000
+        save_interval = 100
 
     class algorithm(LeggedRobotFFTAICfgPPO.algorithm):
         # training params

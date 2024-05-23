@@ -40,9 +40,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         # feet height
         self.feet_height = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
 
-        # stand command
-        self.env_ids_for_stand_command = list(range(self.num_envs))
-
     # ----------------------------------------------
 
     def before_physics_step(self):
@@ -196,8 +193,10 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def _reward_stand_still(self):
         # Penalize not standing still
+        env_ids_for_stand_command = torch.where(torch.norm(self.commands[:, :2], dim=1) < 0.1)
+
         selector_stand_still = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
-        selector_stand_still[self.env_ids_for_stand_command] = 1
+        selector_stand_still[env_ids_for_stand_command] = 1
 
         error_stand_still = torch.sum(torch.abs(self.dof_pos - self.default_dof_pos_tenors), dim=1)
         reward_stand_still = 1 - torch.exp(self.cfg.rewards.sigma_stand_still

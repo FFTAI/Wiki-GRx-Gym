@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/IsaacGym_Preview_4_Package/isaacgym/python" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/legged-gym/legged_gym" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/rsl-rl/rsl_rl" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/legged-gym" isTestSource="false" />
     </content>
     <orderEntry type="jdk" jdkName="wiki-grx-gym" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

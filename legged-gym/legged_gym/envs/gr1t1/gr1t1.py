@@ -128,7 +128,6 @@ class GR1T1(LeggedRobotFFTAI):
     def _init_buffers(self):
         super()._init_buffers()
 
-        # Jason 2023-09-19:
         # change from num_actions to num_dof
         self.actions = torch.zeros(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
         self.last_actions = torch.zeros(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
@@ -332,8 +331,6 @@ class GR1T1(LeggedRobotFFTAI):
                 self.feet_height,
             ), dim=-1)
 
-    # Jason 2023-11-17
-    # 创建 noise vector，此程序只在初始化时调用一次，因此不需要考虑运行效率
     def compute_noise_scale_vec_profile(self):
         noise_vec = torch.zeros_like(self.obs_buf[0])
 
@@ -355,7 +352,6 @@ class GR1T1(LeggedRobotFFTAI):
 
     # ----------------------------------------------
 
-    # 惩罚 上半身 Orientation 不水平
     def _reward_cmd_diff_torso_orient(self):
         if len(self.torso_indices) > 0:
             torso_projected_gravity = quat_rotate_inverse(self.rigid_body_states[:, self.torso_indices][:, 0, 3:7],
@@ -391,7 +387,6 @@ class GR1T1(LeggedRobotFFTAI):
 
     # ----------------------------------------------
 
-    # 惩罚 膝关节 action 差异
     def _reward_action_diff_knee(self):
         error_action_diff = (self.last_actions[:, self.knee_indices] - self.actions[:, self.knee_indices]) \
                             * self.cfg.control.action_scale
@@ -431,55 +426,6 @@ class GR1T1(LeggedRobotFFTAI):
                                                           * error_dof_tor_ankle_feet_lift_up)
 
         return reward_dof_tor_ankle_feet_lift_up
-
-    # ----------------------------------------------
-
-    # 惩罚 脚部 接近地面时不水平
-    def _reward_orient_diff_feet_put_down(self):
-        left_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights, dim=1)
-        right_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights, dim=1)
-
-        # Jason 2023-12-27:
-        # normalize the error by the target height
-        error_distance_to_ground_left_foot = torch.abs(left_foot_height - self.swing_feet_height_target) \
-                                             / self.swing_feet_height_target.squeeze()
-        error_distance_to_ground_right_foot = torch.abs(right_foot_height - self.swing_feet_height_target) \
-                                              / self.swing_feet_height_target.squeeze()
-
-        error_orient_diff_left_foot = torch.sum(torch.abs(self.left_feet_orient_projected[:, :2]), dim=1) \
-                                      * (error_distance_to_ground_left_foot ** 2)
-        error_orient_diff_right_foot = torch.sum(torch.abs(self.right_feet_orient_projected[:, :2]), dim=1) \
-                                       * (error_distance_to_ground_right_foot ** 2)
-
-        error_orient_diff_feet_put_down = error_orient_diff_left_foot + error_orient_diff_right_foot
-        reward_orient_diff_feet_put_down = 1 - torch.exp(self.cfg.rewards.sigma_orient_diff_feet_put_down
-                                                         * error_orient_diff_feet_put_down)
-        return reward_orient_diff_feet_put_down
-
-    def _reward_orient_diff_feet_lift_up(self):
-        left_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights, dim=1)
-        right_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights, dim=1)
-
-        # Jason 2023-12-27:
-        # normalize the error by the target height
-        error_distance_to_height_target_left_foot = torch.abs(left_foot_height * (left_foot_height > 0)) \
-                                                    / self.swing_feet_height_target.squeeze()
-        error_distance_to_height_target_right_foot = torch.abs(right_foot_height * (right_foot_height > 0)) \
-                                                     / self.swing_feet_height_target.squeeze()
-
-        error_orient_diff_left_foot = torch.sum(torch.abs(self.left_feet_orient_projected[:, :2]), dim=1) \
-                                      * (error_distance_to_height_target_left_foot ** 2)
-        error_orient_diff_right_foot = torch.sum(torch.abs(self.right_feet_orient_projected[:, :2]), dim=1) \
-                                       * (error_distance_to_height_target_right_foot ** 2)
-
-        error_orient_diff_feet_lift_up = error_orient_diff_left_foot + error_orient_diff_right_foot
-        reward_orient_diff_feet_lift_up = 1 - torch.exp(self.cfg.rewards.sigma_orient_diff_feet_lift_up
-                                                        * error_orient_diff_feet_lift_up)
-        return reward_orient_diff_feet_lift_up
 
     # ----------------------------------------------
 
@@ -534,7 +480,6 @@ class GR1T1(LeggedRobotFFTAI):
     # ----------------------------------------------
 
     def _reward_feet_air_time(self):
-        # 计算 first_contact 的个数，如果有接触到地面，则将 feet_air_time 置为 0
         feet_air_time_error = self.feet_air_time - self.cfg.rewards.feet_air_time_target
         feet_air_time_error = torch.abs(feet_air_time_error)
 
@@ -567,8 +512,6 @@ class GR1T1(LeggedRobotFFTAI):
                                                      - min_feet_height
                                                      - self.swing_feet_height_target.squeeze())
 
-        # Jason 2023-12-25:
-        # 用二次项来描述，更加关注于指定时间段内的高度差
         reward_feet_air_height_left_foot = torch.exp(self.cfg.rewards.sigma_feet_air_height
                                                      * error_feet_air_height_left_foot)
         reward_feet_air_height_right_foot = torch.exp(self.cfg.rewards.sigma_feet_air_height
@@ -577,8 +520,6 @@ class GR1T1(LeggedRobotFFTAI):
         reward_feet_air_height = torch.stack((reward_feet_air_height_left_foot,
                                               reward_feet_air_height_right_foot), dim=1)
 
-        # Jason 2024-03-31:
-        # use air time to catch period at height target
         feet_air_time_mid_error = self.feet_air_time - self.cfg.rewards.feet_air_time_target / 2
         feet_air_time_mid_error = torch.abs(feet_air_time_mid_error)
         feet_air_time_mid_error = torch.exp(self.cfg.rewards.sigma_feet_air_time_mid
@@ -599,8 +540,6 @@ class GR1T1(LeggedRobotFFTAI):
         reward_feet_air_force = torch.stack((reward_feet_air_force_left_foot,
                                              reward_feet_air_force_right_foot), dim=1)
 
-        # Jason 2024-03-31:
-        # use air time to catch period at height target
         feet_air_time_mid_error = self.feet_air_time - self.cfg.rewards.feet_air_time_target / 2
         feet_air_time_mid_error = torch.abs(feet_air_time_mid_error)
         feet_air_time_mid_error = torch.exp(self.cfg.rewards.sigma_feet_air_time_mid
@@ -613,7 +552,6 @@ class GR1T1(LeggedRobotFFTAI):
         return reward_feet_air_force
 
     def _reward_feet_land_time(self):
-        # 计算 first_contact 的个数，如果有接触到地面，则将 feet_land_time 置为 0
         feet_land_time_error = (self.feet_land_time - self.cfg.rewards.feet_land_time_max) \
                                * (self.feet_land_time > self.cfg.rewards.feet_land_time_max)
 
@@ -625,7 +563,6 @@ class GR1T1(LeggedRobotFFTAI):
         return reward_feet_land_time
 
     def _reward_on_the_air(self):
-        # 惩罚两条腿都没有接触到地面的情况
         jumping_error = torch.sum(self.feet_contact, dim=1) == 0
 
         # use exponential to make the reward more sparse
@@ -647,8 +584,6 @@ class GR1T1(LeggedRobotFFTAI):
 
         error_left_foot_f = error_left_foot_f * (error_left_foot_f > 0)
         error_right_foot_f = error_right_foot_f * (error_right_foot_f > 0)
-
-        # print("error_left_foot_f = \n", error_left_foot_f)
 
         reward_left_foot_f = 1 - torch.exp(self.cfg.rewards.sigma_feet_stumble * error_left_foot_f)
         reward_right_foot_f = 1 - torch.exp(self.cfg.rewards.sigma_feet_stumble * error_right_foot_f)

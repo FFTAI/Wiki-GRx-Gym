@@ -1,4 +1,4 @@
-# Fourier Intelligence GRx in Isaac Gym Environment
+# Wiki-GRx-Gym
 
 ![](./pictures/11.png)
 
@@ -92,7 +92,7 @@ This repository provides an environment used to train GRx to walk on rough terra
 
 ## Notice
 
-The training code here only controls the robot legs to walk, and the robot body is fixed.
+The training code here only shows how to control the robot's leg to walk, and the robot body is set fixed.
 If you want to control the robot body to move, you need to modify the following files:
 
 - urdf file: `./legged-gym/legged_gym/resources/robots/gr1t1/urdf/GR1T1.urdf`

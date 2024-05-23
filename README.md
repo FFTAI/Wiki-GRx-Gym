@@ -1,6 +1,6 @@
 # Fourier Intelligence GRx in Isaac Gym Environment
 
-![](./pictures/4.png)
+![](./pictures/11.png)
 
 This repository provides an environment used to train GRx to walk on rough terrain using NVIDIA's Isaac Gym, legged_gym and rsl_rl libraries from Legged Robotics @ ETH Zürich.
 

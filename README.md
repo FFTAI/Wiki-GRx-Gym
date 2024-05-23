@@ -22,30 +22,30 @@ This repository provides an environment used to train GRx to walk on rough terra
     - Make sure you can see the GPU information and CUDA information by using the command line `nvidia-smi` in the terminal. As shown in the example below:
 
 ```
-              +-----------------------------------------------------------------------------+
-              | NVIDIA-SMI 525.125.06   Driver Version: 525.125.06   CUDA Version: 12.0     |
-              |-------------------------------+----------------------+----------------------+
-              | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
-              | Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
-              |                               |                      |               MIG M. |
-              |===============================+======================+======================|
-              |   0  NVIDIA GeForce ...  Off  | 00000000:01:00.0  On |                  Off |
-              |  0%   42C    P8    25W / 450W |    709MiB / 24564MiB |      1%      Default |
-              |                               |                      |                  N/A |
-              +-------------------------------+----------------------+----------------------+
-                                                                                    
-              +-----------------------------------------------------------------------------+
-              | Processes:                                                                  |
-              |  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
-              |        ID   ID                                                   Usage      |
-              |=============================================================================|
-              |    0   N/A  N/A      1032      G   /usr/lib/xorg/Xorg                 53MiB |
-              |    0   N/A  N/A      1666      G   /usr/lib/xorg/Xorg                239MiB |
-              |    0   N/A  N/A      1805      G   /usr/bin/gnome-shell              125MiB |
-              |    0   N/A  N/A      2171      G   /usr/lib/firefox/firefox          205MiB |
-              |    0   N/A  N/A      2847      G   ...RendererForSitePerProcess       45MiB |
-              |    0   N/A  N/A      3721      G   ...RendererForSitePerProcess       20MiB |
-              +-----------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.125.06   Driver Version: 525.125.06   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA GeForce ...  Off  | 00000000:01:00.0  On |                  Off |
+|  0%   42C    P8    25W / 450W |    709MiB / 24564MiB |      1%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                      
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|    0   N/A  N/A      1032      G   /usr/lib/xorg/Xorg                 53MiB |
+|    0   N/A  N/A      1666      G   /usr/lib/xorg/Xorg                239MiB |
+|    0   N/A  N/A      1805      G   /usr/bin/gnome-shell              125MiB |
+|    0   N/A  N/A      2171      G   /usr/lib/firefox/firefox          205MiB |
+|    0   N/A  N/A      2847      G   ...RendererForSitePerProcess       45MiB |
+|    0   N/A  N/A      3721      G   ...RendererForSitePerProcess       20MiB |
++-----------------------------------------------------------------------------+
 ```
 
 3. Install Anaconda:

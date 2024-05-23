@@ -123,31 +123,41 @@ class LeggedRobotCfg(BaseConfig):
         thickness = 0.01
 
     class domain_rand:
+        # randomize friction and restitution
         randomize_friction = True
-        friction_range = [0.5, 1.25]
-        randomize_base_mass = False
-        added_mass_range = [-1., 1.]
+        friction_range = [0.5, 1.0]
+        restitution_range = [0.0, 0.5]
+
+        # randomize mass
+        randomize_base_mass = True
+        added_mass_range = [-1.0, 1.0]  # unit : kg
+
+        # randomize inertias
+        randomize_base_com = True
+        added_com_range_x = [-0.1, 0.1]  # unit : m
+        added_com_range_y = [-0.1, 0.1]  # unit : m
+        added_com_range_z = [-0.1, 0.1]  # unit : m
+
+        # randomize motor strength
+        randomize_motor_strength = True
+        motor_strength = [0.80, 1.0]
+
+        # randomize observations
+        randomize_obs_lin_vel = False
+        obs_lin_vel = [0.8, 1.2]
+
+        # randomize external forces
         push_robots = True
-        push_interval_s = 15
-        max_push_vel_xy = 1.
+        push_interval_s = 5.5
+        max_push_vel_xy = 0.5
+
+        # randomize init dof pos and base velocity
+        randomize_init_dof_pos = True
+        randomize_init_velocity = True
 
     class rewards:
         class scales:
             termination = -0.0
-            tracking_lin_vel = 1.0
-            tracking_ang_vel = 0.5
-            lin_vel_z = -2.0
-            ang_vel_xy = -0.05
-            orientation = -0.
-            torques = -0.00001
-            dof_vel = -0.
-            dof_acc = -2.5e-7
-            base_height = -0.
-            feet_air_time = 1.0
-            collision = -1.
-            feet_stumble = -0.0
-            action_rate = -0.01
-            stand_still = -0.
 
         only_positive_rewards = True  # if true negative total rewards are clipped at zero (avoids early termination problems)
         tracking_sigma = 0.25  # tracking reward = exp(-error^2/sigma)

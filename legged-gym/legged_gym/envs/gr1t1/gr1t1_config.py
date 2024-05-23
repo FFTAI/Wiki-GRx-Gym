@@ -177,31 +177,6 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         replace_cylinder_with_capsule = True
         flip_visual_attachments = False
 
-    class domain_rand(LeggedRobotFFTAICfg.domain_rand):
-        # randomize friction and restitution
-        randomize_friction = True
-        friction_range = [0.5, 1.0]
-        restitution_range = [0.0, 0.5]
-
-        # randomize mass
-        randomize_base_mass = True
-        added_mass_range = [-1.0, 1.0]  # unit : kg
-
-        # randomize inertias
-        randomize_base_com = True
-        added_com_range_x = [-0.1, 0.1]  # unit : m
-        added_com_range_y = [-0.1, 0.1]  # unit : m
-        added_com_range_z = [-0.1, 0.1]  # unit : m
-
-        # randomize external forces
-        push_robots = True
-        push_interval_s = 5.5
-        max_push_vel_xy = 0.5
-
-        # randomize init dof pos and base velocity
-        randomize_init_dof_pos = True
-        randomize_init_velocity = True
-
     class rewards(LeggedRobotFFTAICfg.rewards):
         tracking_sigma = 1.0  # tracking reward = exp(-error^2/sigma)
         soft_dof_pos_limit = 0.95
@@ -280,13 +255,13 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         noise_level = 1.0  # scales other values
 
         class noise_scales(LeggedRobotFFTAICfg.noise.noise_scales):
-            lin_vel = 0.05  # m/s
-            ang_vel = 0.04  # rad/s
-            gravity = 0.02  # m/s^2
-            dof_pos = 0.03  # rad
+            lin_vel = 0.10  # m/s
+            ang_vel = 0.05  # rad/s
+            gravity = 0.03  # m/s^2
+            dof_pos = 0.04  # rad
             dof_vel = 0.20  # rad/s
             action = 0.0  # rad
-            height_measurements = 0.02  # m
+            height_measurements = 0.05  # m
 
     class normalization(LeggedRobotFFTAICfg.normalization):
         class obs_scales(LeggedRobotFFTAICfg.normalization.obs_scales):

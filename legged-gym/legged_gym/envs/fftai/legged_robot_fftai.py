@@ -52,7 +52,8 @@ class LeggedRobotFFTAI(LeggedRobot):
 
         for i in range(self.cfg.control.decimation):
 
-            self.torques = self._compute_torques(self.last_actions).view(self.torques.shape)
+            self.torques = self._compute_torques(self.actions).view(self.torques.shape)
+            self.torques *= self.motor_strength
             self.torques = torch.clip(self.torques, -self.torque_limits, self.torque_limits)
 
             # simulate

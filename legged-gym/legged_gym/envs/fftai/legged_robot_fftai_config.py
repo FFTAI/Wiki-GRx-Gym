@@ -37,14 +37,6 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
         num_obs = 1
         num_actions = 1
 
-    class control(LeggedRobotCfg.control):
-        # decimation: Number of control action updates @ sim DT per policy DT
-        decimation = 10
-
-        # delay: Number of control action delayed @ sim DT
-        delay_mean = 0
-        delay_std = 0
-
     class rewards(LeggedRobotCfg.rewards):
         sigma_action_diff = -0.1
         sigma_action_diff_diff = -1.0

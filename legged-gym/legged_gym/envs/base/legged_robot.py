@@ -899,6 +899,9 @@ class LeggedRobot(BaseTask):
         print("self.body_names: \n", body_names)
         print("self.dof_names: \n", self.dof_names)
 
+        self.motor_strength = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
+        self.lin_vel_scales = torch.ones(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
+
         base_init_state_list = self.cfg.init_state.pos + \
                                self.cfg.init_state.rot + \
                                self.cfg.init_state.lin_vel + \
@@ -965,6 +968,19 @@ class LeggedRobot(BaseTask):
             dof_props = self._process_dof_props(dof_props_asset, i)
 
             self.gym.set_actor_dof_properties(env_handle, actor_handle, dof_props)
+
+            if self.cfg.domain_rand.randomize_motor_strength:
+                rng_motor_strength = self.cfg.domain_rand.motor_strength
+                self.motor_strength[i, :] = torch_rand_float(rng_motor_strength[0],
+                                                             rng_motor_strength[1],
+                                                             (1, self.num_dof), device=self.device)
+
+            if self.cfg.domain_rand.randomize_obs_lin_vel:
+                rng_obs_lin_vel = self.cfg.domain_rand.obs_lin_vel
+                self.lin_vel_scales[i, :] = torch_rand_float(rng_obs_lin_vel[0],
+                                                             rng_obs_lin_vel[1],
+                                                             (1, 3),
+                                                             device=self.device)
 
             # ----------------------------------
 

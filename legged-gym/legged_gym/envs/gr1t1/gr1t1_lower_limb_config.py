@@ -64,11 +64,11 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             'ankle_pitch': 15.3,
         }  # [N*m/rad]
         damping = {
-            'hip_roll': 5.7,
-            'hip_yaw': 4.3,
-            'hip_pitch': 11.4,
-            'knee_pitch': 11.4,
-            'ankle_pitch': 1.5,
+            'hip_roll': stiffness['hip_roll'] / 10,
+            'hip_yaw': stiffness['hip_yaw'] / 10,
+            'hip_pitch': stiffness['hip_pitch'] / 10,
+            'knee_pitch': stiffness['knee_pitch'] / 10,
+            'ankle_pitch': stiffness['ankle_pitch'] / 10,
         }
 
         # action scale: target angle = actionScale * action + defaultAngle
@@ -156,19 +156,6 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 
             # 惩罚踢到竖直面的情况
             feet_stumble = -0.2
-
-    class noise(GR1T1Cfg.noise):
-        add_noise = True
-        noise_level = 1.0  # scales other values
-
-        class noise_scales(GR1T1Cfg.noise.noise_scales):
-            lin_vel = 0.10  # m/s
-            ang_vel = 0.05  # rad/s
-            gravity = 0.03  # m/s^2
-            dof_pos = 0.04  # rad
-            dof_vel = 0.20  # rad/s
-            action = 0.0  # rad
-            height_measurements = 0.05  # m
 
     class normalization(GR1T1Cfg.normalization):
         actions_max = numpy.array([

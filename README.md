@@ -88,6 +88,12 @@ This repository provides an environment used to train GRx to walk on rough terra
     python ./train.py --task=GR1T1 --headless
     ```
 
+10. Playing:
+   ```
+    cd legged_gym/legged_gym/scripts
+    python ./play.py --task=GR1T1 --num_envs=25
+   ```
+
 ---
 
 ## Notice

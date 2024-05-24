@@ -186,7 +186,7 @@ class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
         num_steps_per_env = 64
 
         run_name = 'gr1t1_lower_limb'
-        max_iterations = 2000
+        max_iterations = 3000
         save_interval = 100
 
     class algorithm(GR1T1CfgPPO.algorithm):

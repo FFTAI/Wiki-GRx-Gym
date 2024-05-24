@@ -78,7 +78,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         decimation = 20
 
     class asset(GR1T1Cfg.asset):
-        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/gr1t1/urdf/GR1T1_lower_limb.urdf'
+        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/GR1T1/urdf/GR1T1_lower_limb.urdf'
         name = 'GR1T1'
 
     class rewards(GR1T1Cfg.rewards):

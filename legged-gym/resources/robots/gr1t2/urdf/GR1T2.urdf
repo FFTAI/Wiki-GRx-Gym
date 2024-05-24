@@ -824,12 +824,6 @@
                 <color rgba="0.75294 0.75294 0.75294 1"/>
             </material>
         </visual>
-        <collision>
-            <origin xyz="0 0 0.1" rpy="0 0 0"/>
-            <geometry>
-                <sphere radius="0.07"/>
-            </geometry>
-        </collision>
     </link>
     <joint name="joint_head_pitch" type="revolute">
         <origin xyz="0.000999999999997045 -0.000225512658326668 0.144786985472057" rpy="0 0 0"/>

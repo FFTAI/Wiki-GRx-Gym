@@ -31,14 +31,14 @@
                         rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
             </material>
         </visual>
-<!--        <collision>-->
-<!--            <origin-->
-<!--                    xyz="0 0 0.0"-->
-<!--                    rpy="0 0 0"/>-->
-<!--            <geometry>-->
-<!--                <cylinder length="0.1" radius="0.1"/>-->
-<!--            </geometry>-->
-<!--        </collision>-->
+        <!--        <collision>-->
+        <!--            <origin-->
+        <!--                    xyz="0 0 0.0"-->
+        <!--                    rpy="0 0 0"/>-->
+        <!--            <geometry>-->
+        <!--                <cylinder length="0.1" radius="0.1"/>-->
+        <!--            </geometry>-->
+        <!--        </collision>-->
         <!-- <origin
           xyz="0 0 0"
           rpy="0 0 0" />
@@ -1125,14 +1125,14 @@
                         rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
             </material>
         </visual>
-<!--        <collision>-->
-<!--            <origin-->
-<!--                    xyz="0 0 0"-->
-<!--                    rpy="0 0 0"/>-->
-<!--            <geometry>-->
-<!--                <sphere radius="0.07"/>-->
-<!--            </geometry>-->
-<!--        </collision>-->
+        <!--        <collision>-->
+        <!--            <origin-->
+        <!--                    xyz="0 0 0"-->
+        <!--                    rpy="0 0 0"/>-->
+        <!--            <geometry>-->
+        <!--                <sphere radius="0.07"/>-->
+        <!--            </geometry>-->
+        <!--        </collision>-->
         <!-- <origin
           xyz="0 0 0"
           rpy="0 0 0" />
@@ -1247,14 +1247,14 @@
                         rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
             </material>
         </visual>
-<!--        <collision>-->
-<!--            <origin-->
-<!--                    xyz="0 0 0"-->
-<!--                    rpy="0 0 0"/>-->
-<!--            <geometry>-->
-<!--                <sphere radius="0.03"/>-->
-<!--            </geometry>-->
-<!--        </collision>-->
+        <!--        <collision>-->
+        <!--            <origin-->
+        <!--                    xyz="0 0 0"-->
+        <!--                    rpy="0 0 0"/>-->
+        <!--            <geometry>-->
+        <!--                <sphere radius="0.03"/>-->
+        <!--            </geometry>-->
+        <!--        </collision>-->
         <!-- <origin
           xyz="0 0 0"
           rpy="0 0 0" />
@@ -1677,14 +1677,14 @@
                         rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
             </material>
         </visual>
-<!--        <collision>-->
-<!--            <origin-->
-<!--                    xyz="0 0 0"-->
-<!--                    rpy="0 0 0"/>-->
-<!--            <geometry>-->
-<!--                <sphere radius="0.03"/>-->
-<!--            </geometry>-->
-<!--        </collision>-->
+        <!--        <collision>-->
+        <!--            <origin-->
+        <!--                    xyz="0 0 0"-->
+        <!--                    rpy="0 0 0"/>-->
+        <!--            <geometry>-->
+        <!--                <sphere radius="0.03"/>-->
+        <!--            </geometry>-->
+        <!--        </collision>-->
         <!-- <origin
           xyz="0 0 0"
           rpy="0 0 0" />

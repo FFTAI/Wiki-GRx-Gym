@@ -1,17 +1,17 @@
 import numpy
 
-from legged_gym.envs.gr1t1.gr1t1_config import GR1T1Cfg, GR1T1CfgPPO
+from legged_gym.envs.gr1t2.gr1t2_config import GR1T2Cfg, GR1T2CfgPPO
 
 
-class GR1T1LowerLimbCfg(GR1T1Cfg):
-    class env(GR1T1Cfg.env):
+class GR1T2LowerLimbCfg(GR1T2Cfg):
+    class env(GR1T2Cfg.env):
         num_envs = 8192  # NVIDIA 4090 has 16384 CUDA cores
 
         num_obs = 39
         num_pri_obs = 168
         num_actions = 10
 
-    class terrain(GR1T1Cfg.terrain):
+    class terrain(GR1T2Cfg.terrain):
         mesh_type = 'trimesh'  # "heightfield" # none, plane, heightfield or trimesh
 
         curriculum = True
@@ -30,13 +30,13 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         measured_points_x = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
         measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
 
-    class commands(GR1T1Cfg.commands):
+    class commands(GR1T2Cfg.commands):
         class ranges_walk:
             lin_vel_x = [-0.50, 0.50]  # min max [m/s]
             lin_vel_y = [-0.50, 0.50]  # min max [m/s]
             ang_vel_yaw = [-0.50, 0.50]  # min max [rad/s]
 
-    class init_state(GR1T1Cfg.init_state):
+    class init_state(GR1T2Cfg.init_state):
         pos = [0.0, 0.0, 0.95]  # x, y, z [m]
         default_joint_angles = {  # = target angles [rad] when action = 0.0
             # left leg
@@ -54,7 +54,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             'r_ankle_pitch': -0.2618,
         }
 
-    class control(GR1T1Cfg.control):
+    class control(GR1T2Cfg.control):
         # PD Drive parameters:
         stiffness = {
             'hip_roll': 57,
@@ -77,11 +77,11 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         # decimation: Number of control action updates @ sim DT per policy DT
         decimation = 20
 
-    class asset(GR1T1Cfg.asset):
-        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/gr1t1/urdf/GR1T1_lower_limb.urdf'
-        name = 'GR1T1'
+    class asset(GR1T2Cfg.asset):
+        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/gr1t2/urdf/GR1T2_lower_limb.urdf'
+        name = 'GR1T2'
 
-    class rewards(GR1T1Cfg.rewards):
+    class rewards(GR1T2Cfg.rewards):
         base_height_target = 0.88  # 期望的机器人身体高度
         swing_feet_height_target = 0.10  # 期望的脚抬高度
 
@@ -92,7 +92,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 
         # ---------------------------------------------------------------
 
-        class scales(GR1T1Cfg.rewards.scales):
+        class scales(GR1T2Cfg.rewards.scales):
             # 对于 termination 和 collision 的惩罚
             termination = -0.0
             collision = -0.0
@@ -157,7 +157,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             # 惩罚踢到竖直面的情况
             feet_stumble = -0.2
 
-    class normalization(GR1T1Cfg.normalization):
+    class normalization(GR1T2Cfg.normalization):
         actions_max = numpy.array([
             0.79, 0.7, 0.7, 1.92, 0.52,  # left leg
             0.09, 0.7, 0.7, 1.92, 0.52,  # right leg
@@ -171,31 +171,31 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         clip_actions_max = actions_max + 60 / 180 * numpy.pi / 3
         clip_actions_min = actions_min - 60 / 180 * numpy.pi / 3
 
-    class sim(GR1T1Cfg.sim):
+    class sim(GR1T2Cfg.sim):
         dt = 0.001
 
 
-class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
+class GR1T2LowerLimbCfgPPO(GR1T2CfgPPO, GR1T2LowerLimbCfg):
     runner_class_name = 'OnPolicyRunner'
 
-    class runner(GR1T1CfgPPO.runner):
+    class runner(GR1T2CfgPPO.runner):
         algorithm_class_name = 'PPO'
         policy_class_name = 'ActorCriticMLP'
 
-        experiment_name = 'GR1T1'
+        experiment_name = 'GR1T2'
         num_steps_per_env = 64
 
-        run_name = 'gr1t1_lower_limb'
+        run_name = 'gr1t2_lower_limb'
         max_iterations = 2000
         save_interval = 100
 
-    class algorithm(GR1T1CfgPPO.algorithm):
+    class algorithm(GR1T2CfgPPO.algorithm):
         desired_kl = 0.03
 
         # actor-critic
         learning_rate = 1e-4
 
-    class policy(GR1T1CfgPPO.policy):
+    class policy(GR1T2CfgPPO.policy):
         actor_hidden_dims = [512, 256, 128]
         critic_hidden_dims = [512, 256, 128]
         activation = 'elu'  # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid

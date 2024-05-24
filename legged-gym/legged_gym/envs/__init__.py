@@ -44,8 +44,8 @@ from .fftai.legged_robot_fftai import LeggedRobotFFTAI
 from .fftai.legged_robot_fftai_config import LeggedRobotFFTAICfg, LeggedRobotFFTAICfgPPO
 from .gr1t1.gr1t1 import GR1T1
 from .gr1t1.gr1t1_lower_limb_config import GR1T1LowerLimbCfg as GR1T1Cfg, GR1T1LowerLimbCfgPPO as GR1T1CfgPPO
-
-import os
+from .gr1t2.gr1t2 import GR1T2
+from .gr1t2.gr1t2_lower_limb_config import GR1T2LowerLimbCfg as GR1T2Cfg, GR1T2LowerLimbCfgPPO as GR1T2CfgPPO
 
 from legged_gym.utils.task_registry import task_registry
 
@@ -55,5 +55,6 @@ task_registry.register("anymal_b", Anymal, AnymalBRoughCfg(), AnymalBRoughCfgPPO
 task_registry.register("a1", LeggedRobot, A1RoughCfg(), A1RoughCfgPPO())
 task_registry.register("cassie", Cassie, CassieRoughCfg(), CassieRoughCfgPPO())
 
-# register gr1t1
+# register Fourier Intelligence GRx robots
 task_registry.register("GR1T1", GR1T1, GR1T1Cfg(), GR1T1CfgPPO())
+task_registry.register("GR1T2", GR1T2, GR1T2Cfg(), GR1T2CfgPPO())

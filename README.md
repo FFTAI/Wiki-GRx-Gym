@@ -1,6 +1,8 @@
 # Wiki-GRx-Gym
 
-![](./pictures/11.png)
+<img src="./pictures/gr1t1_gym.png" width="300" height="360" />
+<img src="./pictures/gr1t2_gym.png" width="300" height="360" />
+
 
 This repository provides an environment used to train GRx to walk on rough terrain using NVIDIA's Isaac Gym, legged_gym and rsl_rl libraries from Legged Robotics @ ETH Zürich.
 

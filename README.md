@@ -56,7 +56,7 @@ This repository provides an environment used to train GRx to walk on rough terra
 
 4. Create conda environment `wiki-grx-gym`:
     ```
-    conda create -n wiki-grx-gym python=3.11
+    conda create -n wiki-grx-gym python=3.8
     conda activate wiki-grx-gym
     ```
 

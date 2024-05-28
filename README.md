@@ -84,7 +84,7 @@ This repository provides an environment used to train GRx to walk on rough terra
     pip install numpy==1.20.0
    
    # Tensorflow is needed for display the training process
-   pip install tensorflow==2.6.0 
+   pip install tensorflow
    pip install protobuf==3.20.3
     ```
 

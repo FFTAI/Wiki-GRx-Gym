@@ -93,18 +93,10 @@ class GR1T2LowerLimbCfg(GR1T2Cfg):
         # ---------------------------------------------------------------
 
         class scales(GR1T2Cfg.rewards.scales):
-            # 对于 termination 和 collision 的惩罚
             termination = -0.0
             collision = -0.0
             stand_still = -1.0
 
-            # tracking_lin_vel 和 tracking_ang_vel 是奖赏函数中的两个基本项，分别对应机器人的线速度和角速度
-            # 尝试方式：设置一个较大的值，然后观察机器人的行为，如果开始运动了，则适当减小这个值，直到机器人停止运动，然后再适当增大这个值
-            # cmd_diff_ang_vel_roll 和 cmd_diff_ang_vel_roll 身体姿态保持, 非水平地面上不能使用该值
-            # orientation = -0.2  # -3.0 ~ -5.0 均可
-            # 经验：
-            # 1. -2.0 可能导致学出来的模型无法 sim2real，身体侧倾不足，导致机器人抬腿高度不足
-            # 2. 因为使用的 IMU 的性能有限，如果身体姿态倾斜角度不够大，IMU 的检测数据也不一定准确
             cmd_diff_lin_vel_x = 2.0
             cmd_diff_lin_vel_y = 0.5
             cmd_diff_lin_vel_z = 0.1
@@ -118,21 +110,14 @@ class GR1T2LowerLimbCfg(GR1T2Cfg):
             cmd_diff_chest_orient = 0.5
             cmd_diff_forehead_orient = 0.0
 
-            # action_rate 惩罚的是机器人的动作
-            # 如果设置太大，会导致机器人不敢动
-            # 尝试方式：设置一个较大的值，然后观察机器人的行为，如果机器人不敢动，则逐渐调小（该方法有问题，不能这么做!）
             action_diff = -2.0
             action_diff_knee = -0.2
 
             action_diff_diff = -1.0
 
-            # dof_vel, dof_acc, torques 惩罚的是机器人的动作
-            # dof_acc 的惩罚是为了防止机器人动作过快，从而可以防止指令突变
-            # 如果设置太大，会导致机器人不敢动
-            # 尝试方式：设置一个较大的值，然后观察机器人的行为，如果机器人不敢动，则逐渐调小
-            dof_vel_new = -0.2  # 速度惩罚会影响学习速度
-            dof_acc_new = -0.2  # 加速度惩罚会影响学习速度
-            dof_tor_new = -0.2  # 力矩惩罚会影响学习速度，和抬脚高度
+            dof_vel_new = -0.2
+            dof_acc_new = -0.2
+            dof_tor_new = -0.2
             dof_tor_new_hip_roll = -1.0
 
             dof_tor_ankle_feet_lift_up = -0.5
@@ -151,10 +136,8 @@ class GR1T2LowerLimbCfg(GR1T2Cfg):
             feet_air_force = 1.0
             feet_land_time = -1.0
 
-            # 惩罚四只脚都离地的情况
             on_the_air = -1.0
 
-            # 惩罚踢到竖直面的情况
             feet_stumble = -0.2
 
     class normalization(GR1T2Cfg.normalization):

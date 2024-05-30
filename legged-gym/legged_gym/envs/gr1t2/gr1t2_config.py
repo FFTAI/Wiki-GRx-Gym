@@ -197,9 +197,6 @@ class GR1T2Cfg(LeggedRobotFFTAICfg):
 
         # ---------------------------------------------------------------
 
-        # Jason 2024-03-15:
-        # sigma is like the sensitivity of the reward function
-        # calculate contact force sum, then reward = exp(-contact_force_sum * sigma)
         sigma_collision = -1.0
         sigma_stand_still = -1.0
 

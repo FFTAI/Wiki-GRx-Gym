@@ -22,8 +22,8 @@ class LeggedRobotFFTAI(LeggedRobot):
         super()._init_buffers()
 
         # robot info
-        self.default_dof_pos_tenors = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
-        self.default_dof_pos_tenors = self.default_dof_pos_tenors * self.default_dof_pos
+        self.default_dof_pos_tenors = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False) \
+                                      * self.default_dof_pos
 
         # actions
         self.last_last_actions = torch.zeros(self.num_envs, self.num_actions, dtype=torch.float, device=self.device, requires_grad=False)

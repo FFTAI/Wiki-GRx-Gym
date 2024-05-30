@@ -487,7 +487,7 @@ class GR1T1(LeggedRobotFFTAI):
                                          * feet_air_time_error)
         reward_feet_air_time *= self.feet_first_contact
         reward_feet_air_time = torch.sum(reward_feet_air_time, dim=1)
-        reward_feet_air_time *= torch.norm(self.commands[:, :2], dim=1) > 0.05  # no reward for zero command
+        reward_feet_air_time *= torch.norm(self.commands[:, :2], dim=1) > 0.1  # no reward for zero command
 
         return reward_feet_air_time
 
@@ -527,7 +527,7 @@ class GR1T1(LeggedRobotFFTAI):
 
         reward_feet_air_height = feet_air_time_mid_error * reward_feet_air_height
         reward_feet_air_height = torch.sum(reward_feet_air_height, dim=1)
-        reward_feet_air_height *= torch.norm(self.commands[:, :2], dim=1) > 0.05  # no reward for zero command
+        reward_feet_air_height *= torch.norm(self.commands[:, :2], dim=1) > 0.1  # no reward for zero command
 
         return reward_feet_air_height
 
@@ -547,7 +547,7 @@ class GR1T1(LeggedRobotFFTAI):
 
         reward_feet_air_force = feet_air_time_mid_error * reward_feet_air_force
         reward_feet_air_force = torch.sum(reward_feet_air_force, dim=1)
-        reward_feet_air_force *= torch.norm(self.commands[:, :2], dim=1) > 0.05  # no reward for zero command
+        reward_feet_air_force *= torch.norm(self.commands[:, :2], dim=1) > 0.1  # no reward for zero command
 
         return reward_feet_air_force
 
@@ -558,7 +558,7 @@ class GR1T1(LeggedRobotFFTAI):
         reward_feet_land_time = 1 - torch.exp(self.cfg.rewards.sigma_feet_land_time
                                               * feet_land_time_error)
         reward_feet_land_time = torch.sum(reward_feet_land_time, dim=1)
-        reward_feet_land_time *= torch.norm(self.commands[:, :2], dim=1) > 0.05  # no reward for zero command
+        reward_feet_land_time *= torch.norm(self.commands[:, :2], dim=1) > 0.1  # no reward for zero command
 
         return reward_feet_land_time
 

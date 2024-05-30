@@ -95,7 +95,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         class scales(GR1T1Cfg.rewards.scales):
             termination = -0.0
             collision = -0.0
-            stand_still = -1.0
+            stand_still = -10.0
 
             cmd_diff_lin_vel_x = 2.0
             cmd_diff_lin_vel_y = 0.5

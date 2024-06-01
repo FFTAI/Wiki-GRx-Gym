@@ -18,8 +18,7 @@ class GR1T1(LeggedRobotFFTAI):
     def __init__(self, cfg, sim_params, physics_engine, sim_device, headless):
         super().__init__(cfg, sim_params, physics_engine, sim_device, headless)
 
-        self.swing_feet_height_target = torch.ones(self.num_envs, 1,
-                                                   dtype=torch.float, device=self.device, requires_grad=False) \
+        self.swing_feet_height_target = torch.ones(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False) \
                                         * self.cfg.rewards.swing_feet_height_target
 
     def _create_envs_get_indices(self, body_names, env_handle, actor_handle):
@@ -340,12 +339,9 @@ class GR1T1(LeggedRobotFFTAI):
         noise_vec[3 + 3: 6 + 3] = 0.  # commands (3)
 
         # dof related
-        noise_vec[9 + 0 * self.num_dof: 9 + 1 * self.num_dof] = \
-            self.noise_scales.dof_pos * self.noise_level * self.obs_scales.dof_pos
-        noise_vec[9 + 1 * self.num_dof: 9 + 2 * self.num_dof] = \
-            self.noise_scales.dof_vel * self.noise_level * self.obs_scales.dof_vel
-        noise_vec[9 + 2 * self.num_dof: 9 + 3 * self.num_dof] = \
-            self.noise_scales.action * self.noise_level * self.obs_scales.action
+        noise_vec[9 + 0 * self.num_dof: 9 + 1 * self.num_dof] = self.noise_scales.dof_pos * self.noise_level * self.obs_scales.dof_pos
+        noise_vec[9 + 1 * self.num_dof: 9 + 2 * self.num_dof] = self.noise_scales.dof_vel * self.noise_level * self.obs_scales.dof_vel
+        noise_vec[9 + 2 * self.num_dof: 9 + 3 * self.num_dof] = self.noise_scales.action * self.noise_level * self.obs_scales.action
 
         # print("noise_vec: ", noise_vec)
         return noise_vec
@@ -388,12 +384,20 @@ class GR1T1(LeggedRobotFFTAI):
     # ----------------------------------------------
 
     def _reward_action_diff_knee(self):
-        error_action_diff = (self.last_actions[:, self.knee_indices] - self.actions[:, self.knee_indices]) \
+        error_action_diff = (self.actions[:, self.knee_indices] - self.last_actions[:, self.knee_indices]) \
                             * self.cfg.control.action_scale
         error_action_diff = torch.sum(torch.abs(error_action_diff), dim=1)
         reward_knee_action_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff_knee
                                                 * error_action_diff)
         return reward_knee_action_diff
+
+    # ----------------------------------------------
+
+    def _reward_dof_vel_new_knee(self):
+        error_new_dof_vel = torch.sum(torch.abs(self.dof_vel[:, self.knee_indices]), dim=1)
+        reward_new_dof_vel = 1 - torch.exp(self.cfg.rewards.sigma_dof_vel_new_knee
+                                           * error_new_dof_vel)
+        return reward_new_dof_vel
 
     # ----------------------------------------------
 
@@ -404,6 +408,15 @@ class GR1T1(LeggedRobotFFTAI):
         return reward_dof_tor_new
 
     # ----------------------------------------------
+
+    def _reward_pose_offset_hip_yaw(self):
+        error_pose_offset = torch.sum(torch.abs(self.dof_pos[:, self.hip_yaw_indices] - self.default_dof_pos[:, self.hip_yaw_indices]), dim=1)
+        reward_pose_offset = 1 - torch.exp(self.cfg.rewards.sigma_pose_offset_hip_yaw
+                                           * error_pose_offset)
+        return reward_pose_offset
+
+    # ----------------------------------------------
+
     def _reward_dof_tor_ankle_feet_lift_up(self):
         left_foot_height = torch.mean(
             self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights, dim=1)

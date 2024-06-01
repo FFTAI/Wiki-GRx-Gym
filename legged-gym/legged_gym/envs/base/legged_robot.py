@@ -69,7 +69,7 @@ class LeggedRobot(BaseTask):
 
         self.cfg = cfg
         self.height_samples = None
-        self.debug_viz = False
+        self.debug_viz = True  # show measure height square
 
         super().__init__(self.cfg, sim_params, physics_engine, sim_device, headless)
 
@@ -100,6 +100,7 @@ class LeggedRobot(BaseTask):
         self.max_episode_length = np.ceil(self.max_episode_length_s / self.dt)
 
         self.cfg.domain_rand.push_interval = np.ceil(self.cfg.domain_rand.push_interval_s / self.dt)
+        self.cfg.commands.resample_command_interval = int(self.cfg.commands.resampling_command_interval_s / self.dt)
 
     def _init_buffers(self):
         """ Initialize torch tensors which will contain simulation states and processed quantities
@@ -265,18 +266,20 @@ class LeggedRobot(BaseTask):
             self.gym.refresh_rigid_body_state_tensor(self.sim)
 
             # compute some quantities
-            self.dof_acc = (self.last_dof_vel - self.dof_vel) / self.dt
+            self.dof_acc = (self.dof_vel - self.last_dof_vel) / self.dt
 
     def post_physics_step(self):
         """ check terminations, compute observations and rewards
             calls self._post_physics_step_callback() for common computations 
             calls self._draw_debug_vis() if needed
         """
+        # refresh state
         self.gym.refresh_dof_state_tensor(self.sim)
         self.gym.refresh_actor_root_state_tensor(self.sim)
         self.gym.refresh_net_contact_force_tensor(self.sim)
         self.gym.refresh_rigid_body_state_tensor(self.sim)
 
+        # update counter
         self.common_step_counter += 1
         self.episode_length_buf += 1
 
@@ -308,12 +311,13 @@ class LeggedRobot(BaseTask):
         self.base_lin_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states[:, 7:10])
         self.base_ang_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states[:, 10:13])
         self.base_projected_gravity[:] = quat_rotate_inverse(self.base_quat, self.gravity_vec)
+
         self.dof_pos_offset[:] = self.dof_pos - self.default_dof_pos
         self.dof_vel[:] = self.dof_vel[:]
 
         # using time to resample commands
-        env_ids = (self.episode_length_buf % int(self.cfg.commands.resampling_time / self.dt) == 0).nonzero(as_tuple=False).flatten()
-        self._resample_commands(env_ids)
+        resample_commands_env_ids = (self.episode_length_buf % self.cfg.commands.resample_command_interval == 0).nonzero(as_tuple=False).flatten()
+        self._resample_commands(resample_commands_env_ids)
 
         # using heading command to auto change the yaw command
         if self.cfg.commands.heading_command:
@@ -328,15 +332,13 @@ class LeggedRobot(BaseTask):
             self.measured_heights = self._get_heights()
 
         # push robots
-        if self.cfg.domain_rand.push_robots and \
-                (self.common_step_counter % self.cfg.domain_rand.push_interval == 0):
+        if self.cfg.domain_rand.push_robots and (self.common_step_counter % self.cfg.domain_rand.push_interval == 0):
             self._push_robots()
 
     def check_termination(self):
         """ Check if environments need to be reset
         """
-        self.reset_buf = torch.any(torch.norm(
-            self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
+        self.reset_buf = torch.any(torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
 
         # detect base tilt too much (roll and pitch)
         self.reset_buf = self.reset_buf | (torch.norm(self.base_projected_gravity[:, :2], dim=-1) > 0.7)
@@ -345,6 +347,28 @@ class LeggedRobot(BaseTask):
         self.time_out_buf = self.episode_length_buf > self.max_episode_length
 
         self.reset_buf |= self.time_out_buf
+
+    def compute_reward(self):
+        """ Compute rewards
+            Calls each reward function which had a non-zero scale (processed in self._prepare_reward_function())
+            adds each terms to the episode sums and to the total reward
+        """
+        self.rew_buf[:] = 0.0
+
+        for i in range(len(self.reward_functions)):
+            name = self.reward_names[i]
+            rew = self.reward_functions[i]() * self.reward_scales[name]
+            self.rew_buf += rew
+            self.episode_sums[name] += rew
+
+        if self.cfg.rewards.only_positive_rewards:
+            self.rew_buf[:] = torch.clip(self.rew_buf[:], min=0.0)
+
+        # add termination reward after clipping
+        if "termination" in self.reward_scales:
+            rew = self._reward_termination() * self.reward_scales["termination"]
+            self.rew_buf += rew
+            self.episode_sums["termination"] += rew
 
     def reset_idx(self, env_ids):
         """ Reset some environments.
@@ -364,8 +388,7 @@ class LeggedRobot(BaseTask):
             self._update_terrain_curriculum(env_ids)
 
         # avoid updating command curriculum at each step since the maximum command is common to all envs
-        if self.cfg.commands.curriculum and \
-                (self.common_step_counter % self.max_episode_length == 0):
+        if self.cfg.commands.curriculum and (self.common_step_counter % self.max_episode_length == 0):
             self.update_command_curriculum(env_ids)
 
         # reset robot states
@@ -412,28 +435,6 @@ class LeggedRobot(BaseTask):
         if self.cfg.env.send_timeouts:
             self.extras["time_outs"] = self.time_out_buf
 
-    def compute_reward(self):
-        """ Compute rewards
-            Calls each reward function which had a non-zero scale (processed in self._prepare_reward_function())
-            adds each terms to the episode sums and to the total reward
-        """
-        self.rew_buf[:] = 0.0
-
-        for i in range(len(self.reward_functions)):
-            name = self.reward_names[i]
-            rew = self.reward_functions[i]() * self.reward_scales[name]
-            self.rew_buf += rew
-            self.episode_sums[name] += rew
-
-        if self.cfg.rewards.only_positive_rewards:
-            self.rew_buf[:] = torch.clip(self.rew_buf[:], min=0.0)
-
-        # add termination reward after clipping
-        if "termination" in self.reward_scales:
-            rew = self._reward_termination() * self.reward_scales["termination"]
-            self.rew_buf += rew
-            self.episode_sums["termination"] += rew
-
     def compute_observations(self):
         """ Computes observations
         """
@@ -457,14 +458,18 @@ class LeggedRobot(BaseTask):
                        * self.obs_scales.height_measurements, dim=1)
 
     def compute_observation_profile(self):
-        self.obs_buf = torch.cat((
-            self.base_ang_vel * self.obs_scales.ang_vel,
-            self.base_projected_gravity,
-            self.commands[:, :3] * self.commands_scale,
-            (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos,
-            self.dof_vel * self.obs_scales.dof_vel,
-            self.actions
-        ), dim=-1)
+        self.obs_buf = torch.cat(
+            (
+                # base related
+                self.base_ang_vel * self.obs_scales.ang_vel,
+                self.base_projected_gravity,
+                self.commands[:, :3] * self.commands_scale,
+
+                # dof related
+                self.dof_pos_offset * self.obs_scales.dof_pos,
+                self.dof_vel * self.obs_scales.dof_vel,
+                self.actions,
+            ), dim=-1)
 
     def compute_observation_noise(self):
         # add noise if needed, only add noise to the actor observations
@@ -673,8 +678,8 @@ class LeggedRobot(BaseTask):
         Args:
             env_ids (List[int]): Environemnt ids
         """
-        self.dof_pos[env_ids] = self.default_dof_pos * \
-                                torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof), device=self.device)
+        self.dof_pos[env_ids] = torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof), device=self.device) \
+                                * self.default_dof_pos
 
         self.dof_vel[env_ids] = 0.
 
@@ -1062,6 +1067,8 @@ class LeggedRobot(BaseTask):
                                                                                       self.actor_handles[0],
                                                                                       penalized_contact_names[i])
 
+        print("self.penalised_contact_indices: " + str(self.penalised_contact_indices))
+
     def _create_envs_terminated_contacts(self, body_names):
         """ Creates a list of terminated contacts.
         """
@@ -1101,6 +1108,7 @@ class LeggedRobot(BaseTask):
             self.max_terrain_level = self.cfg.terrain.num_rows
             self.terrain_origins = torch.from_numpy(self.terrain.env_origins).to(self.device).to(torch.float)
             self.env_origins[:] = self.terrain_origins[self.terrain_levels, self.terrain_types]
+
         else:
             self.custom_origins = False
             self.env_origins = torch.zeros(self.num_envs, 3, device=self.device, requires_grad=False)
@@ -1220,7 +1228,7 @@ class LeggedRobot(BaseTask):
 
     def _reward_dof_acc(self):
         # Penalize dof accelerations
-        return torch.sum(torch.square((self.last_dof_vel - self.dof_vel) / self.dt), dim=1)
+        return torch.sum(torch.square((self.dof_vel - self.last_dof_vel) / self.dt), dim=1)
 
     def _reward_action_rate(self):
         # Penalize changes in actions

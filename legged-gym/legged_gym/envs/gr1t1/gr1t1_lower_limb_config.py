@@ -25,35 +25,6 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         terrain_width = 10.
         slope_treshold = 0.75  # slopes above this threshold will be corrected to vertical surfaces
 
-        # 1mx1m rectangle (without center line)
-        measure_heights = True
-        measured_points_x = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
-        measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
-
-    class commands(GR1T1Cfg.commands):
-        class ranges_walk:
-            lin_vel_x = [-0.75, 0.75]  # min max [m/s]
-            lin_vel_y = [-0.50, 0.50]  # min max [m/s]
-            ang_vel_yaw = [-0.50, 0.50]  # min max [rad/s]
-
-    class init_state(GR1T1Cfg.init_state):
-        pos = [0.0, 0.0, 0.95]  # x, y, z [m]
-        default_joint_angles = {  # = target angles [rad] when action = 0.0
-            # left leg
-            'l_hip_roll': 0.0,
-            'l_hip_yaw': 0.,
-            'l_hip_pitch': -0.2618,
-            'l_knee_pitch': 0.5236,
-            'l_ankle_pitch': -0.2618,
-
-            # right leg
-            'r_hip_roll': -0.,
-            'r_hip_yaw': 0.,
-            'r_hip_pitch': -0.2618,
-            'r_knee_pitch': 0.5236,
-            'r_ankle_pitch': -0.2618,
-        }
-
     class control(GR1T1Cfg.control):
         # PD Drive parameters:
         stiffness = {
@@ -71,15 +42,8 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             'ankle_pitch': stiffness['ankle_pitch'] / 10,
         }
 
-        # action scale: target angle = actionScale * action + defaultAngle
-        action_scale = 1.0
-
-        # decimation: Number of control action updates @ sim DT per policy DT
-        decimation = 20
-
     class asset(GR1T1Cfg.asset):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/GR1T1/urdf/GR1T1_lower_limb.urdf'
-        name = 'GR1T1'
 
     class rewards(GR1T1Cfg.rewards):
         base_height_target = 0.85  # 期望的机器人身体高度
@@ -154,36 +118,14 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         clip_actions_max = actions_max + 60 / 180 * numpy.pi / 3
         clip_actions_min = actions_min - 60 / 180 * numpy.pi / 3
 
-    class sim(GR1T1Cfg.sim):
-        dt = 0.001
-
 
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
-    runner_class_name = 'OnPolicyRunner'
-
     class runner(GR1T1CfgPPO.runner):
-        algorithm_class_name = 'PPO'
-        policy_class_name = 'ActorCriticMLP'
-
-        experiment_name = 'GR1T1'
-        num_steps_per_env = 64
-
-        run_name = 'gr1t1_lower_limb'
-        max_iterations = 4000
-        save_interval = 100
+        run_name = 'gr1t1_lower_limb_walk'
+        max_iterations = 10000
 
     class algorithm(GR1T1CfgPPO.algorithm):
         desired_kl = 0.03
 
-        # actor-critic
-        learning_rate = 1e-4
-
     class policy(GR1T1CfgPPO.policy):
-        actor_hidden_dims = [512, 256, 128]
-        critic_hidden_dims = [512, 256, 128]
-        activation = 'elu'  # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
-        actor_output_activation = None  # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
-        critic_output_activation = None  # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
-
-        fixed_std = False
-        init_noise_std = 0.2
+        pass

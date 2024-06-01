@@ -15,8 +15,8 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
         dt = 0.001
 
         class physx(LeggedRobotCfg.sim.physx):
-            num_position_iterations = 4  # 4
-            num_velocity_iterations = 4  # 0
+            num_position_iterations = 4
+            num_velocity_iterations = 0
 
 
 class LeggedRobotFFTAICfgPPO(LeggedRobotCfgPPO):

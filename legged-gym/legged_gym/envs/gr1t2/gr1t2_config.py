@@ -30,9 +30,9 @@ class GR1T2Cfg(LeggedRobotFFTAICfg):
         heading_command = False  # if true: compute ang vel command from heading error
 
         class ranges(LeggedRobotFFTAICfg.commands.ranges):
-            lin_vel_x = [-0.50, 0.50]  # min max [m/s]
+            lin_vel_x = [-1.00, 1.00]  # min max [m/s]
             lin_vel_y = [-0.50, 0.50]  # min max [m/s]
-            ang_vel_yaw = [-0.50, 0.50]  # min max [rad/s]
+            ang_vel_yaw = [-1.00, 1.00]  # min max [rad/s]
 
     class init_state(LeggedRobotFFTAICfg.init_state):
         pos = [0.0, 0.0, 0.95]  # x,y,z [m]
@@ -109,7 +109,7 @@ class GR1T2Cfg(LeggedRobotFFTAICfg):
         action_scale = 1.0
 
         # decimation: Number of control action updates @ sim DT per policy DT
-        decimation = 10
+        decimation = 20
 
     class asset(LeggedRobotFFTAICfg.asset):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/GR1T2/urdf/GR1T2.urdf'
@@ -330,6 +330,3 @@ class GR1T2CfgPPO(LeggedRobotFFTAICfgPPO, GR1T2Cfg):
 
         fixed_std = False
         init_noise_std = 0.2
-
-        set_std = False
-        set_noise_std = 0.2

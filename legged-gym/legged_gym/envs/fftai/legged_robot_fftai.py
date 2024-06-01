@@ -50,9 +50,17 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def during_physics_step(self):
 
+        delay = numpy.random.normal(loc=self.cfg.control.decimation / 2, scale=self.cfg.control.decimation / 5, size=1)[0]
+        delay = max(0, delay)
+
         for i in range(self.cfg.control.decimation):
 
-            self.torques = self._compute_torques(self.actions).view(self.torques.shape)
+            if i < delay:
+                self.torques = self._compute_torques(self.last_actions).view(self.torques.shape)
+            else:
+                self.torques = self._compute_torques(self.actions).view(self.torques.shape)
+
+            # self.torques = self._compute_torques(self.actions).view(self.torques.shape)
             self.torques *= self.motor_strength
             self.torques = torch.clip(self.torques, -self.torque_limits, self.torque_limits)
 
@@ -69,7 +77,7 @@ class LeggedRobotFFTAI(LeggedRobot):
             self.gym.refresh_rigid_body_state_tensor(self.sim)
 
             # compute some quantities
-            self.dof_acc = (self.last_dof_vel - self.dof_vel) / self.dt
+            self.dof_acc = (self.dof_vel - self.last_dof_vel) / self.dt
 
             self.avg_feet_contact_force += torch.norm(self.contact_forces[:, self.feet_indices, :3], dim=-1)
             self.avg_feet_speed += torch.norm(self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 7:10], dim=-1)
@@ -197,43 +205,36 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    # 惩罚 x 速度差异
     def _reward_cmd_diff_lin_vel_x(self):
         error_x_vel = torch.abs(self.commands[:, 0] - self.base_lin_vel[:, 0])
         reward_x_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_lin_vel_x * error_x_vel)
         return reward_x_vel
 
-    # 惩罚 y 速度差异
     def _reward_cmd_diff_lin_vel_y(self):
         error_y_vel = torch.abs(self.commands[:, 1] - self.base_lin_vel[:, 1])
         reward_y_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_lin_vel_y * error_y_vel)
         return reward_y_vel
 
-    # 惩罚 z 速度差异
     def _reward_cmd_diff_lin_vel_z(self):
         error_z_vel = torch.abs(0 - self.base_lin_vel[:, 2])
         reward_z_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_lin_vel_z * error_z_vel)
         return reward_z_vel
 
-    # 惩罚 roll 速度
     def _reward_cmd_diff_ang_vel_roll(self):
         error_roll_vel = torch.abs(0 - self.base_ang_vel[:, 0])
         reward_roll_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_ang_vel_roll * error_roll_vel)
         return reward_roll_vel
 
-    # 惩罚 pitch 速度
     def _reward_cmd_diff_ang_vel_pitch(self):
         error_pitch_vel = torch.abs(0 - self.base_ang_vel[:, 1])
         reward_pitch_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_ang_vel_pitch * error_pitch_vel)
         return reward_pitch_vel
 
-    # 惩罚 yaw 速度差异
     def _reward_cmd_diff_ang_vel_yaw(self):
         error_yaw_vel = torch.abs(self.commands[:, 2] - self.base_ang_vel[:, 2])
         reward_yaw_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_ang_vel_yaw * error_yaw_vel)
         return reward_yaw_vel
 
-    # 惩罚 base height 差异
     def _reward_cmd_diff_base_height(self):
         error_base_height = torch.abs(self.base_heights_offset) \
                             * (self.base_heights_offset < 0)  # 只计算高度不足的情况
@@ -242,7 +243,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    # 奖励 base orientation 无差异
     def _reward_cmd_diff_base_orient(self):
         error_base_orient = torch.sum(torch.abs(self.base_projected_gravity[:, :2]), dim=1)
         reward_base_orient = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_orient
@@ -251,7 +251,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    # 惩罚 action 差异
     def _reward_action_diff(self):
         error_action_diff = (self.last_actions - self.actions) \
                             * self.cfg.control.action_scale
@@ -271,7 +270,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    # 惩罚速度
     def _reward_dof_vel_new(self):
         error_new_dof_vel = torch.sum(torch.abs(self.dof_vel), dim=1)
         reward_new_dof_vel = 1 - torch.exp(self.cfg.rewards.sigma_dof_vel_new
@@ -280,17 +278,14 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    # 惩罚加速度
     def _reward_dof_acc_new(self):
-        error_new_dof_acc = torch.sum(torch.abs((self.last_dof_vel
-                                                 - self.dof_vel) / self.dt), dim=1)
+        error_new_dof_acc = torch.sum(torch.abs((self.dof_vel - self.last_dof_vel) / self.dt), dim=1)
         reward_new_dof_acc = 1 - torch.exp(self.cfg.rewards.sigma_dof_acc_new
                                            * error_new_dof_acc)
         return reward_new_dof_acc
 
     # ----------------------------------------------
 
-    # 惩罚关节力矩
     def _reward_dof_tor_new(self):
         error_dof_tor_new = torch.sum(torch.abs(self.torques), dim=1)
         reward_dof_tor_new = 1 - torch.exp(self.cfg.rewards.sigma_dof_tor_new
@@ -307,7 +302,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    # 惩罚 指令接近位置上限
     def _reward_limits_actions(self):
         related_indexes = list(range(self.num_actions))
 
@@ -322,7 +316,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
         return reward_limits_actions
 
-    # 惩罚 接近位置上限
     def _reward_limits_dof_pos(self):
         related_indexes = list(range(self.num_actions))
 
@@ -337,7 +330,6 @@ class LeggedRobotFFTAI(LeggedRobot):
                                             * error_limits_dof_pos)
         return reward_limits_dof_pos
 
-    # 惩罚 超过速度上限
     def _reward_limits_dof_vel(self):
         error_limits_dof_vel = \
             torch.sum((torch.abs(self.dof_vel)
@@ -346,8 +338,6 @@ class LeggedRobotFFTAI(LeggedRobot):
                                 - torch.exp(self.cfg.rewards.sigma_limits_dof_vel
                                             * error_limits_dof_vel)
         return reward_limits_dof_vel
-
-        # 惩罚 超过力矩上限
 
     def _reward_limits_dof_tor(self):
         error_limits_dof_tor = \

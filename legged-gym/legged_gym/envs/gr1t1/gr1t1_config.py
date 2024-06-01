@@ -30,9 +30,9 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         heading_command = False  # if true: compute ang vel command from heading error
 
         class ranges(LeggedRobotFFTAICfg.commands.ranges):
-            lin_vel_x = [-0.50, 0.50]  # min max [m/s]
+            lin_vel_x = [-1.00, 1.00]  # min max [m/s]
             lin_vel_y = [-0.50, 0.50]  # min max [m/s]
-            ang_vel_yaw = [-0.50, 0.50]  # min max [rad/s]
+            ang_vel_yaw = [-1.00, 1.00]  # min max [rad/s]
 
     class init_state(LeggedRobotFFTAICfg.init_state):
         pos = [0.0, 0.0, 0.95]  # x,y,z [m]
@@ -109,7 +109,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         action_scale = 1.0
 
         # decimation: Number of control action updates @ sim DT per policy DT
-        decimation = 10
+        decimation = 20
 
     class asset(LeggedRobotFFTAICfg.asset):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/GR1T1/urdf/GR1T1.urdf'
@@ -217,6 +217,8 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         sigma_action_diff_knee = -1.0
 
         sigma_dof_vel_new = -0.01
+        sigma_dof_vel_new_knee = -0.05
+
         sigma_dof_acc_new = -0.00005
         sigma_dof_tor_new = -0.00005
         sigma_dof_tor_new_hip_roll = -0.002
@@ -224,6 +226,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         sigma_dof_tor_ankle_feet_lift_up = -1.0
 
         sigma_pose_offset = -0.1
+        sigma_pose_offset_hip_yaw = -0.1
 
         sigma_limits_dof_pos = -10.0
         sigma_limits_dof_vel = -10.0
@@ -302,7 +305,7 @@ class GR1T1CfgPPO(LeggedRobotFFTAICfgPPO, GR1T1Cfg):
         policy_class_name = 'ActorCriticMLP'
 
         experiment_name = 'GR1T1'
-        num_steps_per_env = 64
+        num_steps_per_env = 25
 
         run_name = ''
         max_iterations = 2000
@@ -330,6 +333,3 @@ class GR1T1CfgPPO(LeggedRobotFFTAICfgPPO, GR1T1Cfg):
 
         fixed_std = False
         init_noise_std = 0.2
-
-        set_std = False
-        set_noise_std = 0.2

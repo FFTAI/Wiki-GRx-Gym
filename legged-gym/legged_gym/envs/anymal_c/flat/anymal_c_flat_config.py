@@ -51,7 +51,7 @@ class AnymalCFlatCfg( AnymalCRoughCfg ):
     
     class commands( AnymalCRoughCfg.commands ):
         heading_command = False
-        resampling_time = 4.
+        resampling_command_interval_s = 4.
         class ranges( AnymalCRoughCfg.commands.ranges ):
             ang_vel_yaw = [-1.5, 1.5]
 

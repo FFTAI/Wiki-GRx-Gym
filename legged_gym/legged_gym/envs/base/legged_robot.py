@@ -812,14 +812,14 @@ class LeggedRobot(BaseTask):
         """ Adds a heightfield terrain to the simulation, sets parameters based on the cfg.
         """
         hf_params = gymapi.HeightFieldParams()
-        hf_params.column_scale = self.terrain.cfg.horizontal_scale
-        hf_params.row_scale = self.terrain.cfg.horizontal_scale
-        hf_params.vertical_scale = self.terrain.cfg.vertical_scale
+        hf_params.column_scale = self.cfg.terrain.horizontal_scale
+        hf_params.row_scale = self.cfg.terrain.horizontal_scale
+        hf_params.vertical_scale = self.cfg.terrain.vertical_scale
         hf_params.nbRows = self.terrain.tot_cols
         hf_params.nbColumns = self.terrain.tot_rows
 
-        hf_params.transform.p.x = -self.terrain.cfg.border_size
-        hf_params.transform.p.y = -self.terrain.cfg.border_size
+        hf_params.transform.p.x = -self.cfg.terrain.border_size
+        hf_params.transform.p.y = -self.cfg.terrain.border_size
         hf_params.transform.p.z = 0.0
 
         hf_params.static_friction = self.cfg.terrain.static_friction
@@ -840,8 +840,8 @@ class LeggedRobot(BaseTask):
         tm_params.nb_vertices = self.terrain.vertices.shape[0]
         tm_params.nb_triangles = self.terrain.triangles.shape[0]
 
-        tm_params.transform.p.x = -self.terrain.cfg.border_size
-        tm_params.transform.p.y = -self.terrain.cfg.border_size
+        tm_params.transform.p.x = -self.cfg.terrain.border_size
+        tm_params.transform.p.y = -self.cfg.terrain.border_size
         tm_params.transform.p.z = 0.0
 
         tm_params.static_friction = self.cfg.terrain.static_friction
@@ -1126,7 +1126,7 @@ class LeggedRobot(BaseTask):
             Default behaviour: draws height measurement points
         """
         # draw height lines
-        if not self.terrain.cfg.measure_heights:
+        if not self.cfg.terrain.measure_heights:
             return
 
         self.gym.clear_lines(self.viewer)
@@ -1182,8 +1182,8 @@ class LeggedRobot(BaseTask):
         else:
             points = quat_apply_yaw(self.base_quat.repeat(1, self.num_height_points), self.height_points) + (self.root_states[:, :3]).unsqueeze(1)
 
-        points += self.terrain.cfg.border_size
-        points = (points / self.terrain.cfg.horizontal_scale).long()
+        points += self.cfg.terrain.border_size
+        points = (points / self.cfg.terrain.horizontal_scale).long()
         px = points[:, :, 0].view(-1)
         py = points[:, :, 1].view(-1)
         px = torch.clip(px, 0, self.height_samples.shape[0] - 2)
@@ -1196,7 +1196,7 @@ class LeggedRobot(BaseTask):
         heights = torch.min(heights1, heights2)
         heights = torch.min(heights, heights3)
 
-        measured_heights = heights.view(self.num_envs, -1) * self.terrain.cfg.vertical_scale
+        measured_heights = heights.view(self.num_envs, -1) * self.cfg.terrain.vertical_scale
 
         return measured_heights
 

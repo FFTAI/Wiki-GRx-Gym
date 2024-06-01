@@ -12,18 +12,13 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         num_actions = 10
 
     class terrain(GR1T1Cfg.terrain):
-        mesh_type = 'trimesh'  # "heightfield" # none, plane, heightfield or trimesh
+        mesh_type = 'plane'
 
-        curriculum = True
-        num_rows = 10  # number of terrain rows (levels)
-        num_cols = 10  # number of terrain cols (types)
-        max_init_terrain_level = num_rows - 1  # maximum initial terrain level
-
-        # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
-        terrain_proportions = [0.4, 0.4, 0.0, 0.2, 0.0]
-        terrain_length = 10.
-        terrain_width = 10.
-        slope_treshold = 0.75  # slopes above this threshold will be corrected to vertical surfaces
+    class commands(GR1T1Cfg.commands):
+        class ranges(GR1T1Cfg.commands.ranges):
+            lin_vel_x = [-0.00, 0.00]  # min max [m/s]
+            lin_vel_y = [-0.00, 0.00]  # min max [m/s]
+            ang_vel_yaw = [-0.00, 0.00]  # min max [rad/s]
 
     class control(GR1T1Cfg.control):
         # PD Drive parameters:
@@ -98,14 +93,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             feet_speed_xy_close_to_ground = -10.0
             feet_speed_z_close_to_height_target = 0.0
 
-            feet_air_time = 4.0
-            feet_air_height = 4.0  # 1.0
-            feet_air_force = 1.0
-            feet_land_time = -1.0
-
             on_the_air = -1.0
-
-            feet_stumble = -0.2
 
     class normalization(GR1T1Cfg.normalization):
         actions_max = numpy.array([
@@ -118,8 +106,8 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         ])
 
         clip_observations = 100.0
-        clip_actions_max = actions_max + 30 / 180 * numpy.pi / 3 * 2  # allow 2 times rated torque
-        clip_actions_min = actions_min - 30 / 180 * numpy.pi / 3 * 2  # allow 2 times rated torque
+        clip_actions_max = actions_max + 30 / 180 * numpy.pi
+        clip_actions_min = actions_min - 30 / 180 * numpy.pi
 
 
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):

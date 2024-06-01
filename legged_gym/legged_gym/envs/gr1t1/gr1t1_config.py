@@ -305,7 +305,7 @@ class GR1T1CfgPPO(LeggedRobotFFTAICfgPPO, GR1T1Cfg):
         policy_class_name = 'ActorCriticMLP'
 
         experiment_name = 'GR1T1'
-        num_steps_per_env = 25
+        num_steps_per_env = 64
 
         run_name = ''
         max_iterations = 2000

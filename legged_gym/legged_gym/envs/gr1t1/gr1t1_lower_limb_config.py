@@ -121,7 +121,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
     class runner(GR1T1CfgPPO.runner):
-        run_name = 'gr1t1_lower_limb_walk'
+        run_name = 'gr1t1_lower_limb'
         max_iterations = 10000
 
     class algorithm(GR1T1CfgPPO.algorithm):

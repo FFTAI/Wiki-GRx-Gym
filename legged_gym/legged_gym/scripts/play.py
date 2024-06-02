@@ -90,6 +90,7 @@ def play(args):
 
         if i < stop_state_log:
 
+            # log about the joints
             for j in range(env_cfg.env.num_actions):
                 logger.log_states(
                     {

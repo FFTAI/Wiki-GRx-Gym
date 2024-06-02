@@ -28,18 +28,18 @@ class GR1T2LowerLimbCfg(GR1T2Cfg):
     class control(GR1T2Cfg.control):
         # PD Drive parameters:
         stiffness = {
-            'hip_roll': 57,
-            'hip_yaw': 43,
-            'hip_pitch': 114,
-            'knee_pitch': 114,
-            'ankle_pitch': 15.3,
+            'hip_roll': 114,
+            'hip_yaw': 86,
+            'hip_pitch': 229,
+            'knee_pitch': 229,
+            'ankle_pitch': 30.5,
         }  # [N*m/rad]
         damping = {
-            'hip_roll': stiffness['hip_roll'] / 10,
-            'hip_yaw': stiffness['hip_yaw'] / 10,
-            'hip_pitch': stiffness['hip_pitch'] / 10,
-            'knee_pitch': stiffness['knee_pitch'] / 10,
-            'ankle_pitch': stiffness['ankle_pitch'] / 10,
+            'hip_roll': stiffness['hip_roll'] / 15,
+            'hip_yaw': stiffness['hip_yaw'] / 15,
+            'hip_pitch': stiffness['hip_pitch'] / 15,
+            'knee_pitch': stiffness['knee_pitch'] / 15,
+            'ankle_pitch': stiffness['ankle_pitch'] / 15,
         }
 
     class asset(GR1T2Cfg.asset):
@@ -59,7 +59,7 @@ class GR1T2LowerLimbCfg(GR1T2Cfg):
         class scales(GR1T2Cfg.rewards.scales):
             termination = -0.0
             collision = -0.0
-            stand_still = -1.0
+            stand_still = -10.0
 
             cmd_diff_lin_vel_x = 2.0
             cmd_diff_lin_vel_y = 0.5
@@ -115,16 +115,17 @@ class GR1T2LowerLimbCfg(GR1T2Cfg):
         ])
 
         clip_observations = 100.0
-        clip_actions_max = actions_max + 60 / 180 * numpy.pi / 3
-        clip_actions_min = actions_min - 60 / 180 * numpy.pi / 3
+        clip_actions_max = actions_max + 60 / 180 * numpy.pi
+        clip_actions_min = actions_min - 60 / 180 * numpy.pi
 
 
 class GR1T2LowerLimbCfgPPO(GR1T2CfgPPO, GR1T2LowerLimbCfg):
     class runner(GR1T2CfgPPO.runner):
-        run_name = 'gr1t2_lower_limb'
-        max_iterations = 4000
+        run_name = 'gr1t2_lower_limb_walk'
+        max_iterations = 10000
 
     class algorithm(GR1T2CfgPPO.algorithm):
+        learning_rate_min = 5.e-5  # accelerate learning
         desired_kl = 0.03
 
     class policy(GR1T2CfgPPO.policy):

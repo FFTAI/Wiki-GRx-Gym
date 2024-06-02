@@ -1,0 +1,118 @@
+import numpy
+
+from legged_gym.envs.gr1t1.gr1t1_config import GR1T2Cfg, GR1T2CfgPPO
+
+
+class GR1T2LowerLimbCfg(GR1T2Cfg):
+    class env(GR1T2Cfg.env):
+        num_envs = 8192  # NVIDIA 4090 has 16384 CUDA cores
+
+        num_obs = 39
+        num_pri_obs = 168
+        num_actions = 10
+
+    class terrain(GR1T2Cfg.terrain):
+        mesh_type = 'plane'
+
+    class commands(GR1T2Cfg.commands):
+        class ranges(GR1T2Cfg.commands.ranges):
+            lin_vel_x = [-0.00, 0.00]  # min max [m/s]
+            lin_vel_y = [-0.00, 0.00]  # min max [m/s]
+            ang_vel_yaw = [-0.00, 0.00]  # min max [rad/s]
+
+    class control(GR1T2Cfg.control):
+        # PD Drive parameters:
+        stiffness = {
+            'hip_roll': 114,
+            'hip_yaw': 86,
+            'hip_pitch': 229,
+            'knee_pitch': 229,
+            'ankle_pitch': 30.5,
+        }  # [N*m/rad]
+        damping = {
+            'hip_roll': stiffness['hip_roll'] / 15,
+            'hip_yaw': stiffness['hip_yaw'] / 15,
+            'hip_pitch': stiffness['hip_pitch'] / 15,
+            'knee_pitch': stiffness['knee_pitch'] / 15,
+            'ankle_pitch': stiffness['ankle_pitch'] / 15,
+        }
+
+    class asset(GR1T2Cfg.asset):
+        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/GR1T2/urdf/GR1T2_lower_limb.urdf'
+
+    class rewards(GR1T2Cfg.rewards):
+        base_height_target = 0.85  # 期望的机器人身体高度
+        swing_feet_height_target = 0.10  # 期望的脚抬高度
+
+        # ---------------------------------------------------------------
+
+        class scales(GR1T2Cfg.rewards.scales):
+            termination = -0.0
+            collision = -0.0
+            stand_still = -10.0
+
+            cmd_diff_lin_vel_x = 2.0
+            cmd_diff_lin_vel_y = 0.5
+            cmd_diff_lin_vel_z = 0.1
+            cmd_diff_ang_vel_roll = 0.1
+            cmd_diff_ang_vel_pitch = 0.1
+            cmd_diff_ang_vel_yaw = 1.0
+            cmd_diff_base_height = 0.5
+
+            cmd_diff_base_orient = 0.25
+            cmd_diff_torso_orient = 0.0
+            cmd_diff_chest_orient = 0.75
+            cmd_diff_forehead_orient = 0.0
+
+            action_diff = -2.0
+            action_diff_knee = -0.5
+
+            action_diff_diff = -1.0
+
+            dof_vel_new = -0.2
+            dof_vel_new_knee = -0.2
+
+            dof_acc_new = -0.2
+            dof_tor_new = -0.2
+            dof_tor_new_hip_roll = -1.0
+
+            dof_tor_ankle_feet_lift_up = -0.5
+
+            pose_offset = -1.0
+            pose_offset_hip_yaw = -0.2
+
+            limits_dof_pos = -100.0
+            limits_dof_vel = -100.0
+            limits_dof_tor = -100.0
+
+            feet_speed_xy_close_to_ground = -10.0
+            feet_speed_z_close_to_height_target = 0.0
+
+            on_the_air = -1.0
+
+    class normalization(GR1T2Cfg.normalization):
+        actions_max = numpy.array([
+            0.79, 0.7, 0.7, 1.92, 0.52,  # left leg
+            0.09, 0.7, 0.7, 1.92, 0.52,  # right leg
+        ])
+        actions_min = numpy.array([
+            -0.09, -0.7, -1.75, -0.09, -1.05,  # left leg
+            -0.79, -0.7, -1.75, -0.09, -1.05,  # right leg
+        ])
+
+        clip_observations = 100.0
+        clip_actions_max = actions_max + 30 / 180 * numpy.pi
+        clip_actions_min = actions_min - 30 / 180 * numpy.pi
+
+
+class GR1T2LowerLimbCfgPPO(GR1T2CfgPPO, GR1T2LowerLimbCfg):
+    class runner(GR1T2CfgPPO.runner):
+        run_name = 'gr1t2_lower_limb_stand'
+        max_iterations = 10000
+
+    class algorithm(GR1T2CfgPPO.algorithm):
+        learning_rate_min = 5.e-5  # accelerate learning
+        desired_kl = 0.03
+
+    class policy(GR1T2CfgPPO.policy):
+        pass

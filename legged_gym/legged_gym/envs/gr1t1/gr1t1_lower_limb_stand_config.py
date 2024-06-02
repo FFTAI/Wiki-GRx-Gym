@@ -23,19 +23,11 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
     class control(GR1T1Cfg.control):
         # PD Drive parameters:
         stiffness = {
-            # 30 degree
             'hip_roll': 114,
             'hip_yaw': 86,
             'hip_pitch': 229,
             'knee_pitch': 229,
             'ankle_pitch': 30.5,
-
-            # 45 degree
-            # 'hip_roll': 76,
-            # 'hip_yaw': 57,
-            # 'hip_pitch': 152,
-            # 'knee_pitch': 152,
-            # 'ankle_pitch': 20.3,
         }  # [N*m/rad]
         damping = {
             'hip_roll': stiffness['hip_roll'] / 15,

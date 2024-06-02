@@ -50,17 +50,17 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def during_physics_step(self):
 
-        delay = numpy.random.normal(loc=self.cfg.control.decimation / 2, scale=self.cfg.control.decimation / 5, size=1)[0]
-        delay = max(0, delay)
+        # delay = numpy.random.normal(loc=self.cfg.control.decimation / 2, scale=self.cfg.control.decimation / 5, size=1)[0]
+        # delay = max(0, delay)
 
         for i in range(self.cfg.control.decimation):
 
-            if i < delay:
-                self.torques = self._compute_torques(self.last_actions).view(self.torques.shape)
-            else:
-                self.torques = self._compute_torques(self.actions).view(self.torques.shape)
+            # if i < delay:
+            #     self.torques = self._compute_torques(self.last_actions).view(self.torques.shape)
+            # else:
+            #     self.torques = self._compute_torques(self.actions).view(self.torques.shape)
 
-            # self.torques = self._compute_torques(self.actions).view(self.torques.shape)
+            self.torques = self._compute_torques(self.actions).view(self.torques.shape)
             self.torques *= self.motor_strength
             self.torques = torch.clip(self.torques, -self.torque_limits, self.torque_limits)
 

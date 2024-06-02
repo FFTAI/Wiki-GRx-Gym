@@ -46,11 +46,6 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 
         # ---------------------------------------------------------------
 
-        feet_air_time_target = 0.5  # 期望的脚空中时间
-        feet_land_time_max = 1.0  # 最大的脚着地时间
-
-        # ---------------------------------------------------------------
-
         class scales(GR1T1Cfg.rewards.scales):
             termination = -0.0
             collision = -0.0
@@ -66,7 +61,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 
             cmd_diff_base_orient = 0.25
             cmd_diff_torso_orient = 0.0
-            cmd_diff_chest_orient = 0.5
+            cmd_diff_chest_orient = 0.75
             cmd_diff_forehead_orient = 0.0
 
             action_diff = -2.0
@@ -116,6 +111,7 @@ class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
         max_iterations = 10000
 
     class algorithm(GR1T1CfgPPO.algorithm):
+        learning_rate_min = 5.e-5  # accelerate learning
         desired_kl = 0.03
 
     class policy(GR1T1CfgPPO.policy):

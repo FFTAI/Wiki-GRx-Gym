@@ -99,7 +99,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             feet_speed_z_close_to_height_target = 0.0
 
             feet_air_time = 4.0
-            feet_air_height = 4.0  # 1.0
+            feet_air_height = 6.0
             feet_air_force = 1.0
             feet_land_time = -1.0
 

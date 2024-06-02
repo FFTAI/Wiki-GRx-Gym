@@ -18,7 +18,7 @@ class ActorCriticMLP(nn.Module):
                  activation='elu',
                  fixed_std=False,
                  init_noise_std=1.0,
-                 set_std=True,
+                 set_std=False,
                  set_noise_std=1.0,
                  actor_output_activation=None,
                  critic_output_activation=None,

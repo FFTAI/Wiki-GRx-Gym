@@ -40,14 +40,19 @@ from .cassie.cassie import Cassie
 from .cassie.cassie_config import CassieRoughCfg, CassieRoughCfgPPO
 from .a1.a1_config import A1RoughCfg, A1RoughCfgPPO
 
+# ---------------------------------------------------------------
 # Fourier Intelligence GRx Robots
 from .fftai.legged_robot_fftai import LeggedRobotFFTAI
 from .fftai.legged_robot_fftai_config import LeggedRobotFFTAICfg, LeggedRobotFFTAICfgPPO
+
 from .gr1t1.gr1t1 import GR1T1
 # from .gr1t1.gr1t1_lower_limb_stand_config import GR1T1LowerLimbCfg as GR1T1Cfg, GR1T1LowerLimbCfgPPO as GR1T1CfgPPO
 from .gr1t1.gr1t1_lower_limb_walk_config import GR1T1LowerLimbCfg as GR1T1Cfg, GR1T1LowerLimbCfgPPO as GR1T1CfgPPO
+
 from .gr1t2.gr1t2 import GR1T2
-from .gr1t2.gr1t2_lower_limb_config import GR1T2LowerLimbCfg as GR1T2Cfg, GR1T2LowerLimbCfgPPO as GR1T2CfgPPO
+# from .gr1t2.gr1t2_lower_limb_stand_config import GR1T2LowerLimbCfg as GR1T2Cfg, GR1T2LowerLimbCfgPPO as GR1T2CfgPPO
+from .gr1t2.gr1t2_lower_limb_walk_config import GR1T2LowerLimbCfg as GR1T2Cfg, GR1T2LowerLimbCfgPPO as GR1T2CfgPPO
+# ---------------------------------------------------------------
 
 from legged_gym.utils.task_registry import task_registry
 

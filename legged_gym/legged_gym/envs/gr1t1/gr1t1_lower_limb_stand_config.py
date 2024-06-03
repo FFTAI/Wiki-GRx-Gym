@@ -47,7 +47,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         # ---------------------------------------------------------------
 
         class scales(GR1T1Cfg.rewards.scales):
-            termination = -0.0
+            termination = -100.0
             collision = -0.0
             stand_still = -10.0
 
@@ -73,13 +73,15 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             dof_vel_new_knee = -0.2
 
             dof_acc_new = -0.2
+
             dof_tor_new = -0.2
             dof_tor_new_hip_roll = -1.0
+            dof_tor_new_knee_pitch = -1.0  # -0.0
 
             dof_tor_ankle_feet_lift_up = -0.5
 
             pose_offset = -1.0
-            pose_offset_hip_yaw = -0.2
+            pose_offset_hip_yaw = -0.5  # -0.2
 
             limits_dof_pos = -100.0
             limits_dof_vel = -100.0
@@ -88,7 +90,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             feet_speed_xy_close_to_ground = -10.0
             feet_speed_z_close_to_height_target = 0.0
 
-            on_the_air = -1.0
+            on_the_air = -100.0  # -1.0
 
     class normalization(GR1T1Cfg.normalization):
         actions_max = numpy.array([

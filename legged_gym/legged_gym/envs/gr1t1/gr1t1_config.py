@@ -35,7 +35,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
             ang_vel_yaw = [-1.00, 1.00]  # min max [rad/s]
 
     class init_state(LeggedRobotFFTAICfg.init_state):
-        pos = [0.0, 0.0, 0.95]  # x,y,z [m]
+        pos = [0.0, 0.0, 0.93]  # x,y,z [m]
         default_joint_angles = {  # = target angles [rad] when action = 0.0
             # left leg
             'l_hip_roll': 0.0,
@@ -220,8 +220,10 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         sigma_dof_vel_new_knee = -0.05
 
         sigma_dof_acc_new = -0.00005
+
         sigma_dof_tor_new = -0.00005
         sigma_dof_tor_new_hip_roll = -0.002
+        sigma_dof_tor_new_knee_pitch = -0.002
 
         sigma_dof_tor_ankle_feet_lift_up = -1.0
 
@@ -256,10 +258,10 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
 
         class noise_scales(LeggedRobotFFTAICfg.noise.noise_scales):
             lin_vel = 0.10  # m/s
-            ang_vel = 0.05  # rad/s
-            gravity = 0.03  # m/s^2
-            dof_pos = 0.04  # rad
-            dof_vel = 0.20  # rad/s
+            ang_vel = 0.10  # rad/s
+            gravity = 0.05  # m/s^2
+            dof_pos = 0.05  # rad
+            dof_vel = 0.25  # rad/s
             action = 0.0  # rad
             height_measurements = 0.05  # m
 

@@ -149,7 +149,7 @@ class LeggedRobotCfg(BaseConfig):
         # randomize external forces
         push_robots = True
         push_interval_s = 5.0
-        max_push_vel_xy = 0.5
+        max_push_vel_xy = 0.7
 
         # randomize init dof pos and base velocity
         randomize_init_dof_pos = True

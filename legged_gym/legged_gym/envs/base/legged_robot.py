@@ -28,10 +28,6 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
-from legged_gym import LEGGED_GYM_ROOT_DIR, envs
-from time import time
-from warnings import WarningMessage
-import numpy as np
 import os
 
 from isaacgym.torch_utils import *
@@ -341,7 +337,7 @@ class LeggedRobot(BaseTask):
         self.reset_buf = torch.any(torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
 
         # detect base tilt too much (roll and pitch)
-        self.reset_buf = self.reset_buf | (torch.norm(self.base_projected_gravity[:, :2], dim=-1) > 0.7)
+        self.reset_buf = self.reset_buf | (torch.norm(self.base_projected_gravity[:, :2], dim=-1) > 0.9)
 
         # no terminal reward for time-outs
         self.time_out_buf = self.episode_length_buf > self.max_episode_length
@@ -681,7 +677,8 @@ class LeggedRobot(BaseTask):
         self.dof_pos[env_ids] = torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof), device=self.device) \
                                 * self.default_dof_pos
 
-        self.dof_vel[env_ids] = 0.
+        self.dof_vel[env_ids] = 0.0
+        self.torques[env_ids] = 0.0
 
         env_ids_int32 = env_ids.to(dtype=torch.int32)
         self.gym.set_dof_state_tensor_indexed(self.sim,

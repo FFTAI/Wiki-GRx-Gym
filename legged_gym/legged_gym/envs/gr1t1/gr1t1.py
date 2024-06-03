@@ -1,16 +1,6 @@
-import numpy
-import json
-
-import torch
 from isaacgym.torch_utils import *
-from isaacgym import gymapi, gymutil
 
-from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.envs import LeggedRobotFFTAI
-from legged_gym.utils.math import quat_apply_yaw
-from legged_gym.utils.helpers import class_to_dict
-
-from .gr1t1_config import GR1T1Cfg
 
 
 class GR1T1(LeggedRobotFFTAI):
@@ -404,6 +394,12 @@ class GR1T1(LeggedRobotFFTAI):
     def _reward_dof_tor_new_hip_roll(self):
         error_dof_tor_new = torch.sum(torch.abs(self.torques[:, self.hip_roll_indices]), dim=1)
         reward_dof_tor_new = 1 - torch.exp(self.cfg.rewards.sigma_dof_tor_new_hip_roll
+                                           * error_dof_tor_new)
+        return reward_dof_tor_new
+
+    def _reward_dof_tor_new_knee_pitch(self):
+        error_dof_tor_new = torch.sum(torch.abs(self.torques[:, self.knee_indices]), dim=1)
+        reward_dof_tor_new = 1 - torch.exp(self.cfg.rewards.sigma_dof_tor_new_knee_pitch
                                            * error_dof_tor_new)
         return reward_dof_tor_new
 

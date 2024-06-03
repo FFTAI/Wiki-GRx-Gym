@@ -33,13 +33,15 @@ The image comes with `nvitop` installed. Open a new window, run `bash exec.sh` t
 
 ### GPU Issues
 
-* If you are using an RTX 4090 GPU, modify the first line of the `docker/Dockerfile` file to:
+The default Dockerfile supports NVIDIA RTX 4090, please find the supported versions of pytorch for other GPUs in the link below
+
+[Frameworks Support Matrix](https://docs.nvidia.com/deeplearning/frameworks/support-matrix/index.html)
+
+Modify the first line of the `docker/Dockerfile` file:
 
   ```dockerfile
   nvcr.io/nvidia/pytorch:22.12-py3
   ```
-
-* If you are using an RTX 3070 GPU, no modifications are needed.
 
 ### Permission Issues
 

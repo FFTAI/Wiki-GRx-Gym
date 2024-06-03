@@ -33,13 +33,15 @@ Git不会track这两个新建的文件，如有需要请自行修改`.gitignore`
 
 ### 显卡问题
 
-* 如果使用的是RTX4090显卡，请修改`docker/Dockerfile`文件中的第一句为：
+默认的镜像支持NVIDIA RTX 4090, 其他显卡的pytorch支持版本请在下方链接中查找
+
+[Frameworks Support Matrix](https://docs.nvidia.com/deeplearning/frameworks/support-matrix/index.html)
+
+修改`docker/Dockerfile`文件中的第一句：
 
   ```dockerfile
-  nvcr.io/nvidia/pytorch:22.12-py3
+  nvcr.io/nvidia/pytorch:xx.xx-py3
   ```
-
-* 如果使用的是RTX3070显卡，则无需修改
 
 ### 权限问题
 

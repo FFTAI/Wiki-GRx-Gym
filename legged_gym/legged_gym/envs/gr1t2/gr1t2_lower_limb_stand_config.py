@@ -1,6 +1,6 @@
 import numpy
 
-from legged_gym.envs.gr1t1.gr1t1_config import GR1T2Cfg, GR1T2CfgPPO
+from legged_gym.envs.gr1t2.gr1t2_config import GR1T2Cfg, GR1T2CfgPPO
 
 
 class GR1T2LowerLimbCfg(GR1T2Cfg):

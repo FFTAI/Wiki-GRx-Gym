@@ -91,31 +91,23 @@ This repository provides an environment used to train GRx to walk on rough terra
 
 3. Deploy with Docker
 
-    1. Modify Dockerfile with your GPU
+    The default Dockerfile supports NVIDIA RTX 4090
 
-        * If you are using an RTX 4090 GPU, modify the first line of the `docker/Dockerfile` file to:
-
-          ```dockerfile
-          nvcr.io/nvidia/pytorch:22.12-py3
-          ```
-
-        * If you are using an RTX 3070 GPU, no modifications are needed.
-
-    2. Prepare the Docker training environment and build the image
+    1. Prepare the Docker training environment and build the image
 
         ```
         cd rl_docker
         bash build.sh
         ```
 
-    3. Run the image
+    2. Run the image
 
         ```
         bash run.sh -g <gpus, should be num 1~9 or all> -d <true/false>
         # example: bash run.sh -g all -d true
         ```
 
-    4. For more usage and troubleshooting, please check [rl_docker document](./rl_docker/README.md)
+    3. For more usage and troubleshooting, please check [rl_docker document](./rl_docker/README.md)
 
 4. Start training:
 

@@ -409,10 +409,16 @@ class GR1T1(LeggedRobotFFTAI):
 
     # ----------------------------------------------
 
+    def _reward_pose_offset_hip_roll(self):
+        error_pose_offset = torch.sum(torch.abs(self.dof_pos[:, self.hip_roll_indices] - self.default_dof_pos[:, self.hip_roll_indices]), dim=1)
+        reward_pose_offset = torch.exp(self.cfg.rewards.sigma_pose_offset_hip_roll
+                                       * error_pose_offset)
+        return reward_pose_offset
+
     def _reward_pose_offset_hip_yaw(self):
         error_pose_offset = torch.sum(torch.abs(self.dof_pos[:, self.hip_yaw_indices] - self.default_dof_pos[:, self.hip_yaw_indices]), dim=1)
-        reward_pose_offset = 1 - torch.exp(self.cfg.rewards.sigma_pose_offset_hip_yaw
-                                           * error_pose_offset)
+        reward_pose_offset = torch.exp(self.cfg.rewards.sigma_pose_offset_hip_yaw
+                                       * error_pose_offset)
         return reward_pose_offset
 
     # ----------------------------------------------
@@ -460,8 +466,8 @@ class GR1T1(LeggedRobotFFTAI):
         error_feet_speed_xy_close_to_ground = error_left_foot_speed_xy_close_to_ground + \
                                               error_right_foot_speed_xy_close_to_ground
 
-        reward_feet_speed_xy_close_to_ground = 1 - torch.exp(self.cfg.rewards.sigma_feet_speed_xy_close_to_ground
-                                                             * error_feet_speed_xy_close_to_ground)
+        reward_feet_speed_xy_close_to_ground = torch.exp(self.cfg.rewards.sigma_feet_speed_xy_close_to_ground
+                                                         * error_feet_speed_xy_close_to_ground)
         return reward_feet_speed_xy_close_to_ground
 
     def _reward_feet_speed_z_close_to_height_target(self):
@@ -484,9 +490,8 @@ class GR1T1(LeggedRobotFFTAI):
         error_feet_speed_z_close_to_height_target = error_left_foot_speed_z_close_to_height_target + \
                                                     error_right_foot_speed_z_close_to_height_target
 
-        reward_feet_speed_z_close_to_height_target = 1 - torch.exp(
-            self.cfg.rewards.sigma_feet_speed_z_close_to_height_target
-            * error_feet_speed_z_close_to_height_target)
+        reward_feet_speed_z_close_to_height_target = torch.exp(self.cfg.rewards.sigma_feet_speed_z_close_to_height_target
+                                                               * error_feet_speed_z_close_to_height_target)
 
         return reward_feet_speed_z_close_to_height_target
 

@@ -198,8 +198,8 @@ class LeggedRobotFFTAI(LeggedRobot):
         selector_stand_still[env_ids_for_stand_command] = 1
 
         error_stand_still = torch.sum(torch.abs(self.dof_pos - self.default_dof_pos_tenors), dim=1)
-        reward_stand_still = 1 - torch.exp(self.cfg.rewards.sigma_stand_still
-                                           * error_stand_still)
+        reward_stand_still = torch.exp(self.cfg.rewards.sigma_stand_still
+                                       * error_stand_still)
         reward_stand_still *= selector_stand_still
         return reward_stand_still
 
@@ -296,8 +296,8 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def _reward_pose_offset(self):
         error_pose_offset = torch.sum(torch.abs(self.dof_pos - self.default_dof_pos), dim=1)
-        reward_pose_offset = 1 - torch.exp(self.cfg.rewards.sigma_pose_offset
-                                           * error_pose_offset)
+        reward_pose_offset = torch.exp(self.cfg.rewards.sigma_pose_offset
+                                       * error_pose_offset)
         return reward_pose_offset
 
     # ----------------------------------------------
@@ -333,7 +333,7 @@ class LeggedRobotFFTAI(LeggedRobot):
     def _reward_limits_dof_vel(self):
         error_limits_dof_vel = \
             torch.sum((torch.abs(self.dof_vel)
-                       - self.dof_vel_limits * self.cfg.rewards.soft_dof_vel_limit).clip(min=0., max=1.), dim=1)
+                       - self.dof_vel_limits * self.cfg.rewards.soft_dof_vel_limit).clip(min=0.), dim=1)
         reward_limits_dof_vel = 1 \
                                 - torch.exp(self.cfg.rewards.sigma_limits_dof_vel
                                             * error_limits_dof_vel)

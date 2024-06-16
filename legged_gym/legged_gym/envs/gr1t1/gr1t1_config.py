@@ -30,7 +30,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         heading_command = False  # if true: compute ang vel command from heading error
 
         class ranges(LeggedRobotFFTAICfg.commands.ranges):
-            lin_vel_x = [-1.00, 1.00]  # min max [m/s]
+            lin_vel_x = [-0.75, 0.75]  # min max [m/s]
             lin_vel_y = [-0.50, 0.50]  # min max [m/s]
             ang_vel_yaw = [-1.00, 1.00]  # min max [rad/s]
 
@@ -226,14 +226,15 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         sigma_dof_tor_ankle_feet_lift_up = -1.0
 
         sigma_pose_offset = -0.1
+        sigma_pose_offset_hip_roll = -0.1
         sigma_pose_offset_hip_yaw = -0.1
 
-        sigma_limits_dof_pos = -10.0
-        sigma_limits_dof_vel = -10.0
-        sigma_limits_dof_tor = -10.0
+        sigma_limits_dof_pos = -1.0
+        sigma_limits_dof_vel = -1.0
+        sigma_limits_dof_tor = -1.0
 
-        sigma_feet_speed_xy_close_to_ground = -100.0
-        sigma_feet_speed_z_close_to_height_target = -20.0
+        sigma_feet_speed_xy_close_to_ground = -10.0
+        sigma_feet_speed_z_close_to_height_target = -10.0
 
         sigma_feet_air_time = -1.0
         sigma_feet_air_time_mid = -10.0

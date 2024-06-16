@@ -133,6 +133,10 @@ class ActorCriticMLP(nn.Module):
             self.std.data = self.init_noise_std * torch.ones_like(self.std.data)
             self.std.requires_grad = False
 
+            state_dict["std"] = self.std
+
+            print(f"set state_dict[std] = {state_dict['std']}")
+
         super(ActorCriticMLP, self).load_state_dict(state_dict, strict)
 
     def reset(self, dones=None):

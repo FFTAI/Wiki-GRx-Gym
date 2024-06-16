@@ -128,4 +128,5 @@ class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
         desired_kl = 0.04
 
     class policy(GR1T1CfgPPO.policy):
-        pass
+        fixed_std = True
+        init_noise_std = 0.1

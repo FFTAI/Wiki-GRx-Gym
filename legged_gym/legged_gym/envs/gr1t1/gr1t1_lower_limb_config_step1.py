@@ -75,7 +75,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             cmd_diff_forehead_orient = 0.0
 
             action_diff = -5.0
-            action_diff_knee = -2.0
+            action_diff_knee = -1.0
             action_diff_diff = -1.0
 
             dof_vel_new = -0.2

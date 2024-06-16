@@ -17,9 +17,9 @@ class ActorCriticMLP(nn.Module):
                  critic_hidden_dims=[256, 256, 256],
                  activation='elu',
                  fixed_std=False,
-                 init_noise_std=1.0,
-                 set_std=True,
-                 set_noise_std=1.0,
+                 init_noise_std=0.2,
+                 set_std=False,
+                 set_noise_std=0.2,
                  actor_output_activation=None,
                  critic_output_activation=None,
                  **kwargs):
@@ -125,6 +125,8 @@ class ActorCriticMLP(nn.Module):
             print(f"set state_dict[std] = {state_dict['std']}")
         else:
             self.std.data = state_dict["std"]
+
+            print(f"set state_dict[std] = {state_dict['std']}")
 
         # set std to fixed
         if self.fixed_std:

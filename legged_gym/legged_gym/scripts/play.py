@@ -87,6 +87,19 @@ def play(args):
             env.set_camera(camera_position, camera_position + camera_direction)
 
         if i < stop_state_log:
+
+            # log about the joints
+            for j in range(env_cfg.env.num_actions):
+                logger.log_states(
+                    {
+                        'dof_pos_target_' + str(j): actions[robot_index, j].item() * env_cfg.control.action_scale
+                                                    + env.default_dof_pos[0, j].item(),
+                        'dof_pos_' + str(j): env.dof_pos[robot_index, j].item(),
+                        'dof_vel_' + str(j): env.dof_vel[robot_index, j].item(),
+                        'dof_tor_' + str(j): env.torques[robot_index, j].item(),
+                    }
+                )
+
             logger.log_states(
                 {
                     'dof_pos_target': actions[robot_index, joint_index].item() * env.cfg.control.action_scale,
@@ -105,6 +118,7 @@ def play(args):
             )
         elif i == stop_state_log:
             logger.plot_states()
+            
         if 0 < i < stop_rew_log:
             if infos["episode"]:
                 num_episodes = torch.sum(env.reset_buf).item()

@@ -33,6 +33,7 @@ import numpy as np
 from collections import defaultdict
 from multiprocessing import Process, Value
 
+
 class Logger:
     def __init__(self, dt):
         self.state_log = defaultdict(list)
@@ -59,17 +60,57 @@ class Logger:
         self.rew_log.clear()
 
     def plot_states(self):
-        self.plot_process = Process(target=self._plot)
+        self.plot_process = Process(target=self._plot_dof)
         self.plot_process.start()
+
+    def _plot_dof(self):
+        num_dofs = 12
+        start_index = 0
+        nb_rows = 3
+        nb_cols = num_dofs
+
+        fig, axs = plt.subplots(nb_rows, nb_cols)
+        for key, value in self.state_log.items():
+            time = np.linspace(0, len(value) * self.dt, len(value))
+            break
+        log = self.state_log
+
+        # plot joint targets and measured positions
+        for i in range(nb_cols):
+            a = axs[0, i]
+            if log["dof_pos_" + str(start_index + i)]:
+                a.plot(time, log["dof_pos_" + str(start_index + i)], label='measured')
+            if log["dof_pos_target_" + str(start_index + i)]:
+                a.plot(time, log["dof_pos_target_" + str(start_index + i)], label='target')
+            a.set(xlabel='time [s]', ylabel='Position [rad]', title='DOF Position')
+            a.legend()
+
+        # plot joint velocity
+        for i in range(nb_cols):
+            a = axs[1, i]
+            if log["dof_vel_" + str(start_index + i)]:
+                a.plot(time, log["dof_vel_" + str(start_index + i)], label='measured')
+            a.set(xlabel='time [s]', ylabel='Velocity [rad/s]', title='DOF Velocity')
+            a.legend()
+
+        # plot joint torque
+        for i in range(nb_cols):
+            a = axs[2, i]
+            if log["dof_tor_" + str(start_index + i)]:
+                a.plot(time, log["dof_tor_" + str(start_index + i)], label='measured')
+            a.set(xlabel='time [s]', ylabel='Torque [Nm]', title='DOF Torque')
+            a.legend()
+
+        plt.show()
 
     def _plot(self):
         nb_rows = 3
         nb_cols = 3
         fig, axs = plt.subplots(nb_rows, nb_cols)
         for key, value in self.state_log.items():
-            time = np.linspace(0, len(value)*self.dt, len(value))
+            time = np.linspace(0, len(value) * self.dt, len(value))
             break
-        log= self.state_log
+        log = self.state_log
         # plot joint targets and measured positions
         a = axs[1, 0]
         if log["dof_pos"]: a.plot(time, log["dof_pos"], label='measured')
@@ -115,12 +156,12 @@ class Logger:
         a.legend()
         # plot torque/vel curves
         a = axs[2, 1]
-        if log["dof_vel"]!=[] and log["dof_torque"]!=[]: a.plot(log["dof_vel"], log["dof_torque"], 'x', label='measured')
+        if log["dof_vel"] != [] and log["dof_torque"] != []: a.plot(log["dof_vel"], log["dof_torque"], 'x', label='measured')
         a.set(xlabel='Joint vel [rad/s]', ylabel='Joint Torque [Nm]', title='Torque/velocity curves')
         a.legend()
         # plot torques
         a = axs[2, 2]
-        if log["dof_torque"]!=[]: a.plot(time, log["dof_torque"], label='measured')
+        if log["dof_torque"] != []: a.plot(time, log["dof_torque"], label='measured')
         a.set(xlabel='time [s]', ylabel='Joint Torque [Nm]', title='Torque')
         a.legend()
         plt.show()
@@ -131,7 +172,7 @@ class Logger:
             mean = np.sum(np.array(values)) / self.num_episodes
             print(f" - {key}: {mean}")
         print(f"Total number of episodes: {self.num_episodes}")
-    
+
     def __del__(self):
         if self.plot_process is not None:
             self.plot_process.kill()

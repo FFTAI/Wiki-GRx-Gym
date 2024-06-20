@@ -50,7 +50,7 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def during_physics_step(self):
 
-        delay = numpy.random.normal(loc=5, scale=2, size=1)[0]  # policy calculate time cost and communication time cost
+        delay = numpy.random.normal(loc=2, scale=2, size=1)[0]  # policy calculate time cost and communication time cost
         delay = max(0, delay)
 
         for i in range(self.cfg.control.decimation):

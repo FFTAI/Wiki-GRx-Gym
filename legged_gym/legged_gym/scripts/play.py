@@ -46,9 +46,12 @@ def play(args):
     env_cfg.terrain.num_rows = 5
     env_cfg.terrain.num_cols = 5
     env_cfg.terrain.curriculum = False
-    env_cfg.noise.add_noise = False
+    env_cfg.noise.add_noise = True
     env_cfg.domain_rand.randomize_friction = False
     env_cfg.domain_rand.push_robots = False
+    env_cfg.commands.ranges.lin_vel_x = [0, 0]
+    env_cfg.commands.ranges.lin_vel_y = [0, 0]
+    env_cfg.commands.ranges.ang_vel_yaw = [0, 0]
 
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
@@ -118,7 +121,7 @@ def play(args):
             )
         elif i == stop_state_log:
             logger.plot_states()
-            
+
         if 0 < i < stop_rew_log:
             if infos["episode"]:
                 num_episodes = torch.sum(env.reset_buf).item()

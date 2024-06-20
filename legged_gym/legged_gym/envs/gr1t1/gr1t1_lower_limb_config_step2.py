@@ -74,9 +74,9 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             cmd_diff_chest_orient = 0.5
             cmd_diff_forehead_orient = 0.0
 
-            action_diff = -5.0
-            action_diff_knee = -1.0
-            action_diff_diff = -1.0
+            action_diff = -10.0
+            action_diff_knee = -4.0
+            action_diff_diff = -2.0
 
             dof_vel_new = -0.2
             dof_acc_new = -0.2
@@ -124,8 +124,9 @@ class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
         max_iterations = 1000
 
     class algorithm(GR1T1CfgPPO.algorithm):
-        learning_rate_min = 5.e-5
-        desired_kl = 0.05
+        learning_rate_min = 1.e-5
+        desired_kl = 0.02
 
     class policy(GR1T1CfgPPO.policy):
-        pass
+        fixed_std = False  # 'False' or 'True'
+        init_noise_std = 0.1

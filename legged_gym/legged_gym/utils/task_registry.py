@@ -81,6 +81,7 @@ class TaskRegistry():
         # if no args passed get command line arguments
         if args is None:
             args = get_args()
+
         # check if there is a registered env with that name
         if name in self.task_classes:
             task_class = self.get_task_class(name)
@@ -89,9 +90,11 @@ class TaskRegistry():
         if env_cfg is None:
             # load config files
             env_cfg, _ = self.get_cfgs(name)
+
         # override cfg from args (if specified)
         env_cfg, _ = update_cfg_from_args(env_cfg, None, args)
         set_seed(env_cfg.seed)
+
         # parse sim params (convert to dict first)
         sim_params = {"sim": class_to_dict(env_cfg.sim)}
         sim_params = parse_sim_params(args, sim_params)
@@ -124,6 +127,7 @@ class TaskRegistry():
         # if no args passed get command line arguments
         if args is None:
             args = get_args()
+
         # if config files are passed use them, otherwise load from the name
         if train_cfg is None:
             if name is None:
@@ -133,6 +137,7 @@ class TaskRegistry():
         else:
             if name is not None:
                 print(f"'train_cfg' provided -> Ignoring 'name={name}'")
+
         # override cfg from args (if specified)
         _, train_cfg = update_cfg_from_args(None, train_cfg, args)
 
@@ -146,11 +151,14 @@ class TaskRegistry():
 
         train_cfg_dict = class_to_dict(train_cfg)
         runner = OnPolicyRunner(env, train_cfg_dict, log_dir, device=args.rl_device)
+
         # save resume path before creating a new log_dir
         resume = train_cfg.runner.resume
         if resume:
             # load previously trained model
-            resume_path = get_load_path(log_root, load_run=train_cfg.runner.load_run, checkpoint=train_cfg.runner.checkpoint)
+            resume_path = get_load_path(log_root,
+                                        load_run=train_cfg.runner.load_run,
+                                        checkpoint=train_cfg.runner.checkpoint)
             print(f"Loading model from: {resume_path}")
             runner.load(resume_path)
         return runner, train_cfg

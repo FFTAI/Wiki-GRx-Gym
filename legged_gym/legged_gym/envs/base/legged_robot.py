@@ -242,7 +242,12 @@ class LeggedRobot(BaseTask):
         if self.pri_obs_buf is not None:
             self.pri_obs_buf = torch.clip(self.pri_obs_buf, -clip_obs, clip_obs)
 
-        return self.obs_buf, self.pri_obs_buf, self.rew_buf, self.reset_buf, self.extras
+        step_return = (self.obs_buf, self.pri_obs_buf, self.rew_buf, self.reset_buf, self.extras)
+
+        if self.cfg.env.use_stack is True:
+            step_return = (self.obs_stack, self.pri_obs_buf, self.rew_buf, self.reset_buf, self.extras)
+
+        return step_return
 
     def before_physics_step(self):
         pass
@@ -409,6 +414,7 @@ class LeggedRobot(BaseTask):
         self.episode_length_buf[env_ids] = 0
 
         self.obs_buf[env_ids] = 0.
+        self.obs_stack[env_ids] = 0.
 
         self.reset_buf[env_ids] = 1
 
@@ -447,6 +453,9 @@ class LeggedRobot(BaseTask):
         # calculate observation noise
         self.compute_observation_noise()
 
+        # calculate observation stack
+        self.compute_observation_stack()
+
     def compute_observation_variables(self):
         # Jason 2023-12-21:
         # in trimesh terrain, must open measure_heights
@@ -475,6 +484,10 @@ class LeggedRobot(BaseTask):
         # add noise if needed, only add noise to the actor observations
         if self.cfg.noise.add_noise:
             self.obs_buf += (2 * torch.rand_like(self.obs_buf) - 1) * self.noise_scale_vec
+
+    def compute_observation_stack(self):
+        # stack obs_buf to obs_stack
+        self.obs_stack = torch.cat((self.obs_stack[:, self.num_obs:], self.obs_buf), dim=1)
 
     def compute_noise_scale_vec(self):
         """ Sets a vector used to scale the noise added to the observations.

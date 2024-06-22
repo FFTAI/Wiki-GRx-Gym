@@ -40,6 +40,9 @@ class LeggedRobotCfg(BaseConfig):
         num_pri_obs = None  # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise
         num_actions = 12
 
+        num_stack = 0
+        use_stack = False
+
         env_spacing = 3.  # not used with heightfields/trimeshes
         send_timeouts = True  # send time out information to the algorithm
 

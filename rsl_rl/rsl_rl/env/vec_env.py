@@ -8,7 +8,12 @@ class VecEnv(ABC):
     num_envs: int
     num_obs: int
     num_pri_obs: int
+    num_stack: int
+    use_stack: bool
+    actor_num_input: int
+    critic_num_input: int
     actor_num_output: int
+
     max_episode_length: int
     pri_obs_buf: torch.Tensor
     obs_buf: torch.Tensor

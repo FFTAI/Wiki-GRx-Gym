@@ -75,6 +75,9 @@ class BaseTask():
         if self.num_pri_obs is not None:
             self.pri_obs_buf = torch.zeros(self.num_envs, self.num_pri_obs, device=self.device, dtype=torch.float)
 
+        self.obs_stack = torch.zeros(self.num_envs, self.cfg.env.num_obs * self.cfg.env.num_stack,
+                                     dtype=torch.float, device=self.device)
+
         self.extras = {}
 
         # create envs, sim and viewer
@@ -104,8 +107,16 @@ class BaseTask():
         self.num_pri_obs = cfg.env.num_pri_obs
         self.num_actions = cfg.env.num_actions
 
+        self.num_stack = cfg.env.num_stack
+        self.use_stack = cfg.env.use_stack
+
     def get_observations(self):
-        return self.obs_buf
+        observation = self.obs_buf
+
+        if self.use_stack:
+            observation = self.obs_stack
+
+        return observation
 
     def get_privileged_observations(self):
         return self.pri_obs_buf

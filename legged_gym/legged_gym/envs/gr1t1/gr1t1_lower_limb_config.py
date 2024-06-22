@@ -12,7 +12,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         num_actions = 10
 
     class terrain(GR1T1Cfg.terrain):
-        mesh_type = 'trimesh'  # "heightfield" # none, plane, heightfield or trimesh
+        mesh_type = 'plane'  # "heightfield" # none, plane, heightfield or trimesh
 
         curriculum = True
         num_rows = 10  # number of terrain rows (levels)
@@ -28,15 +28,15 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
     class control(GR1T1Cfg.control):
         # PD Drive parameters:
         stiffness = {
-            'hip_roll': 60 / (45 / 180 * numpy.pi),
-            'hip_yaw': 45 / (45 / 180 * numpy.pi),
-            'hip_pitch': 130 / (45 / 180 * numpy.pi),
-            'knee_pitch': 130 / (45 / 180 * numpy.pi),
-            'ankle_pitch': 16 / (45 / 180 * numpy.pi),
+            'hip_roll': 40,
+            'hip_yaw': 45,
+            'hip_pitch': 130,
+            'knee_pitch': 130,
+            'ankle_pitch': 18,
         }  # [N*m/rad]
         damping = {
             'hip_roll': stiffness['hip_roll'] / 10 * 2.5,
-            'hip_yaw': stiffness['hip_yaw'] / 10 * 2.5,
+            'hip_yaw': stiffness['hip_yaw'] / 10 * 7.5,
             'hip_pitch': stiffness['hip_pitch'] / 10 * 2.5,
             'knee_pitch': stiffness['knee_pitch'] / 10 * 2.5,
             'ankle_pitch': stiffness['ankle_pitch'] / 10 * 2.5,
@@ -74,8 +74,8 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             cmd_diff_chest_orient = 0.5
             cmd_diff_forehead_orient = 0.0
 
-            action_diff = -5.0
-            action_diff_knee = -2.0
+            action_diff = -10.0
+            action_diff_knee = -1.0
             action_diff_diff = -1.0
 
             dof_vel_new = -0.2
@@ -114,8 +114,8 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         ])
 
         clip_observations = 100.0
-        clip_actions_max = actions_max + 45 / 180 * numpy.pi / 3
-        clip_actions_min = actions_min - 45 / 180 * numpy.pi / 3
+        clip_actions_max = actions_max + 1 / 3
+        clip_actions_min = actions_min - 1 / 3
 
 
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
@@ -125,8 +125,7 @@ class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
 
     class algorithm(GR1T1CfgPPO.algorithm):
         learning_rate_min = 5.e-5
-        desired_kl = 0.04
+        desired_kl = 0.05
 
     class policy(GR1T1CfgPPO.policy):
-        fixed_std = True
-        init_noise_std = 0.1
+        pass

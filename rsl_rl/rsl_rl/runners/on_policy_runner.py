@@ -70,6 +70,9 @@ class OnPolicyRunner:
         # ActorCritic
         actor_num_input = self.env.num_obs
 
+        if self.env.use_stack:
+            actor_num_input *= self.env.num_stack
+
         if self.env.num_pri_obs is not None:
             critic_num_input = self.env.num_pri_obs
         else:

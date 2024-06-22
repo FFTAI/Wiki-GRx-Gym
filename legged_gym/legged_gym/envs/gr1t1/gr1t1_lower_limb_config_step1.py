@@ -11,6 +11,9 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         num_pri_obs = 168
         num_actions = 10
 
+        num_stack = 10
+        use_stack = True
+
     class terrain(GR1T1Cfg.terrain):
         mesh_type = 'plane'  # "heightfield" # none, plane, heightfield or trimesh
 
@@ -28,11 +31,11 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
     class control(GR1T1Cfg.control):
         # PD Drive parameters:
         stiffness = {
-            'hip_roll': 60 / (60 / 180 * numpy.pi),
-            'hip_yaw': 45 / (60 / 180 * numpy.pi),
-            'hip_pitch': 130 / (60 / 180 * numpy.pi),
-            'knee_pitch': 130 / (60 / 180 * numpy.pi),
-            'ankle_pitch': 16 / (60 / 180 * numpy.pi),
+            'hip_roll': 40,
+            'hip_yaw': 45,
+            'hip_pitch': 130,
+            'knee_pitch': 130,
+            'ankle_pitch': 18,
         }  # [N*m/rad]
         damping = {
             'hip_roll': stiffness['hip_roll'] / 10 * 2.5,
@@ -74,7 +77,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             cmd_diff_chest_orient = 0.5
             cmd_diff_forehead_orient = 0.0
 
-            action_diff = -5.0
+            action_diff = -10.0
             action_diff_knee = -1.0
             action_diff_diff = -1.0
 
@@ -114,8 +117,8 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         ])
 
         clip_observations = 100.0
-        clip_actions_max = actions_max + 60 / 180 * numpy.pi / 3
-        clip_actions_min = actions_min - 60 / 180 * numpy.pi / 3
+        clip_actions_max = actions_max + 1 / 3
+        clip_actions_min = actions_min - 1 / 3
 
 
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):

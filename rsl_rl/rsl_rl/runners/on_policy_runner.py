@@ -78,6 +78,9 @@ class OnPolicyRunner:
         else:
             critic_num_input = self.env.num_obs
 
+        if self.env.use_stack:
+            critic_num_input *= self.env.num_stack
+
         actor_num_output = self.env.num_actions
 
         print("actor_num_input: \n", actor_num_input)

@@ -75,8 +75,11 @@ class BaseTask():
         if self.num_pri_obs is not None:
             self.pri_obs_buf = torch.zeros(self.num_envs, self.num_pri_obs, device=self.device, dtype=torch.float)
 
-        self.obs_stack = torch.zeros(self.num_envs, self.cfg.env.num_obs * self.cfg.env.num_stack,
-                                     dtype=torch.float, device=self.device)
+        if self.use_stack:
+            self.obs_stack = torch.zeros(self.num_envs, self.cfg.env.num_obs * self.cfg.env.num_stack,
+                                         dtype=torch.float, device=self.device)
+            self.pri_obs_stack = torch.zeros(self.num_envs, self.cfg.env.num_pri_obs * self.cfg.env.num_stack,
+                                             dtype=torch.float, device=self.device)
 
         self.extras = {}
 
@@ -119,7 +122,12 @@ class BaseTask():
         return observation
 
     def get_privileged_observations(self):
-        return self.pri_obs_buf
+        privileged_observation = self.pri_obs_buf
+
+        if self.use_stack:
+            privileged_observation = self.pri_obs_stack
+
+        return privileged_observation
 
     def reset_idx(self, env_ids):
         """Reset selected robots"""

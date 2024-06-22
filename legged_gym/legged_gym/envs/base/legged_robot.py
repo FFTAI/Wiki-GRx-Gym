@@ -244,8 +244,8 @@ class LeggedRobot(BaseTask):
 
         step_return = (self.obs_buf, self.pri_obs_buf, self.rew_buf, self.reset_buf, self.extras)
 
-        if self.cfg.env.use_stack is True:
-            step_return = (self.obs_stack, self.pri_obs_buf, self.rew_buf, self.reset_buf, self.extras)
+        if self.use_stack is True:
+            step_return = (self.obs_stack, self.pri_obs_stack, self.rew_buf, self.reset_buf, self.extras)
 
         return step_return
 
@@ -414,7 +414,9 @@ class LeggedRobot(BaseTask):
         self.episode_length_buf[env_ids] = 0
 
         self.obs_buf[env_ids] = 0.
+        self.pri_obs_buf[env_ids] = 0.
         self.obs_stack[env_ids] = 0.
+        self.pri_obs_stack[env_ids] = 0.
 
         self.reset_buf[env_ids] = 1
 
@@ -487,7 +489,9 @@ class LeggedRobot(BaseTask):
 
     def compute_observation_stack(self):
         # stack obs_buf to obs_stack
-        self.obs_stack = torch.cat((self.obs_stack[:, self.num_obs:], self.obs_buf), dim=1)
+        if self.use_stack:
+            self.obs_stack = torch.cat((self.obs_stack[:, self.num_obs:], self.obs_buf), dim=1)
+            self.pri_obs_stack = torch.cat((self.pri_obs_stack[:, self.num_pri_obs:], self.pri_obs_buf), dim=1)
 
     def compute_noise_scale_vec(self):
         """ Sets a vector used to scale the noise added to the observations.

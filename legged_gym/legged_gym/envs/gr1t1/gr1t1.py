@@ -1,16 +1,6 @@
-import numpy
-import json
-
-import torch
 from isaacgym.torch_utils import *
-from isaacgym import gymapi, gymutil
 
-from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.envs import LeggedRobotFFTAI
-from legged_gym.utils.math import quat_apply_yaw
-from legged_gym.utils.helpers import class_to_dict
-
-from .gr1t1_config import GR1T1Cfg
 
 
 class GR1T1(LeggedRobotFFTAI):
@@ -18,7 +8,8 @@ class GR1T1(LeggedRobotFFTAI):
     def __init__(self, cfg, sim_params, physics_engine, sim_device, headless):
         super().__init__(cfg, sim_params, physics_engine, sim_device, headless)
 
-        self.swing_feet_height_target = torch.ones(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False) \
+        self.swing_feet_height_target = torch.ones(self.num_envs, 1,
+                                                   dtype=torch.float, device=self.device, requires_grad=False) \
                                         * self.cfg.rewards.swing_feet_height_target
 
     def _create_envs_get_indices(self, body_names, env_handle, actor_handle):
@@ -339,9 +330,12 @@ class GR1T1(LeggedRobotFFTAI):
         noise_vec[3 + 3: 6 + 3] = 0.  # commands (3)
 
         # dof related
-        noise_vec[9 + 0 * self.num_dof: 9 + 1 * self.num_dof] = self.noise_scales.dof_pos * self.noise_level * self.obs_scales.dof_pos
-        noise_vec[9 + 1 * self.num_dof: 9 + 2 * self.num_dof] = self.noise_scales.dof_vel * self.noise_level * self.obs_scales.dof_vel
-        noise_vec[9 + 2 * self.num_dof: 9 + 3 * self.num_dof] = self.noise_scales.action * self.noise_level * self.obs_scales.action
+        noise_vec[9 + 0 * self.num_dof: 9 + 1 * self.num_dof] = \
+            self.noise_scales.dof_pos * self.noise_level * self.obs_scales.dof_pos
+        noise_vec[9 + 1 * self.num_dof: 9 + 2 * self.num_dof] = \
+            self.noise_scales.dof_vel * self.noise_level * self.obs_scales.dof_vel
+        noise_vec[9 + 2 * self.num_dof: 9 + 3 * self.num_dof] = \
+            self.noise_scales.action * self.noise_level * self.obs_scales.action
 
         # print("noise_vec: ", noise_vec)
         return noise_vec

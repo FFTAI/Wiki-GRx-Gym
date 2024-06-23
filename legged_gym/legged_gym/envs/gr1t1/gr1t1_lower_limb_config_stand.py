@@ -28,6 +28,12 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         terrain_width = 10.
         slope_treshold = 0.75  # slopes above this threshold will be corrected to vertical surfaces
 
+    class commands(GR1T1Cfg.commands):
+        class ranges(GR1T1Cfg.commands.ranges):
+            lin_vel_x = [-0.0, 0.0]  # min max [m/s]
+            lin_vel_y = [-0.0, 0.0]  # min max [m/s]
+            ang_vel_yaw = [-0.0, 0.0]  # min max [rad/s]
+
     class control(GR1T1Cfg.control):
         # PD Drive parameters:
         stiffness = {
@@ -79,7 +85,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 
             action_diff = -10.0
             action_diff_knee = -1.0
-            action_diff_diff = -1.0
+            action_diff_diff = -2.0
 
             dof_vel_new = -0.2
             dof_acc_new = -0.2
@@ -96,11 +102,6 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 
             feet_speed_xy_close_to_ground = 0.2
             feet_speed_z_close_to_height_target = 0.0
-
-            feet_air_time = 5.0
-            feet_air_height = 2.0
-            feet_air_force = 1.0
-            feet_land_time = -10.0
 
             on_the_air = -1.0
 
@@ -123,7 +124,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
     class runner(GR1T1CfgPPO.runner):
-        run_name = 'gr1t1_lower_limb'
+        run_name = 'gr1t1_lower_limb_stand'
         max_iterations = 1000
 
     class algorithm(GR1T1CfgPPO.algorithm):

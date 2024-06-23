@@ -262,7 +262,8 @@ class LeggedRobotFFTAI(LeggedRobot):
     def _reward_action_diff_diff(self):
         error_action_diff = (self.last_actions - self.actions) \
                             * self.cfg.control.action_scale
-        error_action_diff_last = (self.last_last_actions - self.last_actions) * self.cfg.control.action_scale
+        error_action_diff_last = (self.last_last_actions - self.last_actions) \
+                                 * self.cfg.control.action_scale
         error_action_diff_diff = torch.sum(torch.abs(error_action_diff - error_action_diff_last), dim=1)
         reward_action_diff_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff_diff
                                                 * error_action_diff_diff)

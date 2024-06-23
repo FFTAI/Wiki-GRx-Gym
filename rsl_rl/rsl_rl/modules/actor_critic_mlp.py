@@ -18,8 +18,8 @@ class ActorCriticMLP(nn.Module):
                  activation='elu',
                  fixed_std=False,
                  init_noise_std=0.2,
-                 set_std=False,
-                 set_noise_std=0.2,
+                 decay_std=False,
+                 decay_ratio=0.999,
                  actor_output_activation=None,
                  critic_output_activation=None,
                  **kwargs):
@@ -77,19 +77,22 @@ class ActorCriticMLP(nn.Module):
         self.fixed_std = fixed_std
         self.init_noise_std = init_noise_std
 
+        self.decay_std = decay_std
+        self.decay_ratio = decay_ratio
+        self.decayed_std = init_noise_std
+
         # Jason 2023-12-27:
         # every action has the different noise std
         std = init_noise_std * torch.ones(actor_num_output)
         self.std = nn.Parameter(std)
         self.distribution = None
 
-        print(f"ActorCritic: fixed_std = {fixed_std})")
-        print(f"ActorCritic: init_noise_std = {init_noise_std})")
-        print(f"ActorCritic: std = {std})")
-
-        # set std when load state_dict
-        self.set_std = set_std
-        self.set_noise_std = set_noise_std
+        print(f"ActorCritic: fixed_std = {self.fixed_std})")
+        print(f"ActorCritic: init_noise_std = {self.init_noise_std})")
+        print(f"ActorCritic: decay_std = {self.decay_std})")
+        print(f"ActorCritic: decay_ratio = {self.decay_ratio})")
+        print(f"ActorCritic: decayed_std = {self.decayed_std})")
+        print(f"ActorCritic: std = {self.std})")
 
         # disable args validation for speedup
         Normal.set_default_validate_args = False
@@ -114,19 +117,8 @@ class ActorCriticMLP(nn.Module):
          enumerate(mod for mod in sequential if isinstance(mod, nn.Linear))]
 
     def load_state_dict(self, state_dict, strict=True):
-        if self.set_std:
-            print("Warning: Not loading std from state_dict, use init value")
-
-            print(f"original state_dict[std] = {state_dict['std']}")
-
-            # change Mapping class state_dict value
-            state_dict["std"] = torch.ones_like(state_dict["std"]) * self.set_noise_std
-
-            print(f"set state_dict[std] = {state_dict['std']}")
-        else:
-            self.std.data = state_dict["std"]
-
-            print(f"set state_dict[std] = {state_dict['std']}")
+        self.std.data = state_dict["std"]
+        print(f"set state_dict[std] = {state_dict['std']}")
 
         # set std to fixed
         if self.fixed_std:
@@ -134,8 +126,11 @@ class ActorCriticMLP(nn.Module):
             self.std.requires_grad = False
 
             state_dict["std"] = self.std
-
             print(f"set state_dict[std] = {state_dict['std']}")
+
+        if self.decay_std:
+            self.decayed_std = self.std.data
+            print(f"set decayed_std = {self.decayed_std}")
 
         super(ActorCriticMLP, self).load_state_dict(state_dict, strict)
 
@@ -181,6 +176,11 @@ class ActorCriticMLP(nn.Module):
 
         if self.fixed_std:
             std = self.init_noise_std
+        elif self.decay_std:
+            self.decayed_std *= self.decay_ratio
+            std = self.decayed_std
+
+            print(self.decayed_std)
         else:
             std = self.std.to(mean.device)
 

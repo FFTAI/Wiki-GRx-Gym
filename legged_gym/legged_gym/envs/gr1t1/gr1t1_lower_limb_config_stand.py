@@ -132,4 +132,5 @@ class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
         desired_kl = 0.05
 
     class policy(GR1T1CfgPPO.policy):
-        pass
+        decay_std = True
+        decay_ratio = 0.999

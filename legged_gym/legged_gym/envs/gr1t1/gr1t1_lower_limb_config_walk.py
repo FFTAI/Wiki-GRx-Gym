@@ -62,7 +62,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         class scales(GR1T1Cfg.rewards.scales):
             termination = -0.0
             collision = -0.0
-            stand_still = 10.0
+            stand_still = 2.0
 
             cmd_diff_lin_vel_x = 3.0
             cmd_diff_lin_vel_y = 1.0
@@ -103,6 +103,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             feet_land_time = -10.0
 
             on_the_air = -1.0
+            on_the_ground = 1.0
 
             feet_stumble = -0.2
 
@@ -124,11 +125,16 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
     class runner(GR1T1CfgPPO.runner):
         run_name = 'gr1t1_lower_limb_walk'
-        max_iterations = 1000
+        max_iterations = 2000
 
     class algorithm(GR1T1CfgPPO.algorithm):
-        learning_rate_min = 5.e-5
-        desired_kl = 0.05
+        learning_rate_min = 4.e-5
+        desired_kl = 0.08
 
     class policy(GR1T1CfgPPO.policy):
-        pass
+        fixed_std = False
+        init_noise_std = 0.2
+
+        decay_std = True
+        decay_ratio = 1 - 6.0e-6
+        decay_std_min = 0.05

@@ -112,7 +112,7 @@ class LeggedRobotFFTAI(LeggedRobot):
         self.feet_contact_last = self.feet_contact
         self.feet_first_contact = (self.feet_air_time > 0) * self.feet_contact_filt
 
-        # 只要有脚接触到地面，就将其对应的 feet_air_time 置为 0
+        # if foot contact ground, set feet_air_time to 0
         self.feet_air_time += self.dt
 
     def _calculate_feet_height(self):
@@ -128,9 +128,12 @@ class LeggedRobotFFTAI(LeggedRobot):
         self.feet_contact = self.contact_forces[:, self.feet_indices, 2] > 1.
         self.feet_contact_last = self.feet_contact
 
-        # 只要有脚接触到地面，就将其对应的 feet_land_time 置为 0
+        # if foot contact ground, set feet_land_time to 0
         self.feet_land_time += self.dt
         self.feet_land_time = self.feet_land_time * self.feet_contact
+
+        # if norm of command < 0.1, set feet_land_time to 0
+        self.feet_land_time = self.feet_land_time * (torch.norm(self.commands[:, :2], dim=1) > 0.1).unsqueeze(1)
 
     # ----------------------------------------------
 

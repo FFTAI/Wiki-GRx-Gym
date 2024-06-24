@@ -576,10 +576,13 @@ class GR1T1(LeggedRobotFFTAI):
 
     def _reward_on_the_air(self):
         jumping_error = torch.sum(self.feet_contact, dim=1) == 0
-
-        # use exponential to make the reward more sparse
         reward_jumping = jumping_error
         return reward_jumping
+
+    def _reward_on_the_ground(self):
+        standing_error = torch.sum(self.feet_contact, dim=1) == 2
+        reward_standing = standing_error * torch.norm(self.commands[:, :2], dim=1) < 0.1
+        return reward_standing
 
     # ----------------------------------------------
 

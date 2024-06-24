@@ -20,6 +20,7 @@ class ActorCriticMLP(nn.Module):
                  init_noise_std=0.2,
                  decay_std=False,
                  decay_ratio=0.999,
+                 decay_std_min=0.05,
                  actor_output_activation=None,
                  critic_output_activation=None,
                  **kwargs):
@@ -79,6 +80,7 @@ class ActorCriticMLP(nn.Module):
 
         self.decay_std = decay_std
         self.decay_ratio = decay_ratio
+        self.decay_std_min = decay_std_min
         self.decayed_std = init_noise_std
 
         # Jason 2023-12-27:
@@ -87,10 +89,14 @@ class ActorCriticMLP(nn.Module):
         self.std = nn.Parameter(std)
         self.distribution = None
 
+        if self.fixed_std is True:
+            self.std.requires_grad = False
+
         print(f"ActorCritic: fixed_std = {self.fixed_std})")
         print(f"ActorCritic: init_noise_std = {self.init_noise_std})")
         print(f"ActorCritic: decay_std = {self.decay_std})")
         print(f"ActorCritic: decay_ratio = {self.decay_ratio})")
+        print(f"ActorCritic: decay_std_min = {self.decay_std_min})")
         print(f"ActorCritic: decayed_std = {self.decayed_std})")
         print(f"ActorCritic: std = {self.std})")
 
@@ -126,7 +132,6 @@ class ActorCriticMLP(nn.Module):
             self.std.requires_grad = False
 
             state_dict["std"] = self.std
-            print(f"set state_dict[std] = {state_dict['std']}")
 
         if self.decay_std:
             self.decayed_std = self.std.data
@@ -176,11 +181,18 @@ class ActorCriticMLP(nn.Module):
 
         if self.fixed_std:
             std = self.init_noise_std
+
+            # update std
+            self.std.data = self.init_noise_std * torch.ones_like(self.std.data)
+
         elif self.decay_std:
             self.decayed_std *= self.decay_ratio
+            self.decayed_std = max(self.decayed_std, self.decay_std_min)
             std = self.decayed_std
 
-            print(self.decayed_std)
+            # update std
+            self.std.data = self.decayed_std * torch.ones_like(self.std.data)
+
         else:
             std = self.std.to(mean.device)
 

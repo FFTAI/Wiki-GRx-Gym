@@ -237,8 +237,8 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
 
         sigma_feet_air_time = -1.0
         sigma_feet_air_time_mid = -10.0
-        sigma_feet_air_height = -20.0
-        sigma_feet_air_force = -0.005
+        sigma_feet_air_height = -200.0
+        sigma_feet_air_force = -0.05
         sigma_feet_land_time = -1.0
 
         sigma_on_the_air = -1.0

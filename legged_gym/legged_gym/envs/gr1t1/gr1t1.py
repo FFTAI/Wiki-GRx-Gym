@@ -524,42 +524,30 @@ class GR1T1(LeggedRobotFFTAI):
         error_feet_air_height_right_foot = torch.abs(right_foot_height
                                                      - min_feet_height
                                                      - self.swing_feet_height_target.squeeze())
-
-        reward_feet_air_height_left_foot = torch.exp(self.cfg.rewards.sigma_feet_air_height
-                                                     * error_feet_air_height_left_foot)
-        reward_feet_air_height_right_foot = torch.exp(self.cfg.rewards.sigma_feet_air_height
-                                                      * error_feet_air_height_right_foot)
-
-        reward_feet_air_height = torch.stack((reward_feet_air_height_left_foot,
-                                              reward_feet_air_height_right_foot), dim=1)
+        error_feet_air_height = torch.stack([error_feet_air_height_left_foot, error_feet_air_height_right_foot], dim=1)
 
         feet_air_time_mid_error = self.feet_air_time - self.cfg.rewards.feet_air_time_target / 2
         feet_air_time_mid_error = torch.abs(feet_air_time_mid_error)
-        feet_air_time_mid_error = torch.exp(self.cfg.rewards.sigma_feet_air_time_mid
-                                            * feet_air_time_mid_error)
 
-        reward_feet_air_height = feet_air_time_mid_error * reward_feet_air_height
-        reward_feet_air_height = torch.sum(reward_feet_air_height, dim=1)
+        reward_feet_air_height = torch.sum(feet_air_time_mid_error * error_feet_air_height, dim=1)
+        reward_feet_air_height = torch.exp(self.cfg.rewards.sigma_feet_air_height * reward_feet_air_height)
         reward_feet_air_height *= torch.norm(self.commands[:, :2], dim=1) > 0.1  # no reward for zero command
 
         return reward_feet_air_height
 
     def _reward_feet_air_force(self):
-        reward_feet_air_force_left_foot = torch.exp(self.cfg.rewards.sigma_feet_air_force
-                                                    * torch.abs(self.avg_feet_contact_force[:, 0]))
-        reward_feet_air_force_right_foot = torch.exp(self.cfg.rewards.sigma_feet_air_force
-                                                     * torch.abs(self.avg_feet_contact_force[:, 1]))
+        reward_feet_air_force_left_foot = self.avg_feet_contact_force[:, 0]
+        reward_feet_air_force_right_foot = self.avg_feet_contact_force[:, 1]
 
         reward_feet_air_force = torch.stack((reward_feet_air_force_left_foot,
                                              reward_feet_air_force_right_foot), dim=1)
 
         feet_air_time_mid_error = self.feet_air_time - self.cfg.rewards.feet_air_time_target / 2
         feet_air_time_mid_error = torch.abs(feet_air_time_mid_error)
-        feet_air_time_mid_error = torch.exp(self.cfg.rewards.sigma_feet_air_time_mid
-                                            * feet_air_time_mid_error)
 
         reward_feet_air_force = feet_air_time_mid_error * reward_feet_air_force
         reward_feet_air_force = torch.sum(reward_feet_air_force, dim=1)
+        reward_feet_air_force = torch.exp(self.cfg.rewards.sigma_feet_air_force * reward_feet_air_force)
         reward_feet_air_force *= torch.norm(self.commands[:, :2], dim=1) > 0.1  # no reward for zero command
 
         return reward_feet_air_force

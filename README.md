@@ -167,6 +167,15 @@ def _compute_friction(self, torques):
 
     return torques
     
+def reset_idx(self, env_ids):
+    super().reset_idx(env_ids)
+
+    # actuator feature
+    self.actuator_feature_hip_roll.reset(env_ids)
+    self.actuator_feature_hip_yaw.reset(env_ids)
+    self.actuator_feature_hip_pitch.reset(env_ids)
+    self.actuator_feature_knee_pitch.reset(env_ids)
+
 ###################################################################################
 
 # delay

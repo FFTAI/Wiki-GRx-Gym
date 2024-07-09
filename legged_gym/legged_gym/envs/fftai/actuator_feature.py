@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 
 
 def torch_rand_float(low, high, size, device=None):

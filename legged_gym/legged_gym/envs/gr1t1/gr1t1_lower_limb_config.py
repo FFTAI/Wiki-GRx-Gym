@@ -12,7 +12,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         num_actions = 10
 
     class terrain(GR1T1Cfg.terrain):
-        mesh_type = 'trimesh'  # "heightfield" # none, plane, heightfield or trimesh
+        mesh_type = 'plane'  # "plane" or "trimesh"
 
         curriculum = True
         num_rows = 10  # number of terrain rows (levels)

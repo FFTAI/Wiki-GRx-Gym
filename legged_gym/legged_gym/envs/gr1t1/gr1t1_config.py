@@ -109,7 +109,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         action_scale = 1.0
 
         # decimation: Number of control action updates @ sim DT per policy DT
-        decimation = 20
+        decimation = 10
 
     class asset(LeggedRobotFFTAICfg.asset):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/GR1T1/urdf/GR1T1.urdf'
@@ -294,7 +294,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         clip_actions_min = actions_min - (numpy.abs(actions_max) + numpy.abs(actions_min)) * 0.01
 
     class sim(LeggedRobotFFTAICfg.sim):
-        dt = 0.001
+        dt = 0.002  # simulation time step [s]
 
 
 class GR1T1CfgPPO(LeggedRobotFFTAICfgPPO, GR1T1Cfg):

@@ -124,6 +124,60 @@ This repository provides an environment used to train GRx to walk on rough terra
 
 ---
 
+## Change Logs
+### 2024-07-09
+1. Add `actuator_feature.py` to add the actuator feature to compute the torque of the actuator.
+2. Import method is show as below:
+```
+# actuator features
+from legged_gym.envs.fftai.actuator_feature import (
+    ActuatorFeature802030,
+    ActuatorFeature601750,
+    ActuatorFeature1307E,
+)
+self.actuator_feature_hip_roll = ActuatorFeature802030(self.num_envs, len(self.hip_roll_indices), device=self.device)
+self.actuator_feature_hip_yaw = ActuatorFeature601750(self.num_envs, len(self.hip_yaw_indices), device=self.device)
+self.actuator_feature_hip_pitch = ActuatorFeature1307E(self.num_envs, len(self.hip_pitch_indices), device=self.device)
+self.actuator_feature_knee_pitch = ActuatorFeature1307E(self.num_envs, len(self.knee_indices), device=self.device)
+```
+
+3. Use the actuator feature to compute the torque of the actuator as shown below:
+```
+def _compute_delay(self, torques):
+    torques[:, self.hip_roll_indices] = \
+        self.actuator_feature_hip_roll.delay(torques[:, self.hip_roll_indices])
+    torques[:, self.hip_yaw_indices] = \
+        self.actuator_feature_hip_yaw.delay(torques[:, self.hip_yaw_indices])
+    torques[:, self.hip_pitch_indices] = \
+        self.actuator_feature_hip_pitch.delay(torques[:, self.hip_pitch_indices])
+    torques[:, self.knee_indices] = \
+        self.actuator_feature_knee_pitch.delay(torques[:, self.knee_indices])
+
+    return torques
+
+def _compute_friction(self, torques):
+    torques[:, self.hip_roll_indices] = \
+        self.actuator_feature_hip_roll.friction(torques[:, self.hip_roll_indices], self.dof_vel[:, self.hip_roll_indices])
+    torques[:, self.hip_yaw_indices] = \
+        self.actuator_feature_hip_yaw.friction(torques[:, self.hip_yaw_indices], self.dof_vel[:, self.hip_yaw_indices])
+    torques[:, self.hip_pitch_indices] = \
+        self.actuator_feature_hip_pitch.friction(torques[:, self.hip_pitch_indices], self.dof_vel[:, self.hip_pitch_indices])
+    torques[:, self.knee_indices] = \
+        self.actuator_feature_knee_pitch.friction(torques[:, self.knee_indices], self.dof_vel[:, self.knee_indices])
+
+    return torques
+    
+###################################################################################
+
+# delay
+torques = self._compute_delay(torques)
+
+# friction
+torques = self._compute_friction(torques)
+```
+
+---
+
 ## Notice
 
 The training code here only shows how to control the robot's leg to walk, and the robot body is set fixed.

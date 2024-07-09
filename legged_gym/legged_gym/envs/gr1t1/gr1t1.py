@@ -1,16 +1,5 @@
-import numpy
-import json
-
-import torch
 from isaacgym.torch_utils import *
-from isaacgym import gymapi, gymutil
-
-from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.envs import LeggedRobotFFTAI
-from legged_gym.utils.math import quat_apply_yaw
-from legged_gym.utils.helpers import class_to_dict
-
-from .gr1t1_config import GR1T1Cfg
 
 
 class GR1T1(LeggedRobotFFTAI):

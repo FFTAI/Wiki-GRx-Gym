@@ -28,18 +28,18 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
     class control(GR1T1Cfg.control):
         # PD Drive parameters:
         stiffness = {
-            'hip_roll': 57,
-            'hip_yaw': 43,
-            'hip_pitch': 114,
-            'knee_pitch': 114,
-            'ankle_pitch': 15.3,
+            'hip_roll': 60 / (45 / 180 * numpy.pi),
+            'hip_yaw': 45 / (45 / 180 * numpy.pi),
+            'hip_pitch': 130 / (45 / 180 * numpy.pi),
+            'knee_pitch': 130 / (45 / 180 * numpy.pi),
+            'ankle_pitch': 16 / (45 / 180 * numpy.pi),
         }  # [N*m/rad]
         damping = {
-            'hip_roll': stiffness['hip_roll'] / 10,
-            'hip_yaw': stiffness['hip_yaw'] / 10,
-            'hip_pitch': stiffness['hip_pitch'] / 10,
-            'knee_pitch': stiffness['knee_pitch'] / 10,
-            'ankle_pitch': stiffness['ankle_pitch'] / 10,
+            'hip_roll': stiffness['hip_roll'] / 10 * 2.5,
+            'hip_yaw': stiffness['hip_yaw'] / 10 * 7.5,
+            'hip_pitch': stiffness['hip_pitch'] / 10 * 2.5,
+            'knee_pitch': stiffness['knee_pitch'] / 10 * 2.5,
+            'ankle_pitch': stiffness['ankle_pitch'] / 10 * 2.5,
         }
 
     class asset(GR1T1Cfg.asset):
@@ -47,7 +47,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 
     class rewards(GR1T1Cfg.rewards):
         base_height_target = 0.85  # 期望的机器人身体高度
-        swing_feet_height_target = 0.10  # 期望的脚抬高度
+        swing_feet_height_target = 0.05  # 期望的脚抬高度
 
         # ---------------------------------------------------------------
 
@@ -115,8 +115,8 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         ])
 
         clip_observations = 100.0
-        clip_actions_max = actions_max + 60 / 180 * numpy.pi / 3
-        clip_actions_min = actions_min - 60 / 180 * numpy.pi / 3
+        clip_actions_max = actions_max + 45 / 180 * numpy.pi / 3
+        clip_actions_min = actions_min - 45 / 180 * numpy.pi / 3
 
 
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
@@ -125,7 +125,8 @@ class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
         max_iterations = 4000
 
     class algorithm(GR1T1CfgPPO.algorithm):
-        desired_kl = 0.03
+        learning_rate_min = 4.e-5
+        desired_kl = 0.05
 
     class policy(GR1T1CfgPPO.policy):
         pass

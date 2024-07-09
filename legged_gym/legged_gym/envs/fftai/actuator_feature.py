@@ -58,7 +58,7 @@ class ActuatorFeature:
         flag_3 = ((velocities < -0.002) & (velocities >= -0.16))
         flag_4 = (velocities < -0.16)
 
-        torques_friction = self.friction_param_0[:] / 0.002 * velocities[:] * flag_0 + \
+        torques_friction = self.friction_param_0 / 0.002 * velocities * flag_0 + \
                            ((self.friction_param_1 - self.friction_param_0) / (0.16 - 0.002) * (velocities - 0.002) + self.friction_param_0) * flag_1 \
                            + (self.friction_param_1 + self.friction_param_3 * (velocities - 0.16)) * flag_2 \
                            + ((self.friction_param_2 + self.friction_param_0) / (-0.16 + 0.002) * (velocities + 0.002) - self.friction_param_0) * flag_3 \

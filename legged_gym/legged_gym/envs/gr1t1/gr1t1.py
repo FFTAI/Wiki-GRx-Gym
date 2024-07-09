@@ -136,6 +136,17 @@ class GR1T1(LeggedRobotFFTAI):
         self.commands_heading = torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
         self.commands_scale = torch.ones_like(self.commands, dtype=torch.float, device=self.device, requires_grad=False)
 
+        # actuator features
+        from legged_gym.envs.fftai.actuator_feature import (
+            ActuatorFeature802030,
+            ActuatorFeature601750,
+            ActuatorFeature1307E,
+        )
+        self.actuator_feature_hip_roll = ActuatorFeature802030(self.num_envs, len(self.hip_roll_indices), device=self.device)
+        self.actuator_feature_hip_yaw = ActuatorFeature601750(self.num_envs, len(self.hip_yaw_indices), device=self.device)
+        self.actuator_feature_hip_pitch = ActuatorFeature1307E(self.num_envs, len(self.hip_pitch_indices), device=self.device)
+        self.actuator_feature_knee_pitch = ActuatorFeature1307E(self.num_envs, len(self.knee_indices), device=self.device)
+
     def _init_buffers_joint_indices(self):
 
         # get joint indices
@@ -289,6 +300,39 @@ class GR1T1(LeggedRobotFFTAI):
         print("self.wrist_yaw_indices: " + str(self.wrist_yaw_indices))
         print("self.wrist_roll_indices: " + str(self.wrist_roll_indices))
         print("self.wrist_pitch_indices: " + str(self.wrist_pitch_indices))
+
+    def _compute_delay(self, torques):
+        torques[:, self.hip_roll_indices] = \
+            self.actuator_feature_hip_roll.delay(torques[:, self.hip_roll_indices])
+        torques[:, self.hip_yaw_indices] = \
+            self.actuator_feature_hip_yaw.delay(torques[:, self.hip_yaw_indices])
+        torques[:, self.hip_pitch_indices] = \
+            self.actuator_feature_hip_pitch.delay(torques[:, self.hip_pitch_indices])
+        torques[:, self.knee_indices] = \
+            self.actuator_feature_knee_pitch.delay(torques[:, self.knee_indices])
+
+        return torques
+
+    def _compute_friction(self, torques):
+        torques[:, self.hip_roll_indices] = \
+            self.actuator_feature_hip_roll.friction(torques[:, self.hip_roll_indices], self.dof_vel[:, self.hip_roll_indices])
+        torques[:, self.hip_yaw_indices] = \
+            self.actuator_feature_hip_yaw.friction(torques[:, self.hip_yaw_indices], self.dof_vel[:, self.hip_yaw_indices])
+        torques[:, self.hip_pitch_indices] = \
+            self.actuator_feature_hip_pitch.friction(torques[:, self.hip_pitch_indices], self.dof_vel[:, self.hip_pitch_indices])
+        torques[:, self.knee_indices] = \
+            self.actuator_feature_knee_pitch.friction(torques[:, self.knee_indices], self.dof_vel[:, self.knee_indices])
+
+        return torques
+
+    def reset_idx(self, env_ids):
+        super().reset_idx(env_ids)
+
+        # actuator feature
+        self.actuator_feature_hip_roll.reset(env_ids)
+        self.actuator_feature_hip_yaw.reset(env_ids)
+        self.actuator_feature_hip_pitch.reset(env_ids)
+        self.actuator_feature_knee_pitch.reset(env_ids)
 
     def compute_observation_profile(self):
         self.obs_buf = torch.cat(

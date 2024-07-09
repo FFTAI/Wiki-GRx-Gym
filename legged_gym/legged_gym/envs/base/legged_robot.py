@@ -668,7 +668,22 @@ class LeggedRobot(BaseTask):
         else:
             raise NameError(f"Unknown controller type: {control_type}")
 
-        return torch.clip(torques, -self.torque_limits, self.torque_limits)
+        # delay
+        torques = self._compute_delay(torques)
+
+        # friction
+        torques = self._compute_friction(torques)
+
+        # clip
+        torques = torch.clip(torques, -self.torque_limits, self.torque_limits)
+
+        return torques
+
+    def _compute_delay(self, torques):
+        return torques
+
+    def _compute_friction(self, torques):
+        return torques
 
     def _reset_dofs(self, env_ids):
         """ Resets DOF position and velocities of selected environmments

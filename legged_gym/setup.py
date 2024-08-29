@@ -12,7 +12,7 @@ setup(
     install_requires=['isaacgym',
                       'rsl-rl',
                       'matplotlib',
-                      'numpy==1.20.0',
+                      'numpy==1.21.1',
                       'tensorboard',
                       ]
 )

@@ -12,18 +12,7 @@ class GR1T2LowerLimbCfg(GR1T2Cfg):
         num_actions = 10
 
     class terrain(GR1T2Cfg.terrain):
-        mesh_type = 'trimesh'  # "heightfield" # none, plane, heightfield or trimesh
-
-        curriculum = True
-        num_rows = 10  # number of terrain rows (levels)
-        num_cols = 10  # number of terrain cols (types)
-        max_init_terrain_level = num_rows - 1  # maximum initial terrain level
-
-        # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
-        terrain_proportions = [0.4, 0.4, 0.0, 0.2, 0.0]
-        terrain_length = 10.
-        terrain_width = 10.
-        slope_treshold = 0.75  # slopes above this threshold will be corrected to vertical surfaces
+        mesh_type = 'plane'  # "heightfield" # none, plane, heightfield or trimesh
 
     class control(GR1T2Cfg.control):
         # PD Drive parameters:

@@ -235,6 +235,7 @@ class LeggedRobotCfg(BaseConfig):
             action = 1.0
             lin_vel = 2.0
             ang_vel = 0.25
+            gravity = 1.0
             dof_pos = 1.0
             dof_vel = 0.05
             height_measurements = 5.0

@@ -281,50 +281,48 @@ class GR1T1(LeggedRobotFFTAI):
     def compute_observation_profile(self):
         self.obs_buf = torch.cat(
             (
+                # command
+                self.commands[:, :3] * self.commands_scale,
+
                 # base related
                 self.base_ang_vel * self.obs_scales.ang_vel,
-                self.base_projected_gravity,
-                self.commands[:, :3] * self.commands_scale,
+                self.base_projected_gravity * self.obs_scales.gravity,
 
                 # dof related
                 self.dof_pos_offset * self.obs_scales.dof_pos,
                 self.dof_vel * self.obs_scales.dof_vel,
-                self.actions,
+                self.actions * self.obs_scales.action,
             ), dim=-1)
 
         self.pri_obs_buf = torch.cat(
             (
-                # unobservable proprioception
+                self.obs_buf,
+
+                # ------------------------------
+                # Unobservable Proprioception
+                # base related
                 self.base_lin_vel * self.obs_scales.lin_vel,
                 self.base_heights_offset.unsqueeze(1) * self.obs_scales.height_measurements,
 
-                # base related
-                self.base_ang_vel * self.obs_scales.ang_vel,
-                self.base_projected_gravity,
-                self.commands[:, :3] * self.commands_scale,
-
-                # dof related
-                self.dof_pos_offset * self.obs_scales.dof_pos,
-                self.dof_vel * self.obs_scales.dof_vel,
-                self.actions,
-
-                # height related
-                self.surround_heights_offset,
-
-                # contact
+                # foot related
                 self.feet_contact,
+                self.feet_height * self.obs_scales.height_measurements,
 
-                # foot height
-                self.feet_height,
+                # terrain related
+                self.surround_heights_offset * self.obs_scales.height_measurements,
             ), dim=-1)
 
     def compute_noise_scale_vec_profile(self):
         noise_vec = torch.zeros_like(self.obs_buf[0])
 
+        # command
+        noise_vec[0 + 0: 0 + 3] = 0.  # commands (3)
+
         # base related
-        noise_vec[0 + 0: 0 + 3] = self.noise_scales.ang_vel * self.noise_level * self.obs_scales.ang_vel
-        noise_vec[0 + 3: 3 + 3] = self.noise_scales.gravity * self.noise_level
-        noise_vec[3 + 3: 6 + 3] = 0.  # commands (3)
+        noise_vec[0 + 3: 3 + 3] = \
+            self.noise_scales.ang_vel * self.noise_level * self.obs_scales.ang_vel
+        noise_vec[3 + 3: 6 + 3] = \
+            self.noise_scales.gravity * self.noise_level * self.obs_scales.gravity
 
         # dof related
         noise_vec[9 + 0 * self.num_dof: 9 + 1 * self.num_dof] = \

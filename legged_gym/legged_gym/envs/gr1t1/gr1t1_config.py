@@ -274,6 +274,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
             action = 1.0
             lin_vel = 1.0
             ang_vel = 1.0
+            gravity = 1.0
             dof_pos = 1.0
             dof_vel = 1.0
             height_measurements = 1.0

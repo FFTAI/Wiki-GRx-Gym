@@ -90,20 +90,20 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
 
         default_joint_angles = {  # = target angles [rad] when action = 0.0
             # left leg
-            'left_hip_roll': 0.0,
-            'left_hip_yaw': 0.0,
-            'left_hip_pitch': -(numpy.deg2rad(15)),
-            'left_knee_pitch': (numpy.deg2rad(30)),
-            'left_ankle_pitch': -(numpy.deg2rad(15)),
-            'left_ankle_roll': 0.0,
+            'left_hip_roll_joint': 0.0,
+            'left_hip_yaw_joint': 0.0,
+            'left_hip_pitch_joint': -(numpy.deg2rad(15)),
+            'left_knee_pitch_joint': (numpy.deg2rad(30)),
+            'left_ankle_pitch_joint': -(numpy.deg2rad(15)),
+            'left_ankle_roll_joint': 0.0,
 
             # right leg
-            'right_hip_roll': 0.0,
-            'right_hip_yaw': 0.0,
-            'right_hip_pitch': -(numpy.deg2rad(15)),
-            'right_knee_pitch': (numpy.deg2rad(30)),
-            'right_ankle_pitch': -(numpy.deg2rad(15)),
-            'right_ankle_roll': 0.0,
+            'right_hip_roll_joint': 0.0,
+            'right_hip_yaw_joint': 0.0,
+            'right_hip_pitch_joint': -(numpy.deg2rad(15)),
+            'right_knee_pitch_joint': (numpy.deg2rad(30)),
+            'right_ankle_pitch_joint': -(numpy.deg2rad(15)),
+            'right_ankle_roll_joint': 0.0,
 
             # waist
             'waist_yaw_joint': 0.0,

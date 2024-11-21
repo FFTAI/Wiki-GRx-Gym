@@ -72,7 +72,7 @@ def play(args):
             train_cfg.runner.experiment_name,
             'exported',
         )
-        path = export_policy_as_jit(ppo_runner.alg.actor_critic, path)
+        path = export_policy_as_jit(ppo_runner.algorithm.actor_critic, path)
         print(
             f"\033[93m"
             f"EXPORT_POLICY: "

@@ -19,7 +19,7 @@ class OnPolicyRunner:
     Attributes:
         env (VecEnv): environment the robots live in and interact with.
         cfg (dict): configuration of OnPolicyRunner.
-        alg_cfg (dict): configuration of PPO.
+        algorithm_cfg (dict): configuration of PPO.
         alg (PPO): policy gradient algorithm.
         policy_cfg (dict): configuration of ActorCritic.
         num_steps_per_env (int): number of transitions per env per iteration.
@@ -54,11 +54,11 @@ class OnPolicyRunner:
         print("OnPolicyRunner")
 
         self.cfg = train_cfg["runner"]
-        self.alg_cfg = train_cfg["algorithm"]
+        self.algorithm_cfg = train_cfg["algorithm"]
         self.policy_cfg = train_cfg["policy"]
 
         print("self.cfg: \n", json.dumps(self.cfg, indent=4, sort_keys=True))
-        print("self.alg_cfg: \n", json.dumps(self.alg_cfg, indent=4, sort_keys=True))
+        print("self.algorithm_cfg: \n", json.dumps(self.algorithm_cfg, indent=4, sort_keys=True))
         print("self.policy_cfg: \n", json.dumps(self.policy_cfg, indent=4, sort_keys=True))
 
         self.device = device
@@ -89,17 +89,17 @@ class OnPolicyRunner:
                                                           **self.policy_cfg).to(self.device)
 
         # PPO
-        alg_class = eval(self.cfg["algorithm_class_name"])
-        self.alg = alg_class(actor_critic=actor_critic,
+        algorithm_class = eval(self.cfg["algorithm_class_name"])
+        self.algorithm = algorithm_class(actor_critic=actor_critic,
                              device=self.device,
-                             **self.alg_cfg)
+                             **self.algorithm_cfg)
 
         # init storage and model
         self.num_steps_per_env = self.cfg["num_steps_per_env"]
         self.save_interval = self.cfg["save_interval"]
 
         # init storage and model
-        self.alg.init_storage(self.env.num_envs,
+        self.algorithm.init_storage(self.env.num_envs,
                               self.num_steps_per_env)
 
         self.env.reset()
@@ -132,8 +132,8 @@ class OnPolicyRunner:
         obs, critic_obs = obs.to(self.device), critic_obs.to(self.device)
 
         # switch to train mode (for dropout for example)
-        self.alg.actor_critic.train()
-        self.alg.actor_critic.actor.train()
+        self.algorithm.actor_critic.train()
+        self.algorithm.actor_critic.actor.train()
 
         ep_infos = []
         rewbuffer = deque(maxlen=100)
@@ -150,7 +150,7 @@ class OnPolicyRunner:
 
                 for i in range(self.num_steps_per_env):
 
-                    actions = self.alg.act(obs, critic_obs)
+                    actions = self.algorithm.act(obs, critic_obs)
 
                     obs, pri_obs, rewards, dones, infos = self.env.step(actions)
                     critic_obs = pri_obs if pri_obs is not None else obs
@@ -159,14 +159,14 @@ class OnPolicyRunner:
                         obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
 
                     # -- get reflection of observations if pass a positive symmetry_coef to ppo
-                    if self.alg.symmetry_coef > 0:
+                    if self.algorithm.symmetry_coef > 0:
                         reflection_obs = self.env.get_reflection_observations()
                         # TODO: compute reflection of action_mean
-                        reflection_actions = self.env.reflect_dof_prop(self.alg.transition.action_mean)
-                        self.alg.update_reflection_transition(reflection_obs, reflection_actions)
+                        reflection_actions = self.env.reflect_dof_prop(self.algorithm.transition.action_mean)
+                        self.algorithm.update_reflection_transition(reflection_obs, reflection_actions)
                         reflection_obs, reflection_actions = reflection_obs.to(self.device), reflection_actions.to(self.device)
 
-                    self.alg.process_env_step(rewards, dones, infos)
+                    self.algorithm.process_env_step(rewards, dones, infos)
 
                     if self.log_dir is not None:
                         # Book keeping
@@ -185,12 +185,12 @@ class OnPolicyRunner:
 
                 # Learning step
                 start = stop
-                self.alg.compute_returns(critic_obs)
+                self.algorithm.compute_returns(critic_obs)
 
-            mean_value_loss, mean_surrogate_loss = self.alg.update()
+            mean_value_loss, mean_surrogate_loss = self.algorithm.update()
 
             # will clear storage here!
-            self.alg.clear_storage()
+            self.algorithm.clear_storage()
 
             stop = time.time()
             learn_time = stop - start
@@ -236,8 +236,8 @@ class OnPolicyRunner:
 
         self.writer.add_scalar('Loss/value_function', locs['mean_value_loss'], locs['it'])
         self.writer.add_scalar('Loss/surrogate', locs['mean_surrogate_loss'], locs['it'])
-        self.writer.add_scalar('Loss/learning_rate', self.alg.learning_rate, locs['it'])
-        self.writer.add_scalar('Loss/kl', self.alg.mean_kl, locs['it'])
+        self.writer.add_scalar('Loss/learning_rate', self.algorithm.learning_rate, locs['it'])
+        self.writer.add_scalar('Loss/kl', self.algorithm.mean_kl, locs['it'])
 
         self.writer.add_scalar('Perf/total_fps', fps, locs['it'])
         self.writer.add_scalar('Perf/collection time', locs['collection_time'], locs['it'])
@@ -252,8 +252,8 @@ class OnPolicyRunner:
         str = f" \033[1m Learning iteration {locs['it']}/{self.current_learning_iteration + locs['num_learning_iterations']} \033[0m "
 
         # log stds
-        stds = self.alg.actor_critic.std
-        mean_std = self.alg.actor_critic.std.mean()
+        stds = self.algorithm.actor_critic.std
+        mean_std = self.algorithm.actor_critic.std.mean()
 
         for i, std in enumerate(stds):
             self.writer.add_scalar(f'Policy/noise_std_{i}', std.item(), locs['it'])
@@ -302,8 +302,8 @@ class OnPolicyRunner:
             infos (dict, optional): addtional information of model. Defaults to None.
         """
         torch.save({
-            'model_state_dict': self.alg.actor_critic.state_dict(),
-            'optimizer_state_dict': self.alg.optimizer.state_dict(),
+            'model_state_dict': self.algorithm.actor_critic.state_dict(),
+            'optimizer_state_dict': self.algorithm.optimizer.state_dict(),
             'iter': self.current_learning_iteration,
             'infos': infos,
         }, path)
@@ -319,10 +319,10 @@ class OnPolicyRunner:
             nn.Module: torch model load from path.
         """
         loaded_dict = torch.load(path)
-        self.alg.actor_critic.load_state_dict(loaded_dict['model_state_dict'])
+        self.algorithm.actor_critic.load_state_dict(loaded_dict['model_state_dict'])
 
         if load_optimizer:
-            self.alg.optimizer.load_state_dict(loaded_dict['optimizer_state_dict'])
+            self.algorithm.optimizer.load_state_dict(loaded_dict['optimizer_state_dict'])
 
         self.current_learning_iteration = loaded_dict['iter']
 
@@ -339,7 +339,7 @@ class OnPolicyRunner:
         Returns:
             method: inference method of model
         """
-        self.alg.actor_critic.eval()  # switch to evaluation mode (dropout for example)
+        self.algorithm.actor_critic.eval()  # switch to evaluation mode (dropout for example)
         if device is not None:
-            self.alg.actor_critic.to(device)
-        return self.alg.actor_critic.act_inference
+            self.algorithm.actor_critic.to(device)
+        return self.algorithm.actor_critic.act_inference

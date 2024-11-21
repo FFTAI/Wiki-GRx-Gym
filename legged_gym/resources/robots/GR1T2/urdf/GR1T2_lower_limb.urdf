@@ -1058,7 +1058,7 @@
             type="fixed">
         <origin
                 xyz="0 0.09515 0"
-                rpy="-0.43275 0 0"/>
+                rpy="-0.23275 0 0"/>
         <parent
                 link="left_upper_arm_pitch_link"/>
         <child
@@ -1171,7 +1171,7 @@
             type="fixed">
         <origin
                 xyz="0 0.0010503 -0.1786"
-                rpy="0 0 0"/>
+                rpy="0 -0.3 0"/>
         <parent
                 link="left_upper_arm_yaw_link"/>
         <child
@@ -1476,7 +1476,7 @@
             type="fixed">
         <origin
                 xyz="0 -0.09515 0"
-                rpy="0.43275 0 0"/>
+                rpy="0.23275 0 0"/>
         <parent
                 link="right_upper_arm_pitch_link"/>
         <child
@@ -1589,7 +1589,7 @@
             type="fixed">
         <origin
                 xyz="0 -0.0010503 -0.1786"
-                rpy="0 0 0"/>
+                rpy="0 -0.3 0"/>
         <parent
                 link="right_upper_arm_yaw_link"/>
         <child

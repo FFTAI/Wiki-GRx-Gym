@@ -336,13 +336,19 @@ class LeggedRobot(BaseTask):
     def check_termination(self):
         """ Check if environments need to be reset
         """
-        self.reset_buf = torch.any(torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
+        self.reset_buf = \
+            torch.any(
+                torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1.0,
+                dim=1,
+            )
 
         # detect base tilt too much (roll and pitch)
-        self.reset_buf = self.reset_buf | (torch.norm(self.base_projected_gravity[:, :2], dim=-1) > 0.7)
+        self.reset_buf |= \
+            torch.abs(self.base_projected_gravity[:, 2]) < 0.33
 
         # no terminal reward for time-outs
-        self.time_out_buf = self.episode_length_buf > self.max_episode_length
+        self.time_out_buf = \
+            self.episode_length_buf > self.max_episode_length
 
         self.reset_buf |= self.time_out_buf
 

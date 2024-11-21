@@ -1,4 +1,5 @@
 import numpy
+import torch
 
 from legged_gym.envs.fftai.legged_robot_fftai_config import (
     LeggedRobotFFTAICfg,
@@ -204,16 +205,17 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
 
         # ---------------------------------------------------------------
 
-        sigma_collision = -1.0
-        sigma_stand_still = -1.0
+        sigma_collision = -1.0 * torch.e
 
-        sigma_cmd_diff_lin_vel_x = -3.0
-        sigma_cmd_diff_lin_vel_y = -3.0
-        sigma_cmd_diff_lin_vel_z = -3.0
-        sigma_cmd_diff_ang_vel_roll = -3.0
-        sigma_cmd_diff_ang_vel_pitch = -3.0
-        sigma_cmd_diff_ang_vel_yaw = -3.0
-        sigma_cmd_diff_base_height = -50.0
+        sigma_stand_still = -1.0 * torch.e
+
+        sigma_cmd_diff_lin_vel_x = -1.0 * torch.e * (1.0 / 0.50)
+        sigma_cmd_diff_lin_vel_y = -1.0 * torch.e * (1.0 / 1.00)
+        sigma_cmd_diff_lin_vel_z = -1.0 * torch.e
+        sigma_cmd_diff_ang_vel_roll = -1.0 * torch.e
+        sigma_cmd_diff_ang_vel_pitch = -1.0 * torch.e
+        sigma_cmd_diff_ang_vel_yaw = -1.0 * torch.e * (1.0 / 3.00)
+        sigma_cmd_diff_base_height = -10.0 * torch.e
 
         sigma_cmd_diff_base_orient = -20.0
         sigma_cmd_diff_torso_orient = -20.0
@@ -225,8 +227,8 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         sigma_dof_vel_new = -0.01
         sigma_dof_vel_new_knee = -0.05
 
-        sigma_dof_acc_new = -0.00005
-        sigma_dof_tor_new = -0.00005
+        sigma_dof_acc_new = -0.001 * torch.e  # reward calculate: 0 ~ 1.0
+        sigma_dof_tor_new = -0.01 * torch.e  # reward calculate: 0 ~ 1.0
         sigma_dof_tor_new_hip_roll = -0.002
 
         sigma_dof_tor_ankle_feet_lift_up = -1.0

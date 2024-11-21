@@ -1,6 +1,9 @@
 import numpy
 
-from legged_gym.envs.fftai.legged_robot_fftai_config import LeggedRobotFFTAICfg, LeggedRobotFFTAICfgPPO
+from legged_gym.envs.fftai.legged_robot_fftai_config import (
+    LeggedRobotFFTAICfg,
+    LeggedRobotFFTAICfgPPO,
+)
 
 
 class GR1T1Cfg(LeggedRobotFFTAICfg):
@@ -13,14 +16,6 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
 
     class terrain(LeggedRobotFFTAICfg.terrain):
         mesh_type = 'plane'  # "heightfield" # none, plane, heightfield or trimesh
-        border_size = 25  # [m]
-        horizontal_scale = 0.1  # [m]
-        vertical_scale = 0.005  # [m]
-
-        # 1mx1m rectangle (without center line)
-        measure_heights = True
-        measured_points_x = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
-        measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
 
     class commands(LeggedRobotFFTAICfg.commands):
         curriculum = False
@@ -38,48 +33,48 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         pos = [0.0, 0.0, 0.95]  # x,y,z [m]
         default_joint_angles = {  # = target angles [rad] when action = 0.0
             # left leg
-            'l_hip_roll': 0.0,
-            'l_hip_yaw': 0.,
-            'l_hip_pitch': -0.2618,
-            'l_knee_pitch': 0.5236,
-            'l_ankle_pitch': -0.2618,
-            'l_ankle_roll': 0.0,
+            'left_hip_roll_joint': 0.0,
+            'left_hip_yaw_joint': 0.0,
+            'left_hip_pitch_joint': -0.2618,
+            'left_knee_pitch_joint': 0.5236,
+            'left_ankle_pitch_joint': -0.2618,
+            'left_ankle_roll_joint': 0.0,
 
             # right leg
-            'r_hip_roll': -0.,
-            'r_hip_yaw': 0.,
-            'r_hip_pitch': -0.2618,
-            'r_knee_pitch': 0.5236,
-            'r_ankle_pitch': -0.2618,
-            'r_ankle_roll': 0.0,
+            'right_hip_roll_joint': -0.0,
+            'right_hip_yaw_joint': 0.0,
+            'right_hip_pitch_joint': -0.2618,
+            'right_knee_pitch_joint': 0.5236,
+            'right_ankle_pitch_joint': -0.2618,
+            'right_ankle_roll_joint': 0.0,
 
             # waist
-            'waist_yaw': 0.0,
-            'waist_pitch': 0.0,
-            'waist_roll': 0.0,
+            'waist_yaw_joint': 0.0,
+            'waist_pitch_joint': 0.0,
+            'waist_roll_joint': 0.0,
 
             # head
-            'head_yaw': 0.0,
-            'head_pitch': 0.0,
-            'head_roll': 0.0,
+            'head_yaw_joint': 0.0,
+            'head_pitch_joint': 0.0,
+            'head_roll_joint': 0.0,
 
             # left arm
-            'l_shoulder_pitch': 0.0,
-            'l_shoulder_roll': 0.2,
-            'l_shoulder_yaw': 0.0,
-            'l_elbow_pitch': -0.3,
-            'l_wrist_yaw': 0.0,
-            'l_wrist_roll': 0.0,
-            'l_wrist_pitch': 0.0,
+            'left_shoulder_pitch_joint': 0.0,
+            'left_shoulder_roll_joint': 0.2,
+            'left_shoulder_yaw_joint': 0.0,
+            'left_elbow_pitch_joint': -0.3,
+            'left_wrist_yaw_joint': 0.0,
+            'left_wrist_roll_joint': 0.0,
+            'left_wrist_pitch_joint': 0.0,
 
             # right arm
-            'r_shoulder_pitch': 0.0,
-            'r_shoulder_roll': -0.2,
-            'r_shoulder_yaw': 0.0,
-            'r_elbow_pitch': -0.3,
-            'r_wrist_yaw': 0.0,
-            'r_wrist_roll': 0.0,
-            'r_wrist_pitch': 0.0
+            'right_shoulder_pitch_joint': 0.0,
+            'right_shoulder_roll_joint': -0.2,
+            'right_shoulder_yaw_joint': 0.0,
+            'right_elbow_pitch_joint': -0.3,
+            'right_wrist_yaw_joint': 0.0,
+            'right_wrist_roll_joint': 0.0,
+            'right_wrist_pitch_joint': 0.0
         }
 
     class control(LeggedRobotFFTAICfg.control):
@@ -116,8 +111,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         name = "GR1T1"
 
         # for both joint and link name
-        torso_name = 'base'  # humanoid pelvis part
-        chest_name = 'waist_roll'  # humanoid chest part
+        torso_name = 'torso'  # humanoid pelvis part
         forehead_name = 'head_pitch'  # humanoid head part
 
         # imu
@@ -167,15 +161,11 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         arm_end_name = 'arm_end'
 
         penalize_contacts_on = []
-        terminate_after_contacts_on = ['waist', 'thigh', 'shoulder', 'elbow', 'hand']
-
-        disable_gravity = False
-        collapse_fixed_joints = False  # 显示 fixed joint 的信息
-        fix_base_link = False
-
-        self_collisions = 0  # 1 to disable, 0 to enable...bitwise filter
-        replace_cylinder_with_capsule = True
-        flip_visual_attachments = False
+        terminate_after_contacts_on = [
+            torso_name, forehead_name,
+            waist_name, thigh_name,
+            shoulder_name, upper_arm_name, lower_arm_name, hand_name,
+        ]
 
     class rewards(LeggedRobotFFTAICfg.rewards):
         tracking_sigma = 1.0  # tracking reward = exp(-error^2/sigma)
@@ -185,15 +175,15 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         max_contact_force = 500.
 
         only_positive_rewards = False
-        base_height_target = 0.90  # 期望的机器人身体高度
-        swing_feet_height_target = 0.10  # 期望的脚抬起高度
+        base_height_target = 0.85  # 期望的机器人身体高度
+        swing_feet_height_target = 0.10  # 期望的脚抬高度
 
         feet_stumble_ratio = 5.0  # ratio = fxy / fz
 
         # ---------------------------------------------------------------
 
         feet_air_time_target = 0.5  # 期望的脚空中时间
-        feet_land_time_max = 1.5  # 最大的脚着地时间
+        feet_land_time_max = 1.0  # 最大的脚着地时间
 
         # ---------------------------------------------------------------
 
@@ -210,7 +200,6 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
 
         sigma_cmd_diff_base_orient = -20.0
         sigma_cmd_diff_torso_orient = -20.0
-        sigma_cmd_diff_chest_orient = -20.0
         sigma_cmd_diff_forehead_orient = -20.0
 
         sigma_action_diff = -0.1

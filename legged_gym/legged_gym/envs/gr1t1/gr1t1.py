@@ -18,14 +18,14 @@ class GR1T1(LeggedRobotFFTAI):
     def __init__(self, cfg, sim_params, physics_engine, sim_device, headless):
         super().__init__(cfg, sim_params, physics_engine, sim_device, headless)
 
-        self.swing_feet_height_target = torch.ones(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False) \
+        self.swing_feet_height_target = torch.ones(self.num_envs, 1,
+                                                   dtype=torch.float, device=self.device, requires_grad=False) \
                                         * self.cfg.rewards.swing_feet_height_target
 
     def _create_envs_get_indices(self, body_names, env_handle, actor_handle):
         """ Creates a list of indices for different bodies of the robot.
         """
         torso_name = [s for s in body_names if self.cfg.asset.torso_name in s]
-        chest_name = [s for s in body_names if self.cfg.asset.chest_name in s]
         forehead_indices = [s for s in body_names if self.cfg.asset.forehead_name in s]
 
         imu_name = [s for s in body_names if self.cfg.asset.imu_name in s]
@@ -46,10 +46,6 @@ class GR1T1(LeggedRobotFFTAI):
         self.torso_indices = torch.zeros(len(torso_name), dtype=torch.long, device=self.device, requires_grad=False)
         for j in range(len(torso_name)):
             self.torso_indices[j] = self.gym.find_actor_rigid_body_handle(env_handle, actor_handle, torso_name[j])
-
-        self.chest_indices = torch.zeros(len(chest_name), dtype=torch.long, device=self.device, requires_grad=False)
-        for j in range(len(chest_name)):
-            self.chest_indices[j] = self.gym.find_actor_rigid_body_handle(env_handle, actor_handle, chest_name[j])
 
         self.forehead_indices = torch.zeros(len(forehead_indices), dtype=torch.long, device=self.device, requires_grad=False)
         for j in range(len(forehead_indices)):
@@ -104,7 +100,6 @@ class GR1T1(LeggedRobotFFTAI):
             self.arm_end_indices[j] = self.gym.find_actor_rigid_body_handle(env_handle, actor_handle, arm_end_names[j])
 
         print("self.torso_indices: " + str(self.torso_indices))
-        print("self.chest_indices: " + str(self.chest_indices))
         print("self.forehead_indices: " + str(self.forehead_indices))
 
         print("self.imu_indices: " + str(self.imu_indices))
@@ -339,9 +334,12 @@ class GR1T1(LeggedRobotFFTAI):
         noise_vec[3 + 3: 6 + 3] = 0.  # commands (3)
 
         # dof related
-        noise_vec[9 + 0 * self.num_dof: 9 + 1 * self.num_dof] = self.noise_scales.dof_pos * self.noise_level * self.obs_scales.dof_pos
-        noise_vec[9 + 1 * self.num_dof: 9 + 2 * self.num_dof] = self.noise_scales.dof_vel * self.noise_level * self.obs_scales.dof_vel
-        noise_vec[9 + 2 * self.num_dof: 9 + 3 * self.num_dof] = self.noise_scales.action * self.noise_level * self.obs_scales.action
+        noise_vec[9 + 0 * self.num_dof: 9 + 1 * self.num_dof] = \
+            self.noise_scales.dof_pos * self.noise_level * self.obs_scales.dof_pos
+        noise_vec[9 + 1 * self.num_dof: 9 + 2 * self.num_dof] = \
+            self.noise_scales.dof_vel * self.noise_level * self.obs_scales.dof_vel
+        noise_vec[9 + 2 * self.num_dof: 9 + 3 * self.num_dof] = \
+            self.noise_scales.action * self.noise_level * self.obs_scales.action
 
         # print("noise_vec: ", noise_vec)
         return noise_vec
@@ -358,17 +356,6 @@ class GR1T1(LeggedRobotFFTAI):
         else:
             reward_torso_orient = 0
         return reward_torso_orient
-
-    def _reward_cmd_diff_chest_orient(self):
-        if len(self.chest_indices) > 0:
-            chest_projected_gravity = quat_rotate_inverse(self.rigid_body_states[:, self.chest_indices][:, 0, 3:7],
-                                                          self.gravity_vec)
-            error_chest_orient = torch.sum(torch.abs(chest_projected_gravity[:, :2]), dim=1)
-            reward_chest_orient = torch.exp(self.cfg.rewards.sigma_cmd_diff_chest_orient
-                                            * error_chest_orient)
-        else:
-            reward_chest_orient = 0
-        return reward_chest_orient
 
     def _reward_cmd_diff_forehead_orient(self):
         if len(self.forehead_indices) > 0:
@@ -524,7 +511,8 @@ class GR1T1(LeggedRobotFFTAI):
         error_feet_air_height_right_foot = torch.abs(right_foot_height
                                                      - min_feet_height
                                                      - self.swing_feet_height_target.squeeze())
-        error_feet_air_height = torch.stack([error_feet_air_height_left_foot, error_feet_air_height_right_foot], dim=1)
+        error_feet_air_height = torch.stack([error_feet_air_height_left_foot,
+                                             error_feet_air_height_right_foot], dim=1)
 
         feet_air_time_mid_error = self.feet_air_time - self.cfg.rewards.feet_air_time_target / 2
         feet_air_time_mid_error = torch.abs(feet_air_time_mid_error)

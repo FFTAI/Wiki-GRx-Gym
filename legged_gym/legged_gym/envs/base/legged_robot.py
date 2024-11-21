@@ -29,10 +29,11 @@
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
 from legged_gym import LEGGED_GYM_ROOT_DIR, envs
-from time import time
 from warnings import WarningMessage
-import numpy as np
+
 import os
+import time
+import numpy
 
 from isaacgym.torch_utils import *
 from isaacgym import gymtorch, gymapi, gymutil
@@ -264,9 +265,6 @@ class LeggedRobot(BaseTask):
             self.gym.refresh_actor_root_state_tensor(self.sim)
             self.gym.refresh_net_contact_force_tensor(self.sim)
             self.gym.refresh_rigid_body_state_tensor(self.sim)
-
-            # compute some quantities
-            self.dof_acc = (self.dof_vel - self.last_dof_vel) / self.dt
 
     def post_physics_step(self):
         """ check terminations, compute observations and rewards
@@ -552,10 +550,27 @@ class LeggedRobot(BaseTask):
                 friction_buckets = torch_rand_float(friction_range[0],
                                                     friction_range[1],
                                                     (num_buckets, 1), device='cpu')
+
                 self.friction_coeffs = friction_buckets[bucket_ids]
 
             for s in range(len(props)):
                 props[s].friction = self.friction_coeffs[env_id]
+
+        if self.cfg.domain_rand.randomize_restitution:
+            if env_id == 0:
+                # prepare restitution randomization
+                restitution_range = self.cfg.domain_rand.restitution_range
+                num_buckets = 64
+                bucket_ids = torch.randint(0, num_buckets, (self.num_envs, 1))
+                restitution_buckets = torch_rand_float(restitution_range[0],
+                                                       restitution_range[1],
+                                                       (num_buckets, 1), device='cpu')
+
+                self.restitution_coeffs = restitution_buckets[bucket_ids]
+
+            for s in range(len(props)):
+                props[s].restitution = self.restitution_coeffs[env_id]
+
         return props
 
     def _process_dof_props(self, props, env_id):
@@ -596,20 +611,33 @@ class LeggedRobot(BaseTask):
 
     def _process_rigid_body_props(self, props, env_id):
         # randomize base mass
-        rng = self.cfg.domain_rand.added_mass_range
+        multiply_base_mass_range = self.cfg.domain_rand.multiply_base_mass_range
 
         if self.cfg.domain_rand.randomize_base_mass:
-            props[0].mass += props[0].mass * np.random.uniform(rng[0], rng[1])
-            props[0].invMass = 1 / props[0].mass
+            mass = props[0].mass
+            mass *= np.random.uniform(multiply_base_mass_range[0], multiply_base_mass_range[1])
 
-        rng_com_x = self.cfg.domain_rand.added_com_range_x
-        rng_com_y = self.cfg.domain_rand.added_com_range_y
-        rng_com_z = self.cfg.domain_rand.added_com_range_z
+            props[0].mass = mass
+            props[0].invMass = 1 / mass
+
+        # randomize base center of mass (com)
+        add_base_com_range_x = self.cfg.domain_rand.add_base_com_range_x
+        add_base_com_range_y = self.cfg.domain_rand.add_base_com_range_y
+        add_base_com_range_z = self.cfg.domain_rand.add_base_com_range_z
 
         if self.cfg.domain_rand.randomize_base_com:
-            props[0].com += gymapi.Vec3(np.random.uniform(rng_com_x[0], rng_com_x[1]),
-                                        np.random.uniform(rng_com_y[0], rng_com_y[1]),
-                                        np.random.uniform(rng_com_z[0], rng_com_z[1]))
+            comm_vec = numpy.array([
+                props[0].com.x,
+                props[0].com.y,
+                props[0].com.z
+            ])
+            comm_vec += np.array([
+                np.random.uniform(add_base_com_range_x[0], add_base_com_range_x[1]),
+                np.random.uniform(add_base_com_range_y[0], add_base_com_range_y[1]),
+                np.random.uniform(add_base_com_range_z[0], add_base_com_range_z[1]),
+            ])
+
+            props[0].com = gymapi.Vec3(comm_vec[0], comm_vec[1], comm_vec[2])
 
         return props
 
@@ -657,18 +685,28 @@ class LeggedRobot(BaseTask):
         actions_scaled = actions * self.cfg.control.action_scale
 
         control_type = self.cfg.control.control_type
+
         if control_type == "P":
             torques = self.p_gains * (actions_scaled + self.default_dof_pos - self.dof_pos) \
                       - self.d_gains * self.dof_vel
+
         elif control_type == "V":
             torques = self.p_gains * (actions_scaled - self.dof_vel) \
                       - self.d_gains * (self.dof_vel - self.last_dof_vel) / self.sim_params.dt
+
         elif control_type == "T":
             torques = actions_scaled
+
         else:
             raise NameError(f"Unknown controller type: {control_type}")
 
-        return torch.clip(torques, -self.torque_limits, self.torque_limits)
+        # ratio
+        torques *= self.motor_strength_scales
+
+        # clip
+        torques = torch.clip(torques, -self.torque_limits, self.torque_limits)
+
+        return torques
 
     def _reset_dofs(self, env_ids):
         """ Resets DOF position and velocities of selected environmments
@@ -678,8 +716,14 @@ class LeggedRobot(BaseTask):
         Args:
             env_ids (List[int]): Environemnt ids
         """
-        self.dof_pos[env_ids] = torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof), device=self.device) \
-                                * self.default_dof_pos
+        if self.cfg.domain_rand.randomize_init_dof_pos:
+            self.dof_pos[env_ids] = torch_rand_float(lower=0.5,
+                                                     upper=1.5,
+                                                     shape=(len(env_ids), self.num_dof),
+                                                     device=self.device) \
+                                    * self.default_dof_pos
+        else:
+            self.dof_pos[env_ids] = self.default_dof_pos
 
         self.dof_vel[env_ids] = 0.
 
@@ -702,17 +746,31 @@ class LeggedRobot(BaseTask):
 
         if self.custom_origins:
             # xy position within 1m of the center
-            self.root_states[env_ids, :2] += torch_rand_float(-1., 1., (len(env_ids), 2), device=self.device)
+            self.root_states[env_ids, :2] += torch_rand_float(lower=-1.0,
+                                                              upper=+1.0,
+                                                              shape=(len(env_ids), 2),
+                                                              device=self.device)
 
         # base orientation
         euler_rpy = torch.zeros(len(env_ids), 3, device=self.device)
-        rand_yaw = torch_rand_float(-2 * np.pi, 2 * np.pi, (len(env_ids), 1), device=self.device)
+        rand_yaw = torch_rand_float(lower=-2 * np.pi,
+                                    upper=+2 * np.pi,
+                                    shape=(len(env_ids), 1),
+                                    device=self.device)
         euler_rpy[:, 2] = rand_yaw.squeeze(1)
-        self.root_states[env_ids, 3:7] = quat_from_euler_xyz(euler_rpy[:, 0], euler_rpy[:, 1], euler_rpy[:, 2])
+        self.root_states[env_ids, 3:7] = quat_from_euler_xyz(euler_rpy[:, 0],
+                                                             euler_rpy[:, 1],
+                                                             euler_rpy[:, 2])
 
         # base velocities
         # [7:10]: lin vel, [10:13]: ang vel
-        self.root_states[env_ids, 7:13] = torch_rand_float(-0.5, 0.5, (len(env_ids), 6), device=self.device)
+        if self.cfg.domain_rand.randomize_init_base_velocity:
+            self.root_states[env_ids, 7:13] = torch_rand_float(lower=-0.5,
+                                                               upper=+0.5,
+                                                               shape=(len(env_ids), 6),
+                                                               device=self.device)
+        else:
+            self.root_states[env_ids, 7:13] = 0.
 
         env_ids_int32 = env_ids.to(dtype=torch.int32)
         self.gym.set_actor_root_state_tensor_indexed(self.sim,
@@ -723,9 +781,12 @@ class LeggedRobot(BaseTask):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity.
         """
         max_vel = self.cfg.domain_rand.max_push_vel_xy
-        self.root_states[:, 7:9] = torch_rand_float(-max_vel, max_vel,
-                                                    (self.num_envs, 2),
-                                                    device=self.device)  # lin vel x/y
+        lin_vels = \
+            torch_rand_float(-max_vel, max_vel,
+                             (self.num_envs, 2),
+                             device=self.device)  # lin vel x/y
+
+        self.root_states[:, 7:9] = lin_vels
         self.gym.set_actor_root_state_tensor(self.sim,
                                              gymtorch.unwrap_tensor(self.root_states))
 
@@ -892,6 +953,10 @@ class LeggedRobot(BaseTask):
         asset_options.thickness = self.cfg.asset.thickness
         asset_options.disable_gravity = self.cfg.asset.disable_gravity
 
+        print("asset_options: \n", asset_options)
+        print("asset_options.collapse_fixed_joints: \n", asset_options.collapse_fixed_joints)
+        print("")
+
         robot_asset = self.gym.load_asset(self.sim, asset_root, asset_file, asset_options)
         self.num_dof = self.gym.get_asset_dof_count(robot_asset)
         self.num_bodies = self.gym.get_asset_rigid_body_count(robot_asset)
@@ -901,20 +966,29 @@ class LeggedRobot(BaseTask):
         # save body names from the asset
         body_names = self.gym.get_asset_rigid_body_names(robot_asset)
         self.dof_names = self.gym.get_asset_dof_names(robot_asset)
+
         self.num_bodies = len(body_names)
         self.num_dofs = len(self.dof_names)
 
-        print("self.body_names: \n", body_names)
-        print("self.dof_names: \n", self.dof_names)
+        print("self.body_names:")
+        for name in body_names:
+            print(f"  - {name}")
+        print("")
 
-        self.motor_strength = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
-        self.lin_vel_scales = torch.ones(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
+        print("self.dof_names:")
+        for name in self.dof_names:
+            print(f"  - {name}")
+        print("")
+
+        self.motor_strength_scales = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
 
         base_init_state_list = self.cfg.init_state.pos + \
                                self.cfg.init_state.rot + \
                                self.cfg.init_state.lin_vel + \
                                self.cfg.init_state.ang_vel
         self.base_init_state = to_torch(base_init_state_list, device=self.device, requires_grad=False)
+
+        print("self.base_init_state: \n", self.base_init_state)
 
         start_pose = gymapi.Transform()
         start_pose.p = gymapi.Vec3(*self.base_init_state[:3])
@@ -978,17 +1052,10 @@ class LeggedRobot(BaseTask):
             self.gym.set_actor_dof_properties(env_handle, actor_handle, dof_props)
 
             if self.cfg.domain_rand.randomize_motor_strength:
-                rng_motor_strength = self.cfg.domain_rand.motor_strength
-                self.motor_strength[i, :] = torch_rand_float(rng_motor_strength[0],
-                                                             rng_motor_strength[1],
-                                                             (1, self.num_dof), device=self.device)
-
-            if self.cfg.domain_rand.randomize_obs_lin_vel:
-                rng_obs_lin_vel = self.cfg.domain_rand.obs_lin_vel
-                self.lin_vel_scales[i, :] = torch_rand_float(rng_obs_lin_vel[0],
-                                                             rng_obs_lin_vel[1],
-                                                             (1, 3),
-                                                             device=self.device)
+                multiply_motor_strength = self.cfg.domain_rand.multiply_motor_strength
+                self.motor_strength_scales[i, :] = torch_rand_float(multiply_motor_strength[0],
+                                                                    multiply_motor_strength[1],
+                                                                    (1, self.num_dof), device=self.device)
 
             # ----------------------------------
 

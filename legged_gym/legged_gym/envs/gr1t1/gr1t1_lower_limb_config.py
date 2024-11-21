@@ -1,6 +1,9 @@
 import numpy
 
-from legged_gym.envs.gr1t1.gr1t1_config import GR1T1Cfg, GR1T1CfgPPO
+from legged_gym.envs.gr1t1.gr1t1_config import (
+    GR1T1Cfg,
+    GR1T1CfgPPO,
+)
 
 
 class GR1T1LowerLimbCfg(GR1T1Cfg):
@@ -35,16 +38,6 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/GR1T1/urdf/GR1T1_lower_limb.urdf'
 
     class rewards(GR1T1Cfg.rewards):
-        base_height_target = 0.85  # 期望的机器人身体高度
-        swing_feet_height_target = 0.10  # 期望的脚抬高度
-
-        # ---------------------------------------------------------------
-
-        feet_air_time_target = 0.5  # 期望的脚空中时间
-        feet_land_time_max = 1.0  # 最大的脚着地时间
-
-        # ---------------------------------------------------------------
-
         class scales(GR1T1Cfg.rewards.scales):
             termination = -0.0
             collision = -0.0
@@ -59,8 +52,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             cmd_diff_base_height = 0.5
 
             cmd_diff_base_orient = 0.25
-            cmd_diff_torso_orient = 0.0
-            cmd_diff_chest_orient = 0.5
+            cmd_diff_torso_orient = 0.5
             cmd_diff_forehead_orient = 0.0
 
             action_diff = -2.0

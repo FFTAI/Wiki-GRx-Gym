@@ -30,7 +30,8 @@ class LeggedRobotFFTAI(LeggedRobot):
 
         # average values
         self.avg_feet_contact_force = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
-        self.avg_feet_speed = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
+        self.avg_feet_speed_xyz = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
+        self.avg_feet_speed_rpy = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
 
         # contact
         self.feet_contact = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.bool, device=self.device, requires_grad=False)
@@ -44,24 +45,22 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def before_physics_step(self):
         self.avg_feet_contact_force = 0.0
-
-        self.avg_feet_speed = torch.zeros(self.num_envs, len(self.feet_indices), device=self.device, requires_grad=False)
         self.avg_feet_speed_xyz = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
+        self.avg_feet_speed_rpy = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
 
     def during_physics_step(self):
 
         delay = numpy.random.normal(loc=5, scale=2, size=1)[0]  # policy calculate time cost and communication time cost
         delay = max(0, delay)
 
-        for i in range(self.cfg.control.decimation):
+        for deci in range(self.cfg.control.decimation):
 
-            if i < delay:
+            if deci < delay:
                 self.torques = self._compute_torques(self.last_actions).view(self.torques.shape)
             else:
                 self.torques = self._compute_torques(self.actions).view(self.torques.shape)
 
             # self.torques = self._compute_torques(self.actions).view(self.torques.shape)
-            self.torques *= self.motor_strength
             self.torques = torch.clip(self.torques, -self.torque_limits, self.torque_limits)
 
             # simulate
@@ -77,15 +76,16 @@ class LeggedRobotFFTAI(LeggedRobot):
             self.gym.refresh_rigid_body_state_tensor(self.sim)
 
             # compute some quantities
-            self.dof_acc = (self.dof_vel - self.last_dof_vel) / self.dt
-
             self.avg_feet_contact_force += torch.norm(self.contact_forces[:, self.feet_indices, :3], dim=-1)
-            self.avg_feet_speed += torch.norm(self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 7:10], dim=-1)
             self.avg_feet_speed_xyz += torch.abs(self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 7:10])
+            self.avg_feet_speed_rpy += torch.abs(self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 10:13])
+
+        # compute some quantities
+        self.dof_acc = (self.dof_vel - self.last_dof_vel) / self.dt
 
         self.avg_feet_contact_force /= self.cfg.control.decimation
-        self.avg_feet_speed /= self.cfg.control.decimation
         self.avg_feet_speed_xyz /= self.cfg.control.decimation
+        self.avg_feet_speed_rpy /= self.cfg.control.decimation
 
     def post_physics_step(self):
         reset_env_ids = super().post_physics_step()
@@ -138,7 +138,10 @@ class LeggedRobotFFTAI(LeggedRobot):
         super().reset_idx(env_ids)
 
         self.avg_feet_contact_force[env_ids] = 0.0
-        self.avg_feet_speed[env_ids] = 0.0
+        self.feet_contact[env_ids] = 0.0
+
+        self.avg_feet_speed_xyz[env_ids] = 0.0
+        self.avg_feet_speed_rpy[env_ids] = 0.0
 
         self.last_last_actions[env_ids] = 0.0
 

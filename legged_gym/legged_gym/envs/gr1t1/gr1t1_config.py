@@ -277,7 +277,7 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
             gravity = 1.0
             dof_pos = 1.0
             dof_vel = 1.0
-            height_measurements = 1.0
+            height_measurements = 5.0
 
         actions_max = numpy.array([
             0.79, 0.7, 0.7, 1.92, 0.52, 0.44,  # left leg

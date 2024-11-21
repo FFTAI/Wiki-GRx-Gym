@@ -41,18 +41,24 @@ import torch
 
 def play(args):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
+
     # override some parameters for testing
+    env_cfg.env.episode_length_s = 600.0
     env_cfg.env.num_envs = min(env_cfg.env.num_envs, 50)
+
     env_cfg.terrain.num_rows = 5
     env_cfg.terrain.num_cols = 5
     env_cfg.terrain.curriculum = False
+
     env_cfg.noise.add_noise = False
+
     env_cfg.domain_rand.randomize_friction = False
     env_cfg.domain_rand.push_robots = False
 
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
     obs = env.get_observations()
+
     # load policy
     train_cfg.runner.resume = True
     ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg)
@@ -60,9 +66,23 @@ def play(args):
 
     # export policy as a jit module (used to run it from C++)
     if EXPORT_POLICY:
-        path = os.path.join(LEGGED_GYM_ROOT_DIR, 'logs', train_cfg.runner.experiment_name, 'exported', 'policies')
-        export_policy_as_jit(ppo_runner.alg.actor_critic, path)
-        print('Exported policy as jit script to: ', path)
+        path = os.path.join(
+            LEGGED_GYM_ROOT_DIR,
+            'logs',
+            train_cfg.runner.experiment_name,
+            'exported',
+            train_cfg.teacher_student.type,
+        )
+        path = export_policy_as_jit(ppo_runner.algorithm.actor_critic, path)
+        print(
+            f"\033[93m"
+            f"EXPORT_POLICY: "
+            f"Exported policy as jit script to: "
+            f"{path}"
+            f"\033[0m"
+        )
+
+    # -------------------------------------------------------
 
     logger = Logger(env.dt)
     robot_index = 0  # which robot is used for logging
@@ -77,11 +97,13 @@ def play(args):
     for i in range(10 * int(env.max_episode_length)):
         actions = policy(obs.detach())
         obs, _, rews, dones, infos = env.step(actions.detach())
+
         if RECORD_FRAMES:
             if i % 2:
                 filename = os.path.join(LEGGED_GYM_ROOT_DIR, 'logs', train_cfg.runner.experiment_name, 'exported', 'frames', f"{img_idx}.png")
                 env.gym.write_viewer_image_to_file(env.viewer, filename)
                 img_idx += 1
+
         if MOVE_CAMERA:
             camera_position += camera_vel * env.dt
             env.set_camera(camera_position, camera_position + camera_direction)
@@ -103,8 +125,10 @@ def play(args):
                     'contact_forces_z': env.contact_forces[robot_index, env.feet_indices, 2].cpu().numpy()
                 }
             )
+
         elif i == stop_state_log:
             logger.plot_states()
+
         if 0 < i < stop_rew_log:
             if infos["episode"]:
                 num_episodes = torch.sum(env.reset_buf).item()
@@ -115,7 +139,7 @@ def play(args):
 
 
 if __name__ == '__main__':
-    EXPORT_POLICY = False
+    EXPORT_POLICY = True
     RECORD_FRAMES = False
     MOVE_CAMERA = False
     args = get_args()

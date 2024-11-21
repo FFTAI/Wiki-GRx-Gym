@@ -1,21 +1,14 @@
-import numpy
-import json
-
 import torch
 from isaacgym.torch_utils import *
-from isaacgym import gymapi, gymutil
-
-from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.envs import LeggedRobotFFTAI
-from legged_gym.utils.math import quat_apply_yaw
-from legged_gym.utils.helpers import class_to_dict
-
 from .gr1t1_config import GR1T1Cfg
 
 
 class GR1T1(LeggedRobotFFTAI):
 
     def __init__(self, cfg, sim_params, physics_engine, sim_device, headless):
+        self.cfg: GR1T1Cfg = cfg
+
         super().__init__(cfg, sim_params, physics_engine, sim_device, headless)
 
         self.swing_feet_height_target = torch.ones(self.num_envs, 1,

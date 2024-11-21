@@ -222,6 +222,7 @@ class LeggedRobotCfg(BaseConfig):
         noise_level = 1.0  # scales other values
 
         class noise_scales:
+            action = 0.0
             dof_pos = 0.01
             dof_vel = 1.5
             lin_vel = 0.1
@@ -231,6 +232,7 @@ class LeggedRobotCfg(BaseConfig):
 
     class normalization:
         class obs_scales:
+            action = 1.0
             lin_vel = 2.0
             ang_vel = 0.25
             dof_pos = 1.0

@@ -234,12 +234,12 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
         sigma_pose_offset = -0.1
         sigma_pose_offset_hip_yaw = -0.1
 
-        sigma_limits_dof_pos = -10.0
+        sigma_limits_dof_pos = -1.0
         sigma_limits_dof_vel = -10.0
-        sigma_limits_dof_tor = -10.0
+        sigma_limits_dof_tor = -0.1
 
-        sigma_feet_speed_xy_close_to_ground = -100.0
-        sigma_feet_speed_z_close_to_height_target = -20.0
+        sigma_feet_speed_xy_close_to_ground = -10.0
+        sigma_feet_speed_z_close_to_height_target = -10.0
 
         sigma_feet_air_time = -1.0
         sigma_feet_air_time_mid = -10.0

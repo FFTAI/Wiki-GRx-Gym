@@ -397,9 +397,11 @@ class GR1T1(LeggedRobotFFTAI):
 
     def _reward_dof_tor_ankle_feet_lift_up(self):
         left_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1)
+            - self.measured_heights, dim=1)
         right_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1)
+            - self.measured_heights, dim=1)
 
         error_torques_ankle_left_foot_lift_up = torch.sum(
             torch.abs(self.torques[:, self.ankle_indices[:len(self.ankle_indices) // 2]]), dim=1) \
@@ -422,24 +424,33 @@ class GR1T1(LeggedRobotFFTAI):
 
     def _reward_feet_speed_xy_close_to_ground(self):
         left_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1) - self.measured_heights, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 0, 2].unsqueeze(1)
+            - self.measured_heights, dim=1)
         right_foot_height = torch.mean(
-            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1) - self.measured_heights, dim=1)
+            self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1)
+            - self.measured_heights, dim=1)
+
+        error_left_foot_close_to_ground = \
+            torch.abs(left_foot_height - self.swing_feet_height_target.squeeze() / 4) \
+            * (left_foot_height < self.swing_feet_height_target.squeeze() / 4) \
+            / (self.swing_feet_height_target.squeeze() / 4)
+        error_right_foot_close_to_ground = \
+            torch.abs(right_foot_height - self.swing_feet_height_target.squeeze() / 4) \
+            * (right_foot_height < self.swing_feet_height_target.squeeze() / 4) \
+            / (self.swing_feet_height_target.squeeze() / 4)
 
         error_left_foot_speed_xy_close_to_ground = \
             torch.norm(self.avg_feet_speed_xyz[:, 0, :2], dim=1) \
-            * torch.abs(left_foot_height - self.swing_feet_height_target.squeeze() / 2) \
-            * (left_foot_height < self.swing_feet_height_target.squeeze() / 2)
+            * error_left_foot_close_to_ground
         error_right_foot_speed_xy_close_to_ground = \
             torch.norm(self.avg_feet_speed_xyz[:, 1, :2], dim=1) \
-            * torch.abs(right_foot_height - self.swing_feet_height_target.squeeze() / 2) \
-            * (right_foot_height < self.swing_feet_height_target.squeeze() / 2)
+            * error_right_foot_close_to_ground
 
         error_feet_speed_xy_close_to_ground = error_left_foot_speed_xy_close_to_ground + \
                                               error_right_foot_speed_xy_close_to_ground
 
-        reward_feet_speed_xy_close_to_ground = 1 - torch.exp(self.cfg.rewards.sigma_feet_speed_xy_close_to_ground
-                                                             * error_feet_speed_xy_close_to_ground)
+        reward_feet_speed_xy_close_to_ground = torch.exp(self.cfg.rewards.sigma_feet_speed_xy_close_to_ground
+                                                         * error_feet_speed_xy_close_to_ground)
         return reward_feet_speed_xy_close_to_ground
 
     def _reward_feet_speed_z_close_to_height_target(self):
@@ -450,21 +461,27 @@ class GR1T1(LeggedRobotFFTAI):
             self.rigid_body_states[:, self.feet_indices][:, 1, 2].unsqueeze(1)
             - self.measured_heights, dim=1)
 
+        error_left_foot_close_to_height_target = \
+            torch.abs(left_foot_height - self.swing_feet_height_target.squeeze() * 3 / 4) \
+            * (left_foot_height > self.swing_feet_height_target.squeeze() * 3 / 4) \
+            / (self.swing_feet_height_target.squeeze() * 1 / 4)
+        error_right_foot_close_to_height_target = \
+            torch.abs(right_foot_height - self.swing_feet_height_target.squeeze() * 3 / 4) \
+            * (right_foot_height > self.swing_feet_height_target.squeeze() * 3 / 4) \
+            / (self.swing_feet_height_target.squeeze() * 1 / 4)
+
         error_left_foot_speed_z_close_to_height_target = \
             torch.abs(self.avg_feet_speed_xyz[:, 0, 2]) \
-            * torch.abs(left_foot_height - self.swing_feet_height_target.squeeze() / 2) \
-            * (left_foot_height > self.swing_feet_height_target.squeeze() / 2)
+            * error_left_foot_close_to_height_target
         error_right_foot_speed_z_close_to_height_target = \
             torch.abs(self.avg_feet_speed_xyz[:, 1, 2]) \
-            * torch.abs(right_foot_height - self.swing_feet_height_target.squeeze() / 2) \
-            * (right_foot_height > self.swing_feet_height_target.squeeze() / 2)
+            * error_right_foot_close_to_height_target
 
         error_feet_speed_z_close_to_height_target = error_left_foot_speed_z_close_to_height_target + \
                                                     error_right_foot_speed_z_close_to_height_target
 
-        reward_feet_speed_z_close_to_height_target = 1 - torch.exp(
-            self.cfg.rewards.sigma_feet_speed_z_close_to_height_target
-            * error_feet_speed_z_close_to_height_target)
+        reward_feet_speed_z_close_to_height_target = torch.exp(self.cfg.rewards.sigma_feet_speed_z_close_to_height_target
+                                                               * error_feet_speed_z_close_to_height_target)
 
         return reward_feet_speed_z_close_to_height_target
 

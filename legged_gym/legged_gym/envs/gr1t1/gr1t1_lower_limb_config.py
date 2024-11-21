@@ -20,18 +20,18 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
     class control(GR1T1Cfg.control):
         # PD Drive parameters:
         stiffness = {
-            'hip_roll': 57,
-            'hip_yaw': 43,
-            'hip_pitch': 114,
-            'knee_pitch': 114,
-            'ankle_pitch': 15.3,
+            'hip_roll': 48 / numpy.deg2rad(30),
+            'hip_yaw': 66 / numpy.deg2rad(30),
+            'hip_pitch': 130 / numpy.deg2rad(30),
+            'knee_pitch': 130 / numpy.deg2rad(30),
+            'ankle_pitch': 15 / numpy.deg2rad(30),
         }  # [N*m/rad]
         damping = {
-            'hip_roll': stiffness['hip_roll'] / 10,
-            'hip_yaw': stiffness['hip_yaw'] / 10,
-            'hip_pitch': stiffness['hip_pitch'] / 10,
-            'knee_pitch': stiffness['knee_pitch'] / 10,
-            'ankle_pitch': stiffness['ankle_pitch'] / 10,
+            'hip_roll': stiffness['hip_roll'] / 10 * 0.5,
+            'hip_yaw': stiffness['hip_yaw'] / 10 * 0.5,
+            'hip_pitch': stiffness['hip_pitch'] / 10 * 0.5,
+            'knee_pitch': stiffness['knee_pitch'] / 10 * 0.5,
+            'ankle_pitch': stiffness['ankle_pitch'] / 10 * 0.5,
         }
 
     class asset(GR1T1Cfg.asset):
@@ -55,25 +55,20 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             cmd_diff_torso_orient = 0.5
             cmd_diff_forehead_orient = 0.0
 
-            action_diff = -2.0
-            action_diff_knee = -0.2
-
+            action_diff = -5.0
             action_diff_diff = -1.0
 
-            dof_vel_new = -0.2
-            dof_acc_new = -0.2
-            dof_tor_new = -0.2
-            dof_tor_new_hip_roll = -1.0
-
+            dof_acc_new = -0.25
+            dof_tor_new = -0.05
             dof_tor_ankle_feet_lift_up = -0.5
 
             pose_offset = -1.0
 
-            limits_dof_pos = -100.0
-            limits_dof_vel = -100.0
-            limits_dof_tor = -100.0
+            limits_dof_pos = -10.00
+            limits_dof_vel = -5.00
+            limits_dof_tor = -1.00
 
-            feet_speed_xy_close_to_ground = -10.0
+            feet_speed_xy_close_to_ground = 0.50
             feet_speed_z_close_to_height_target = 0.0
 
             feet_air_time = 4.0
@@ -96,14 +91,24 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
         ])
 
         clip_observations = 100.0
-        clip_actions_max = actions_max + 60 / 180 * numpy.pi / 3
-        clip_actions_min = actions_min - 60 / 180 * numpy.pi / 3
+        clip_actions_max = \
+            actions_max \
+            + numpy.deg2rad(numpy.array([
+                30, 30, 30, 30, 30,  # left leg
+                30, 30, 30, 30, 30,  # right leg
+            ]))
+        clip_actions_min = \
+            actions_min \
+            - numpy.deg2rad(numpy.array([
+                30, 30, 30, 30, 30,  # left leg
+                30, 30, 30, 30, 30,  # right leg
+            ]))
 
 
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
     class runner(GR1T1CfgPPO.runner):
         run_name = 'gr1t1_lower_limb'
-        max_iterations = 2000
+        max_iterations = 4000
 
     class algorithm(GR1T1CfgPPO.algorithm):
         desired_kl = 0.03

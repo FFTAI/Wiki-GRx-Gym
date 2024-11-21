@@ -195,7 +195,7 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def _reward_stand_still(self):
         # Penalize not standing still
-        env_ids_for_stand_command = self.get_env_ids_of_stand_command()
+        env_ids_for_stand_command = torch.where(torch.norm(self.commands[:, :2], dim=1) < 0.1)
 
         selector_stand_still = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
         selector_stand_still[env_ids_for_stand_command] = 1

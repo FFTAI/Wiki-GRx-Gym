@@ -10,4 +10,5 @@ class GR1T2LowerLimbCfg(LeggedRobotFFTAICfg):
 
 
 class GR1T2LowerLimbCfgPPO(LeggedRobotFFTAICfgPPO, GR1T2LowerLimbCfg):
-    pass
+    class runner(LeggedRobotFFTAICfgPPO.runner):
+        run_name = 'gr1t2_lower_limb'

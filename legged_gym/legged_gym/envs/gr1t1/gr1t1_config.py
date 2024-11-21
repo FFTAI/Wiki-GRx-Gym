@@ -79,7 +79,9 @@ class GR1T1Cfg(LeggedRobotFFTAICfg):
             imu_name,
             torso_name, forehead_name, waist_name,
             upper_arm_name, lower_arm_name, hand_name,
-            # thigh_name,  # Note: add this link will cause continuous reset
+
+            # FIXME: add this link will cause continuous reset
+            # thigh_name,
         ]
 
     class init_state(LeggedRobotFFTAICfg.init_state):

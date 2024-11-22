@@ -75,7 +75,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
             feet_air_force = 1.0
             feet_land_time = -1.0
 
-            on_the_air = -1.0
+            on_the_air = -10.0
 
             feet_stumble = -0.2
 
@@ -107,7 +107,7 @@ class GR1T1LowerLimbCfg(GR1T1Cfg):
 class GR1T1LowerLimbCfgPPO(GR1T1CfgPPO, GR1T1LowerLimbCfg):
     class runner(GR1T1CfgPPO.runner):
         run_name = 'gr1t1_lower_limb'
-        max_iterations = 4000
+        max_iterations = 1000
 
     class algorithm(GR1T1CfgPPO.algorithm):
         desired_kl = 0.03

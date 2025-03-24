@@ -37,19 +37,14 @@ from .fftai.legged_robot_fftai_config import (
     LeggedRobotFFTAICfg,
     LeggedRobotFFTAICfgPPO,
 )
-from .gr1t1.gr1t1 import GR1T1
-from .gr1t1.gr1t1_lower_limb_config import (
-    GR1T1LowerLimbCfg as GR1T1Cfg,
-    GR1T1LowerLimbCfgPPO as GR1T1CfgPPO,
-)
-from .gr1t2.gr1t2 import GR1T2
-from .gr1t2.gr1t2_lower_limb_config import (
-    GR1T2LowerLimbCfg as GR1T2Cfg,
-    GR1T2LowerLimbCfgPPO as GR1T2CfgPPO,
+
+from .grmini1t2.grmini1t2 import GRMini1T2
+from .grmini1t2.grmini1t2_config import (
+    GR1Mini1T2Cfg,
+    GR1Mini1T2CfgPPO,
 )
 
 from legged_gym.utils.task_registry import task_registry
 
 # register Fourier Intelligence GRx robots
-task_registry.register("GR1T1", GR1T1, GR1T1Cfg(), GR1T1CfgPPO())
-task_registry.register("GR1T2", GR1T2, GR1T2Cfg(), GR1T2CfgPPO())
+task_registry.register("GRMini1T2", GRMini1T2, GR1Mini1T2Cfg, GR1Mini1T2CfgPPO)

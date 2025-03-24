@@ -1,118 +1,71 @@
+[English](README.en.md) | 简体中文
+
 # Wiki-GRx-Gym
 
 <img src="./pictures/gr1t2_gym.png" width="300" height="360" />
 
+本仓库提供基于NVIDIA Isaac Gym的训练环境，结合苏黎世联邦理工Legged Robotics团队的legged_gym和rsl_rl库，用于训练GRx机器人在复杂地形上的行走能力。
 
-This repository provides an environment used to train GRx to walk on rough terrain using NVIDIA's Isaac Gym, legged_gym and rsl_rl libraries from Legged Robotics @ ETH Zürich.
-
-### Useful Links
+### 相关资源
 
 * NVIDIA Isaac Gym: https://developer.nvidia.com/isaac-gym
 * legged_gym: https://github.com/leggedrobotics/legged_gym.git
 * rsl_rl: https://github.com/leggedrobotics/rsl_rl.git
 
-### Installation
+### 安装指南
 
-0. Install Ubuntu 20.04 / 22.04:
-    - The suggest version is Ubuntu 20.04, but can also run on Ubuntu 22.04.
-    - Official Website：https://releases.ubuntu.com/focal/
-    - Installation Guidance：https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview
+1. 系统准备
+   - 安装Ubuntu 20.04/22.04系统
+   - 通过"软件和更新"应用安装NVIDIA驱动
+   - 终端执行`nvidia-smi`确认GPU和CUDA信息正常显示
 
-1. Install Nvidia Driver:
-    - Install Nvidia driver using the Software & Updates application that comes with Ubuntu 20.04 / 22.04.
-    - Make sure you can see the GPU information and CUDA information by using the command line `nvidia-smi` in the terminal. As shown in the example below:
+2. Conda环境配置
+   ```
+   # 安装Miniconda
+   cd ~/Downloads
+   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+   bash Miniconda3-latest-Linux-x86_64.sh
 
-```
-+-----------------------------------------------------------------------------+
-| NVIDIA-SMI 525.125.06   Driver Version: 525.125.06   CUDA Version: 12.0     |
-|-------------------------------+----------------------+----------------------+
-| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
-| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
-|                               |                      |               MIG M. |
-|===============================+======================+======================|
-|   0  NVIDIA GeForce ...  Off  | 00000000:01:00.0  On |                  Off |
-|  0%   42C    P8    25W / 450W |    709MiB / 24564MiB |      1%      Default |
-|                               |                      |                  N/A |
-+-------------------------------+----------------------+----------------------+
-                                                                      
-+-----------------------------------------------------------------------------+
-| Processes:                                                                  |
-|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
-|        ID   ID                                                   Usage      |
-|=============================================================================|
-|    0   N/A  N/A      1032      G   /usr/lib/xorg/Xorg                 53MiB |
-|    0   N/A  N/A      1666      G   /usr/lib/xorg/Xorg                239MiB |
-|    0   N/A  N/A      1805      G   /usr/bin/gnome-shell              125MiB |
-|    0   N/A  N/A      2171      G   /usr/lib/firefox/firefox          205MiB |
-|    0   N/A  N/A      2847      G   ...RendererForSitePerProcess       45MiB |
-|    0   N/A  N/A      3721      G   ...RendererForSitePerProcess       20MiB |
-+-----------------------------------------------------------------------------+
-```
+   # 创建训练环境
+   conda create -n grx-gym python=3.8
+   conda activate grx-gym
+   ```
 
-2. Conda Environment Setup:
+3. 依赖安装
+   ```
+   # 安装Isaac Gym
+   cd IsaacGym_Preview_4_Package/isaacgym/python/
+   pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
-    1. Install Miniconda:
-        ```
-        cd $HOME/Downloads
-         
-        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-        bash Miniconda3-latest-Linux-x86_64.sh
-        ```
+   # 安装rsl_rl和legged_gym
+   cd 项目路径/rsl_rl
+   pip install -e .
+   cd 项目路径/legged_gym 
+   pip install -e .
 
-    2. Create conda environment `grx-gym`:
-       ```
-       conda create -n grx-gym python=3.8
-       conda activate grx-gym
-       ```
+   # 安装其他依赖
+   pip install numpy==1.20.0 tensorboard protobuf==3.20.3
+   ```
 
-    3. Install conda environment dependencies:
-       ```
-       # Install isaacgym
-       cd path/to/your/workspace
-       
-       cd ./IsaacGym_Preview_4_Package/isaacgym/python/
-       pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
-       
-       # Install rsl_rl
-       cd path/to/your/workspace
-       
-       cd ./rsl_rl
-       pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
-       
-       # Install legged_gym
-       cd path/to/your/workspace
-       
-       cd ./legged_gym
-       pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
-       ```
+### 使用说明
 
-    4. Install other dependencies:
-       ```
-       # Some functions use old variable types, so numpy version greater than 1.24 will report an error
-       pip install numpy==1.20.0
-         
-       # tensorboard is needed for display the training process
-       pip install tensorboard
-       pip install protobuf==3.20.3
-       ```
+1. 启动训练
+   ```
+   cd legged_gym/legged_gym/scripts
+   python train.py --task=GRMini1T2 --headless
+   ```
 
-3. Training:
+2. 演示测试  
+   ```
+   python play.py --task=GRMini1T2 --num_envs=25
+   ```
 
-```
-cd legged_gym/legged_gym/scripts
-python ./train.py --task=XXX --headless
-(XXX is the task name, such as GR1T1, GR1T2, etc.)
-```
+### 常见问题
 
-4. Playing:
-
-```
-cd legged_gym/legged_gym/scripts
-python ./play.py --task=XXX --num_envs=25
-(XXX is the task name, such as GR1T1, GR1T2, etc.)
-```
+1. Ubuntu 22.04报错"libpython3.8.so.1.0: 无法打开共享对象文件"
+   - 解决方案参考：https://blog.csdn.net/weixin_43989965/article/details/136612205
 
 ---
 
-Thank you for your interest in the Fourier Intelligence GRx Robot Model Repository.
-We hope you find this resource helpful in your robotics projects!
+感谢您对傅利叶智能GRx机器人项目的关注！
+希望本资源能为您的机器人开发提供有力支持！

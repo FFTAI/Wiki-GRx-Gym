@@ -114,7 +114,10 @@ while not gym.query_viewer_has_closed(viewer):
         torques = torch.zeros((num_envs, num_bodies, 3), device=device, dtype=torch.float)
         forces[:, 0, 2] = 300
         torques[:, 0, 2] = torque_amt
-        gym.apply_rigid_body_force_tensors(sim, gymtorch.unwrap_tensor(forces), gymtorch.unwrap_tensor(torques), gymapi.ENV_SPACE)
+        gym.apply_rigid_body_force_tensors(sim,
+                                           gymtorch.unwrap_tensor(forces),
+                                           gymtorch.unwrap_tensor(torques),
+                                           gymapi.ENV_SPACE)
 
         torque_amt = -torque_amt
 

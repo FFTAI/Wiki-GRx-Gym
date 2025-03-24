@@ -43,7 +43,7 @@ def _do_setup():
           install_requires = [
               "torch>=1.8.0",
               "torchvision>=0.9.0",
-              "numpy>=1.16.4",
+              "numpy==1.20.0",
               "scipy>=1.5.0",
               "pyyaml>=5.3.1",
               "pillow",

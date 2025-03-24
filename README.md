@@ -1,6 +1,5 @@
 # Wiki-GRx-Gym
 
-<img src="./pictures/gr1t1_gym.png" width="300" height="360" />
 <img src="./pictures/gr1t2_gym.png" width="300" height="360" />
 
 
@@ -14,13 +13,13 @@ This repository provides an environment used to train GRx to walk on rough terra
 
 ### Installation
 
-0. Install Ubuntu 20.04:
-    - The suggest version is Ubuntu 20.04, because Isaac Gym recommends running on Ubuntu 20.04.
+0. Install Ubuntu 20.04 / 22.04:
+    - The suggest version is Ubuntu 20.04, but can also run on Ubuntu 22.04.
     - Official Website：https://releases.ubuntu.com/focal/
     - Installation Guidance：https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview
 
 1. Install Nvidia Driver:
-    - Install Nvidia driver using the Software & Updates application that comes with Ubuntu 20.04.
+    - Install Nvidia driver using the Software & Updates application that comes with Ubuntu 20.04 / 22.04.
     - Make sure you can see the GPU information and CUDA information by using the command line `nvidia-smi` in the terminal. As shown in the example below:
 
 ```
@@ -50,87 +49,68 @@ This repository provides an environment used to train GRx to walk on rough terra
 +-----------------------------------------------------------------------------+
 ```
 
-2. Deploy with Conda
+2. Conda Environment Setup:
 
-    1. Install Anaconda:
-        * Official Website: https://www.anaconda.com/products/distribution
-        * Installation: https://www.anaconda.com/download/
-    3. Create conda environment `wiki-grx-gym`:
+    1. Install Miniconda:
         ```
-        conda create -n wiki-grx-gym python=3.8
-        conda activate wiki-grx-gym
-        ```
-
-    4. Install Isaac Gym:
-        ```
-        cd ./IsaacGym_Preview_4_Package/isaacgym/python/
-        pip install -e .
+        cd $HOME/Downloads
+         
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        bash Miniconda3-latest-Linux-x86_64.sh
         ```
 
-    5. Install rsl_rl:
-        ```
-        cd ./rsl_rl
-        pip install -e .
-        ```
+    2. Create conda environment `grx-gym`:
+       ```
+       conda create -n grx-gym python=3.8
+       conda activate grx-gym
+       ```
 
-    6. Install legged_gym:
-        ```
-        cd ./legged_gym
-        pip install -e .
-        ```
+    3. Install conda environment dependencies:
+       ```
+       # Install isaacgym
+       cd path/to/your/workspace
+       
+       cd ./IsaacGym_Preview_4_Package/isaacgym/python/
+       pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+       
+       # Install rsl_rl
+       cd path/to/your/workspace
+       
+       cd ./rsl_rl
+       pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+       
+       # Install legged_gym
+       cd path/to/your/workspace
+       
+       cd ./legged_gym
+       pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+       ```
 
-    7. Install other dependencies:
+    4. Install other dependencies:
        ```
        # Some functions use old variable types, so numpy version greater than 1.24 will report an error
-        pip install numpy==1.20.0
-       
+       pip install numpy==1.20.0
+         
        # tensorboard is needed for display the training process
        pip install tensorboard
        pip install protobuf==3.20.3
        ```
 
-3. Deploy with Docker
+3. Training:
 
-    The default Dockerfile supports NVIDIA RTX 4090
+```
+cd legged_gym/legged_gym/scripts
+python ./train.py --task=XXX --headless
+(XXX is the task name, such as GR1T1, GR1T2, etc.)
+```
 
-    1. Prepare the Docker training environment and build the image
+4. Playing:
 
-        ```
-        cd rl_docker
-        bash build.sh
-        ```
-
-    2. Run the image
-
-        ```
-        bash run.sh -g <gpus, should be num 1~9 or all> -d <true/false>
-        # example: bash run.sh -g all -d true
-        ```
-
-    3. For more usage and troubleshooting, please check [rl_docker document](./rl_docker/README.md)
-
-4. Start training:
-
-    ```
-    cd legged_gym/legged_gym/scripts
-    python ./train.py --task=GR1T1 --headless
-    ```
-
-5. Playing:
-   ```
-    cd legged_gym/legged_gym/scripts
-    python ./play.py --task=GR1T1 --num_envs=25
-   ```
-
----
-
-## Notice
-
-The training code here only shows how to control the robot's leg to walk, and the robot body is set fixed.
-If you want to control the robot body to move, you need to modify the following files:
-
-- urdf file: `./legged_gym/legged_gym/resources/robots/gr1t1/urdf/GR1T1.urdf`
-- config file: `./legged_gym/legged_gym/envs/gr1t1/gr1t1_config.py`
+```
+cd legged_gym/legged_gym/scripts
+python ./play.py --task=XXX --num_envs=25
+(XXX is the task name, such as GR1T1, GR1T2, etc.)
+```
 
 ---
 

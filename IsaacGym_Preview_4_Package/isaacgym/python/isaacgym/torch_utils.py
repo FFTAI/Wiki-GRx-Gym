@@ -156,7 +156,7 @@ def get_euler_xyz(q):
     # roll (x-axis rotation)
     sinr_cosp = 2.0 * (q[:, qw] * q[:, qx] + q[:, qy] * q[:, qz])
     cosr_cosp = q[:, qw] * q[:, qw] - q[:, qx] * \
-        q[:, qx] - q[:, qy] * q[:, qy] + q[:, qz] * q[:, qz]
+                q[:, qx] - q[:, qy] * q[:, qy] + q[:, qz] * q[:, qz]
     roll = torch.atan2(sinr_cosp, cosr_cosp)
 
     # pitch (y-axis rotation)
@@ -167,10 +167,10 @@ def get_euler_xyz(q):
     # yaw (z-axis rotation)
     siny_cosp = 2.0 * (q[:, qw] * q[:, qz] + q[:, qx] * q[:, qy])
     cosy_cosp = q[:, qw] * q[:, qw] + q[:, qx] * \
-        q[:, qx] - q[:, qy] * q[:, qy] - q[:, qz] * q[:, qz]
+                q[:, qx] - q[:, qy] * q[:, qy] - q[:, qz] * q[:, qz]
     yaw = torch.atan2(siny_cosp, cosy_cosp)
 
-    return roll % (2*np.pi), pitch % (2*np.pi), yaw % (2*np.pi)
+    return roll % (2 * np.pi), pitch % (2 * np.pi), yaw % (2 * np.pi)
 
 
 @torch.jit.script
@@ -191,14 +191,26 @@ def quat_from_euler_xyz(roll, pitch, yaw):
 
 
 @torch.jit.script
-def torch_rand_float(lower, upper, shape, device):
-    # type: (float, float, Tuple[int, int], str) -> Tensor
+def torch_rand_tensor(lower, upper, shape, device):
+    # type: (torch.Tensor, torch.Tensor, Tuple[int, int], str) -> torch.Tensor
     return (upper - lower) * torch.rand(*shape, device=device) + lower
 
 
 @torch.jit.script
+def torch_rand_float(lower, upper, shape, device):
+    # type: (float, float, Tuple[int, int], str) -> torch.Tensor
+    return (upper - lower) * torch.rand(*shape, device=device) + lower
+
+
+@torch.jit.script
+def torch_rand_int(lower, upper, shape, device):
+    # type: (int, int, Tuple[int, int], str) -> torch.Tensor
+    return torch.randint(lower, upper, shape, device=device)
+
+
+@torch.jit.script
 def torch_random_dir_2(shape, device):
-    # type: (Tuple[int, int], str) -> Tensor
+    # type: (Tuple[int, int], str) -> torch.Tensor
     angle = torch_rand_float(-np.pi, np.pi, shape, device).squeeze(-1)
     return torch.stack([torch.cos(angle), torch.sin(angle)], dim=-1)
 

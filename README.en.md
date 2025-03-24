@@ -16,7 +16,7 @@ legged_gym and rsl_rl libraries from Legged Robotics @ ETH Zürich.
 
 ### Installation
 
-0. Install Ubuntu 20.04 / 22.04.
+0. Install Ubuntu 22.04.
 
 1. Install Nvidia Driver:
     - Install Nvidia driver using the Software & Updates application that comes with Ubuntu 20.04 / 22.04.

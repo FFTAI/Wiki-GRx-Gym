@@ -2,7 +2,7 @@
 
 # Wiki-GRx-Gym
 
-<img src="./pictures/gr1t2_gym.png" width="300" height="360" />
+(mini branch 开发中，尚未正式 release...)
 
 本仓库提供基于NVIDIA Isaac Gym的训练环境，结合苏黎世联邦理工Legged Robotics团队的legged_gym和rsl_rl库，用于训练GRx机器人在复杂地形上的行走能力。
 

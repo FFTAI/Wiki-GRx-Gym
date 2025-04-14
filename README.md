@@ -1,8 +1,8 @@
 [English](README.en.md) | 简体中文
 
-# Wiki-GRx-Gym
+(注意：FourierN1 开源训练代码仍处于开发中，尚未正式发布!)
 
-(mini branch 开发中，尚未正式 release...)
+# Wiki-GRx-Gym
 
 本仓库提供基于NVIDIA Isaac Gym的训练环境，结合苏黎世联邦理工Legged Robotics团队的legged_gym和rsl_rl库，用于训练GRx机器人在复杂地形上的行走能力。
 
@@ -34,7 +34,7 @@
    cd IsaacGym_Preview_4_Package/isaacgym/python/
    pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
-   # 安装rsl_rl和legged_gym
+   # 安装 rsl_rl 和 legged_gym
    cd 项目路径/rsl_rl
    pip install -e .
    cd 项目路径/legged_gym 

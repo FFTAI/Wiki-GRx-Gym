@@ -580,7 +580,7 @@ class N1CfgPPO(LeggedRobotFFTAIBipedalCfgPPO, N1Cfg):
         num_steps_per_env = 64
 
         run_name = ""
-        max_iterations = 2000
+        max_iterations = 5000
         save_interval = 100
 
     class algorithm(LeggedRobotFFTAIBipedalCfgPPO.algorithm):

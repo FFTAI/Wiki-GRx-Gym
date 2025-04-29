@@ -74,7 +74,7 @@
 
 ### 常见问题
 
-1. Ubuntu 22.04报错 "libpython3.8.so.1.0: 无法打开共享对象文件"
+1. Ubuntu 22.04 报错 "libpython3.8.so.1.0: 无法打开共享对象文件"
     - 显示信息为：ImportError: libpython3.8.so.1.0: cannot open shared object file: No such file or directory
     - 解决方案参考：https://blog.csdn.net/weixin_43989965/article/details/136612205
     - 可以尝试运行本项目下自动配置脚本，然后先退出 conda 环境，然后重新激活对应的 conda 环境：

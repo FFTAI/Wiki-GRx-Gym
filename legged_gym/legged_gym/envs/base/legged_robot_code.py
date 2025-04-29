@@ -379,9 +379,6 @@ class LeggedRobot(BaseTask):
         # get command curriculum counts
         self._init_buffers_curriculum_commands()
 
-        # get key_states info
-        self._init_buffers_key_states()
-
         # others
         self._init_buffers_others()
 

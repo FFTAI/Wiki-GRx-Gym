@@ -1,4 +1,3 @@
-import numpy
 import torch
 
 from legged_gym.envs.fftai.legged_robot_fftai_config import (
@@ -95,10 +94,7 @@ class LeggedRobotFFTAIBipedalCfg(LeggedRobotFFTAICfg):
         feet_distance_too_close = max(stand_still_foot_distance - 0.10, 0.10)  # m
         feet_distance_y_too_close = max(stand_still_foot_distance / 4.0 * 3.0, 0.10)  # unit: m
 
-        feet_force_z_contact_force_limit_ratio = 1.0
         feet_force_z_close_to_ground_contact_force_limit_ratio = 1.0
-        feet_force_z_first_contact_ground_contact_force_limit_ratio = 1.0
-        feet_force_z_first_contact_ground_count_time = 0.101  # s
 
         feet_air_time_target = 0.4  # unit: s
 

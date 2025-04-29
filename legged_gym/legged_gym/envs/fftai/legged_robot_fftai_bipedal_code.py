@@ -1,5 +1,3 @@
-import torch
-
 from isaacgym.torch_utils import *
 
 from legged_gym.envs.fftai.legged_robot_fftai_code import LeggedRobotFFTAI

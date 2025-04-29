@@ -79,14 +79,14 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
         clip_observations = 100.0
         clip_actions_max = \
             actions_max \
-            + numpy.deg2rad(numpy.array([
-                30, 30,
-            ]))
+            + numpy.array([
+                1.0, 1.0,
+            ])
         clip_actions_min = \
             actions_min \
-            - numpy.deg2rad(numpy.array([
-                30, 30,
-            ]))
+            - numpy.array([
+                1.0, 1.0,
+            ])
 
     class mirror:
         enable_mirror = False

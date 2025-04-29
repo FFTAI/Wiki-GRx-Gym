@@ -202,50 +202,34 @@ class LeggedRobot(BaseTask):
         self.all_actors_net_contact_forces = gymtorch.wrap_tensor(net_contact_forces)
         self.all_actors_rigid_body_states = gymtorch.wrap_tensor(rigid_body_state_tensor)
 
-        print("self.all_actors_root_states.shape = \n",
-              self.all_actors_root_states.shape)
-        print("self.all_actors_dof_states.shape = \n",
-              self.all_actors_dof_states.shape)
-        print("self.all_actors_net_contact_forces.shape = \n",
-              self.all_actors_net_contact_forces.shape)
-        print("self.all_actors_rigid_body_states.shape = \n",
-              self.all_actors_rigid_body_states.shape)
+        print("self.all_actors_root_states.shape = \n", self.all_actors_root_states.shape)
+        print("self.all_actors_dof_states.shape = \n", self.all_actors_dof_states.shape)
+        print("self.all_actors_net_contact_forces.shape = \n", self.all_actors_net_contact_forces.shape)
+        print("self.all_actors_rigid_body_states.shape = \n", self.all_actors_rigid_body_states.shape)
 
         self.robot_actor_root_states = self.all_actors_root_states[0: self.num_envs]
         self.robot_actor_dof_states = self.all_actors_dof_states[0: self.num_envs * self.num_dofs]
         self.robot_actor_net_contact_forces = self.all_actors_net_contact_forces[0: self.num_envs * self.num_bodies]
         self.robot_actor_rigid_body_states = self.all_actors_rigid_body_states[0: self.num_envs * self.num_bodies]
 
-        print("self.num_all_envs = \n",
-              self.num_all_envs)
-        print("self.num_envs = \n",
-              self.num_envs)
-        print("self.num_dofs = \n",
-              self.num_dofs)
-        print("self.num_bodies = \n",
-              self.num_bodies)
-        print("self.robot_actor_root_states.shape = \n",
-              self.robot_actor_root_states.shape)
-        print("self.robot_actor_dof_states.shape = \n",
-              self.robot_actor_dof_states.shape)
-        print("self.robot_actor_net_contact_forces.shape = \n",
-              self.robot_actor_net_contact_forces.shape)
-        print("self.robot_actor_rigid_body_states.shape = \n",
-              self.robot_actor_rigid_body_states.shape)
+        print("self.num_all_envs = \n", self.num_all_envs)
+        print("self.num_envs = \n", self.num_envs)
+        print("self.num_dofs = \n", self.num_dofs)
+        print("self.num_bodies = \n", self.num_bodies)
+        print("self.robot_actor_root_states.shape = \n", self.robot_actor_root_states.shape)
+        print("self.robot_actor_dof_states.shape = \n", self.robot_actor_dof_states.shape)
+        print("self.robot_actor_net_contact_forces.shape = \n", self.robot_actor_net_contact_forces.shape)
+        print("self.robot_actor_rigid_body_states.shape = \n", self.robot_actor_rigid_body_states.shape)
 
         self.root_states = self.all_actors_root_states[0: self.num_envs]
         self.dof_states = self.all_actors_dof_states[0: self.num_envs * self.num_dofs]
         self.contact_forces = self.robot_actor_net_contact_forces.view(self.num_envs, -1, 3)
         self.rigid_body_states = self.robot_actor_rigid_body_states.view(self.num_envs, -1, 13)
 
-        print("self.root_states.shape = \n",
-              self.root_states.shape)
-        print("self.dof_states.shape = \n",
-              self.dof_states.shape)
-        print("self.contact_forces.shape = \n",
-              self.contact_forces.shape)
-        print("self.rigid_body_states.shape = \n",
-              self.rigid_body_states.shape)
+        print("self.root_states.shape = \n", self.root_states.shape)
+        print("self.dof_states.shape = \n", self.dof_states.shape)
+        print("self.contact_forces.shape = \n", self.contact_forces.shape)
+        print("self.rigid_body_states.shape = \n", self.rigid_body_states.shape)
 
         self.dof_pos = self.dof_states.view(self.num_envs, self.num_dofs, 2)[..., 0]
         self.last_dof_pos = torch.zeros_like(self.dof_pos)

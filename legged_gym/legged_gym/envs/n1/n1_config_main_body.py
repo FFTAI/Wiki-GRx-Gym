@@ -143,5 +143,8 @@ class N1MainBodyCfg(N1BaseCfg):
 class N1MainBodyCfgPPO(N1BaseCfgPPO, N1MainBodyCfg):
     runner_class_name = "OnPolicyRunnerMirror"
 
+    class algorithm(N1BaseCfgPPO.algorithm):
+        class_name = "PPOMirror"
+
     class policy(N1BaseCfgPPO.policy):
         init_noise_std = [0.2] * N1MainBodyCfg.env.num_actions

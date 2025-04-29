@@ -321,13 +321,6 @@ class LeggedRobot(BaseTask):
         self._init_commands_scale()
 
         # base related buffers
-        self.base_pos_offset_in_world = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
-        self.base_pos_offset_in_world_direction = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
-        self.base_pos_offset = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
-        self.base_pos_offset_direction = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
-
-        self.base_heading_offset = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)
-
         self.base_lin_vel = quat_rotate_inverse(self.base_quat, self.root_states[:, 7:10])
         self.base_ang_vel = quat_rotate_inverse(self.base_quat, self.root_states[:, 10:13])
         self.last_base_lin_vel = torch.zeros_like(self.base_lin_vel)
@@ -1009,21 +1002,7 @@ class LeggedRobot(BaseTask):
         # reset robot states
         self._reset_states(env_ids)
 
-        # reset actions?
-        """
-        Jason 2024-11-30:
-        actions 是由 OnPolicyRunner 传入的，不需要在这里 reset。
-
-        1. 但是，有一个疑问是，当我们的环境 reset 之后，actions 重置为 0 是合适的吗？
-            对于机器人来说，重置为 0，相当于让机器人恢复到初始状态。
-            而我们的指令目标可能不是让机器人往初始状态走，
-            因此，可能 actions 设置为 0 会导致不合理的行为，虽然可能是一瞬间的（self.dt）。
-
-        2. 另外，对于中间 reset_idx 的环境，可能记录的是 reset 前的 actions，这样会导致不合理的行为。
-
-        重新梳理了下 OnPolicyRunner 的逻辑，发现 actions 已经在 step() 之前被记录了，
-        所以这里是 actions 可以 reset 的，方便下一次环境的 obs 正确生成。
-        """
+        # reset actions
         self._reset_actions(env_ids)
 
         # reset others
@@ -1096,42 +1075,9 @@ class LeggedRobot(BaseTask):
         self.compute_observation_stack()
 
     def compute_observation_variables(self):
-        self.base_pos_offset_in_world = \
-            self.commands_base_pos - self.base_pos  # in world frame
-
-        self.base_pos_offset_in_world_direction = \
-            self.base_pos_offset_in_world \
-            / torch.norm(self.base_pos_offset_in_world, dim=1, keepdim=True)  # in world frame
-
-        self.base_pos_offset = \
-            quat_rotate_inverse(self.base_quat, self.base_pos_offset_in_world)  # in local frame
-
-        self.base_pos_offset_direction = \
-            self.base_pos_offset \
-            / torch.norm(self.base_pos_offset, dim=1, keepdim=True)  # in local frame
-
-        """
-        Jason 2025-01-13:
-        这里的 base_pos_offset_norm 是为了处理是否认定为接近了 target_pos 的情况。
-        - 如果 torch.norm(self.base_pos_offset) < 0.5，那么就认为接近了 target_pos，设定为 base_pos_offset 的模长 * 2。
-        - 否则，就认为没有接近 target_pos，设定为 1.0。
-        """
-        self.base_pos_offset_norm = \
-            torch.where(
-                torch.norm(self.base_pos_offset, dim=1) < self.cfg.rewards.close_distance,
-                torch.norm(self.base_pos_offset, dim=1) * (1 / self.cfg.rewards.close_distance),
-                torch.ones_like(torch.norm(self.base_pos_offset, dim=1))
-            ).unsqueeze(1)
-
-        self.base_heading_offset = \
-            wrap_to_pi(self.commands_base_heading
-                       - self.base_heading)
-
         self.dof_pos_offset = \
             self.dof_pos - self.default_dof_pos
 
-        # Jason 2023-12-21:
-        # in trimesh terrain, must open measure_heights
         self.base_heights_offset = \
             torch.mean(
                 torch.clip(
@@ -1171,15 +1117,6 @@ class LeggedRobot(BaseTask):
     def compute_observation_stack(self):
         # stack obs_buf to obs_stack
         if self.actor_obs_use_stack:
-            # select those envs with self.obs_stack_num_stacked == 0,
-            # and repeatedly stack the obs_buf self.num_stack-1 times
-            # for i in range(self.num_stack - 1):
-            #     self.obs_stack[self.obs_stack_num_stacked == 0] = \
-            #         torch.cat((
-            #             self.obs_stack[self.obs_stack_num_stacked == 0, self.num_obs:],
-            #             self.obs_buf[self.obs_stack_num_stacked == 0]
-            #         ), dim=1)
-
             self.obs_stack = torch.cat((self.obs_stack[:, self.num_obs:], self.obs_buf), dim=1)
 
             self.obs_stack_num_stacked += 1
@@ -1299,36 +1236,19 @@ class LeggedRobot(BaseTask):
                 f"############################################## \n"
                 f"{RESET}"
             )
-            # for i in range(len(props)):
-            #     print(f"DOF {i} \n"
-            #           f"hasLimits: {props["hasLimits"][i].item()}, \n"
-            #           f"lower: {props["lower"][i].item()}, \n"
-            #           f"upper: {props["upper"][i].item()}, \n"
-            #           f"driveMode: {props["driveMode"][i].item()}, \n"
-            #           f"velocity: {props["velocity"][i].item()}, \n"
-            #           f"effort: {props["effort"][i].item()}, \n"
-            #           f"stiffness: {props["stiffness"][i].item()}, \n"
-            #           f"damping: {props["damping"][i].item()}, \n"
-            #           f"friction: {props["friction"][i].item()}, \n"
-            #           f"armature: {props["armature"][i].item()}, \n")
 
         # ---------------------------------------
 
         if env_id == 0:
-            self.dof_pos_limits = torch.zeros(self.num_dofs, 2, dtype=torch.float, device=self.device,
-                                              requires_grad=False)
+            self.dof_pos_limits = torch.zeros(self.num_dofs, 2, dtype=torch.float, device=self.device, requires_grad=False)
             self.dof_vel_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
             self.dof_tor_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
             self.dof_pwr_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
 
-            self.soft_dof_pos_limits = torch.zeros(self.num_dofs, 2, dtype=torch.float, device=self.device,
-                                                   requires_grad=False)
-            self.soft_dof_vel_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device,
-                                                   requires_grad=False)
-            self.soft_dof_tor_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device,
-                                                   requires_grad=False)
-            self.soft_dof_pwr_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device,
-                                                   requires_grad=False)
+            self.soft_dof_pos_limits = torch.zeros(self.num_dofs, 2, dtype=torch.float, device=self.device, requires_grad=False)
+            self.soft_dof_vel_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
+            self.soft_dof_tor_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
+            self.soft_dof_pwr_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
             self.soft_sum_dof_pwr_limits = self.cfg.rewards.sum_dof_pwr_limit * self.cfg.rewards.soft_sum_dof_pwr_limit
 
             for i in range(len(props)):
@@ -1463,41 +1383,12 @@ class LeggedRobot(BaseTask):
                 f"############################################## \n"
                 f"{RESET}"
             )
-            # for i in range(len(props)):
-            #     print(f"DOF {i} \n"
-            #           f"hasLimits: {props["hasLimits"][i].item()}, \n"
-            #           f"lower: {props["lower"][i].item()}, \n"
-            #           f"upper: {props["upper"][i].item()}, \n"
-            #           f"driveMode: {props["driveMode"][i].item()}, \n"
-            #           f"velocity: {props["velocity"][i].item()}, \n"
-            #           f"effort: {props["effort"][i].item()}, \n"
-            #           f"stiffness: {props["stiffness"][i].item()}, \n"
-            #           f"damping: {props["damping"][i].item()}, \n"
-            #           f"friction: {props["friction"][i].item()}, \n"
-            #           f"armature: {props["armature"][i].item()}, \n")
 
         # ---------------------------------------
 
         return props
 
     def _process_rigid_body_props(self, props, env_id):
-
-        # ---------------------------------------
-
-        # log info
-        # if env_id == 0:
-        #     print("##############################################")
-        #     print("Robot rigid body properties origin:")
-        #     for i in range(len(props)):
-        #         print(f"Body {i} \n"
-        #               f"mass: {props[i].mass}, \n"
-        #               f"invMass: {props[i].invMass}, \n"
-        #               f"com: {props[i].com}, \n"
-        #               f"inertia: {props[i].inertia.x}, {props[i].inertia.y}, {props[i].inertia.z}, \n"
-        #               f"invInertia: {props[i].invInertia.x}, {props[i].invInertia.y}, {props[i].invInertia.z}, \n")
-        #     print("##############################################")
-
-        # ---------------------------------------
 
         # randomize base mass
         multiply_base_mass_range = self.cfg.domain_rand.multiply_base_mass_range
@@ -1547,12 +1438,9 @@ class LeggedRobot(BaseTask):
             props[0].inertia.x = gymapi.Vec3(inertia_matrix[0, 0], inertia_matrix[0, 1], inertia_matrix[0, 2])
             props[0].inertia.y = gymapi.Vec3(inertia_matrix[1, 0], inertia_matrix[1, 1], inertia_matrix[1, 2])
             props[0].inertia.z = gymapi.Vec3(inertia_matrix[2, 0], inertia_matrix[2, 1], inertia_matrix[2, 2])
-            props[0].invInertia.x = gymapi.Vec3(inertia_matrix_inv[0, 0], inertia_matrix_inv[0, 1],
-                                                inertia_matrix_inv[0, 2])
-            props[0].invInertia.y = gymapi.Vec3(inertia_matrix_inv[1, 0], inertia_matrix_inv[1, 1],
-                                                inertia_matrix_inv[1, 2])
-            props[0].invInertia.z = gymapi.Vec3(inertia_matrix_inv[2, 0], inertia_matrix_inv[2, 1],
-                                                inertia_matrix_inv[2, 2])
+            props[0].invInertia.x = gymapi.Vec3(inertia_matrix_inv[0, 0], inertia_matrix_inv[0, 1], inertia_matrix_inv[0, 2])
+            props[0].invInertia.y = gymapi.Vec3(inertia_matrix_inv[1, 0], inertia_matrix_inv[1, 1], inertia_matrix_inv[1, 2])
+            props[0].invInertia.z = gymapi.Vec3(inertia_matrix_inv[2, 0], inertia_matrix_inv[2, 1], inertia_matrix_inv[2, 2])
 
         # ---------------------------------------
 
@@ -1619,12 +1507,9 @@ class LeggedRobot(BaseTask):
                 props[i].inertia.x = gymapi.Vec3(inertia_matrix[0, 0], inertia_matrix[0, 1], inertia_matrix[0, 2])
                 props[i].inertia.y = gymapi.Vec3(inertia_matrix[1, 0], inertia_matrix[1, 1], inertia_matrix[1, 2])
                 props[i].inertia.z = gymapi.Vec3(inertia_matrix[2, 0], inertia_matrix[2, 1], inertia_matrix[2, 2])
-                props[i].invInertia.x = gymapi.Vec3(inertia_matrix_inv[0, 0], inertia_matrix_inv[0, 1],
-                                                    inertia_matrix_inv[0, 2])
-                props[i].invInertia.y = gymapi.Vec3(inertia_matrix_inv[1, 0], inertia_matrix_inv[1, 1],
-                                                    inertia_matrix_inv[1, 2])
-                props[i].invInertia.z = gymapi.Vec3(inertia_matrix_inv[2, 0], inertia_matrix_inv[2, 1],
-                                                    inertia_matrix_inv[2, 2])
+                props[i].invInertia.x = gymapi.Vec3(inertia_matrix_inv[0, 0], inertia_matrix_inv[0, 1], inertia_matrix_inv[0, 2])
+                props[i].invInertia.y = gymapi.Vec3(inertia_matrix_inv[1, 0], inertia_matrix_inv[1, 1], inertia_matrix_inv[1, 2])
+                props[i].invInertia.z = gymapi.Vec3(inertia_matrix_inv[2, 0], inertia_matrix_inv[2, 1], inertia_matrix_inv[2, 2])
 
         # ---------------------------------------
 
@@ -1679,12 +1564,9 @@ class LeggedRobot(BaseTask):
                 props[i].inertia.x = gymapi.Vec3(inertia_matrix[0, 0], inertia_matrix[0, 1], inertia_matrix[0, 2])
                 props[i].inertia.y = gymapi.Vec3(inertia_matrix[1, 0], inertia_matrix[1, 1], inertia_matrix[1, 2])
                 props[i].inertia.z = gymapi.Vec3(inertia_matrix[2, 0], inertia_matrix[2, 1], inertia_matrix[2, 2])
-                props[i].invInertia.x = gymapi.Vec3(inertia_matrix_inv[0, 0], inertia_matrix_inv[0, 1],
-                                                    inertia_matrix_inv[0, 2])
-                props[i].invInertia.y = gymapi.Vec3(inertia_matrix_inv[1, 0], inertia_matrix_inv[1, 1],
-                                                    inertia_matrix_inv[1, 2])
-                props[i].invInertia.z = gymapi.Vec3(inertia_matrix_inv[2, 0], inertia_matrix_inv[2, 1],
-                                                    inertia_matrix_inv[2, 2])
+                props[i].invInertia.x = gymapi.Vec3(inertia_matrix_inv[0, 0], inertia_matrix_inv[0, 1], inertia_matrix_inv[0, 2])
+                props[i].invInertia.y = gymapi.Vec3(inertia_matrix_inv[1, 0], inertia_matrix_inv[1, 1], inertia_matrix_inv[1, 2])
+                props[i].invInertia.z = gymapi.Vec3(inertia_matrix_inv[2, 0], inertia_matrix_inv[2, 1], inertia_matrix_inv[2, 2])
 
         # ---------------------------------------
 
@@ -1754,29 +1636,9 @@ class LeggedRobot(BaseTask):
                 props[i].inertia.x = gymapi.Vec3(inertia_matrix[0, 0], inertia_matrix[0, 1], inertia_matrix[0, 2])
                 props[i].inertia.y = gymapi.Vec3(inertia_matrix[1, 0], inertia_matrix[1, 1], inertia_matrix[1, 2])
                 props[i].inertia.z = gymapi.Vec3(inertia_matrix[2, 0], inertia_matrix[2, 1], inertia_matrix[2, 2])
-                props[i].invInertia.x = gymapi.Vec3(inertia_matrix_inv[0, 0], inertia_matrix_inv[0, 1],
-                                                    inertia_matrix_inv[0, 2])
-                props[i].invInertia.y = gymapi.Vec3(inertia_matrix_inv[1, 0], inertia_matrix_inv[1, 1],
-                                                    inertia_matrix_inv[1, 2])
-                props[i].invInertia.z = gymapi.Vec3(inertia_matrix_inv[2, 0], inertia_matrix_inv[2, 1],
-                                                    inertia_matrix_inv[2, 2])
-
-        # ---------------------------------------
-
-        # log info
-        # if env_id == 0:
-        #     print("##############################################")
-        #     print("Robot rigid body properties randomized:")
-        #     for i in range(len(props)):
-        #         print(f"Body {i} \n"
-        #               f"mass: {props[i].mass}, \n"
-        #               f"invMass: {props[i].invMass}, \n"
-        #               f"com: {props[i].com}, \n"
-        #               f"inertia: {props[i].inertia.x}, {props[i].inertia.y}, {props[i].inertia.z}, \n"
-        #               f"invInertia: {props[i].invInertia.x}, {props[i].invInertia.y}, {props[i].invInertia.z}, \n")
-        #     print("##############################################")
-
-        # ---------------------------------------
+                props[i].invInertia.x = gymapi.Vec3(inertia_matrix_inv[0, 0], inertia_matrix_inv[0, 1], inertia_matrix_inv[0, 2])
+                props[i].invInertia.y = gymapi.Vec3(inertia_matrix_inv[1, 0], inertia_matrix_inv[1, 1], inertia_matrix_inv[1, 2])
+                props[i].invInertia.z = gymapi.Vec3(inertia_matrix_inv[2, 0], inertia_matrix_inv[2, 1], inertia_matrix_inv[2, 2])
 
         return props
 
@@ -1823,49 +1685,6 @@ class LeggedRobot(BaseTask):
             self.commands_base_ang_vel_yaw = self.commands[:, 2:3]
 
             self._command_refinement(env_ids)
-
-        if command_profile == "relative_pose":
-            self.commands[env_ids, 0] = torch_rand_float(self.command_ranges["pos_x"][0],
-                                                         self.command_ranges["pos_x"][1],
-                                                         (len(env_ids), 1),
-                                                         device=self.device).squeeze(1)
-            self.commands[env_ids, 1] = torch_rand_float(self.command_ranges["pos_y"][0],
-                                                         self.command_ranges["pos_y"][1],
-                                                         (len(env_ids), 1),
-                                                         device=self.device).squeeze(1)
-            self.commands[env_ids, 2] = torch_rand_float(self.command_ranges["pos_z"][0],
-                                                         self.command_ranges["pos_z"][1],
-                                                         (len(env_ids), 1),
-                                                         device=self.device).squeeze(1)
-            self.commands[env_ids, 3] = torch_rand_float(self.command_ranges["heading"][0],
-                                                         self.command_ranges["heading"][1],
-                                                         (len(env_ids), 1),
-                                                         device=self.device).squeeze(1)
-
-            self.commands_base_pos[env_ids, 0:2] = self.commands[env_ids, 0:2] \
-                                                   + self.base_pos[env_ids, 0:2]  # in world frame
-            self.commands_base_pos[env_ids, 2:3] = self.commands[env_ids, 2:3] \
-                                                   + self.cfg.rewards.base_height_target  # in world frame
-            self.commands_base_heading[env_ids] = self.commands[env_ids, 3:4]  # in world frame
-
-            # get target position height
-            temp_num_height_points = 1
-            temp_height_points = torch.zeros(len(env_ids), temp_num_height_points, 3,
-                                             device=self.device, requires_grad=False)
-            temp_height_points[:, 0, 0:2] = self.commands[env_ids, 0:2].clone()  # copy x, y
-
-            temp_heights = self._get_heights(env_ids=env_ids,
-                                             height_points=temp_height_points,
-                                             num_height_points=temp_num_height_points,
-                                             frame_type="world")
-
-            self.commands_base_pos[env_ids, 2:3] += temp_heights[:, 0:1]  # in world frame
-
-            # map commands list to separate commands
-            self.commands_base_pos_x = self.commands_base_pos[:, 0:1]
-            self.commands_base_pos_y = self.commands_base_pos[:, 1:2]
-            self.commands_base_pos_z = self.commands_base_pos[:, 2:3]
-            self.commands_base_heading = self.commands[:, 3:4]
 
     def _resample_ofc_dof_pos(self, env_ids=None):
         """
@@ -1932,11 +1751,6 @@ class LeggedRobot(BaseTask):
         """
         actions_scaled = actions * self.action_scales
 
-        """
-        Jason 2025-04-17:
-        As the dimension of actions is not always the same as the number of DOFs,
-        So we need to expand the actions to the number of DOFs sometimes.
-        """
         # expand actions from (num_envs, num_actions) to (num_envs, num_dofs)
         actions_expanded = torch.zeros((self.num_envs, self.num_dofs), device=self.device, dtype=torch.float32)
 
@@ -2175,10 +1989,6 @@ class LeggedRobot(BaseTask):
         # 只对 env_ids 对应的环境 actor 做修改
         self.dof_pos[env_ids] = dof_pos
 
-        """
-        Jason 2025-02-28:
-        randomize_init_dof_vel: 关节速度随机化
-        """
         # dof_vel randomize
         if self.cfg.domain_rand.randomize_init_dof_vel:
             add_init_dof_vel_range = self.cfg.domain_rand.add_init_dof_vel_range
@@ -2663,10 +2473,7 @@ class LeggedRobot(BaseTask):
             self.num_all_envs += 1
 
             # ----------------------------------
-            """
-            Jason 2024-10-29:
-            设置摩擦系数和弹性系数的方法必须在创建 self.gym.create_env 和 self.gym.create_actor 之前调用
-            """
+
             # 对刚体表面属性进行随机化处理：摩擦系数、弹性系数
             rigid_shape_props = self._process_rigid_shape_props(rigid_shape_props_asset, env_index)
             self.gym.set_asset_rigid_shape_properties(self.robot_asset, rigid_shape_props)
@@ -2692,10 +2499,6 @@ class LeggedRobot(BaseTask):
 
             # ----------------------------------
 
-            """
-            Jason 2024-11-29:
-            这里的 actor_handle 是当前 env_handle 下计数的 actor, 从 0 开始计数
-            """
             actor_handle = self.gym.create_actor(env_handle,
                                                  self.robot_asset,
                                                  start_pose,
@@ -2789,10 +2592,6 @@ class LeggedRobot(BaseTask):
 
             # ----------------------------------
 
-            """
-            Jason 2023-10-11:
-            must use env_handle to get indices
-            """
             if env_index == 0:
                 self._create_envs_get_indices(self.body_names, env_handle, actor_handle)
 
@@ -2960,43 +2759,6 @@ class LeggedRobot(BaseTask):
                     sphere_pose = gymapi.Transform(gymapi.Vec3(x, y, z), r=None)
                     gymutil.draw_lines(sphere_geom, self.gym, self.viewer, self.env_handles[i], sphere_pose)
 
-        # draw target absolute position and heading
-        # draw target relative position direction
-        if self.cfg.commands.command_profile == "relative_pose":
-            axes_geom = gymutil.AxesGeometry(scale=0.5)
-            box_geom = gymutil.WireframeBoxGeometry(
-                xdim=0.2,
-                ydim=0.2,
-                zdim=0.2,
-                color=(0.2, 0.2, 0.2,)
-            )
-
-            for i in range(self.num_envs):
-                target_base_pos = (self.commands_base_pos[i, 0:3]).cpu().numpy()
-                target_base_quat = quat_from_angle_axis(
-                    self.commands_base_heading[i, 0],
-                    torch.tensor([0.0, 0.0, 1.0],
-                                 device=self.commands_base_heading.device)
-                )
-                target_pose = gymapi.Transform(gymapi.Vec3(*target_base_pos), gymapi.Quat(*target_base_quat))
-
-                gymutil.draw_lines(axes_geom, self.gym, self.viewer, self.env_handles[i], target_pose)
-                gymutil.draw_lines(box_geom, self.gym, self.viewer, self.env_handles[i], target_pose)
-
-            for i in range(self.num_envs):
-                # p1_value = self.base_pos[i, 0:3].cpu().numpy()
-                # p2_value = self.commands_base_pos[i, 0:3].cpu().numpy()
-
-                p1_value = self.base_pos[i, 0:3].cpu().numpy()
-                p2_value = (self.base_pos[i, 0:3] + self.base_pos_offset_in_world_direction[i, 0:3]).cpu().numpy()
-
-                p1 = gymapi.Vec3(*p1_value)
-                p2 = gymapi.Vec3(*p2_value)
-
-                color = gymapi.Vec3(0.9, 0.9, 0.9)
-
-                gymutil.draw_line(p1=p1, p2=p2, color=color, gym=self.gym, viewer=self.viewer, env=self.env_handles[i])
-
     def _init_height_points(self, points_x=None, points_y=None):
         """ Returns points at which the height measurments are sampled (in base frame)
 
@@ -3122,10 +2884,7 @@ class LeggedRobot(BaseTask):
 
     def _reward_collision(self):
         # Penalize collisions on selected bodies
-        flag_penalty = (
-                torch.norm(self.contact_forces[:, self.penalised_contact_indices, :], dim=-1) > 0.1
-        )
-
+        flag_penalty = torch.norm(self.contact_forces[:, self.penalised_contact_indices, :], dim=-1) > 0.1
         reward_collision = torch.sum(flag_penalty, dim=1)
 
         return reward_collision

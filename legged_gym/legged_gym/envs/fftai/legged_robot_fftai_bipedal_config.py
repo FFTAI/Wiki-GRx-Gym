@@ -68,15 +68,6 @@ class LeggedRobotFFTAIBipedalCfg(LeggedRobotFFTAICfg):
         wrist_pitch_name = "wrist_pitch"
         wrist_yaw_name = "wrist_yaw"
 
-        """
-        Jason 2024-11-04:
-        不同的大类关节名称，用于不同的约束条件。
-        upper_limb_joint_names: 上肢关节名称
-        lower_limb_joint_names: 下肢关节名称
-        main_body_joint_names: 主体关节名称 (腰部 + 下肢)
-        """
-        upper_limb_joint_names = [shoulder_name, elbow_name, wrist_name]
-        lower_limb_joint_names = [hip_name, knee_name, ankle_name]
         main_body_joint_names = [waist_name, hip_name, knee_name, ankle_name]
 
         # for arm reaching

@@ -16,11 +16,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
     # ----------------------------------------------
 
     def _create_envs_get_indices(self, body_names, env_handle, actor_handle):
-        """
-        Creates a list of indices for different bodies of the robot.
-
-        主要针对的机器人的连杆结构进行了索引的创建
-        """
         base_name = [s for s in body_names if self.cfg.asset.base_name in s]
         torso_name = [s for s in body_names if self.cfg.asset.torso_name in s]
         chest_name = [s for s in body_names if self.cfg.asset.chest_name in s]
@@ -248,8 +243,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
         wrist_pitch_names = self.cfg.asset.wrist_pitch_name
         wrist_yaw_names = self.cfg.asset.wrist_yaw_name
 
-        upper_Limb_joint_names = self.cfg.asset.upper_limb_joint_names
-        lower_Limb_joint_names = self.cfg.asset.lower_limb_joint_names
         main_body_joint_names = self.cfg.asset.main_body_joint_names
 
         self.waist_indices = []
@@ -367,14 +360,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
             if wrist_yaw_names in name:
                 self.wrist_yaw_indices.append(i)
 
-            for j in range(len(upper_Limb_joint_names)):
-                if upper_Limb_joint_names[j] in name:
-                    self.upper_Limb_joint_indices.append(i)
-
-            for j in range(len(lower_Limb_joint_names)):
-                if lower_Limb_joint_names[j] in name:
-                    self.lower_Limb_joint_indices.append(i)
-
             for j in range(len(main_body_joint_names)):
                 if main_body_joint_names[j] in name:
                     self.main_body_joint_indices.append(i)
@@ -412,8 +397,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
         print("self.wrist_pitch_indices: " + str(self.wrist_pitch_indices))
         print("self.wrist_yaw_indices: " + str(self.wrist_yaw_indices))
         print("----------------------------------------------")
-        print("self.upper_Limb_joint_indices: " + str(self.upper_Limb_joint_indices))
-        print("self.lower_Limb_joint_indices: " + str(self.lower_Limb_joint_indices))
         print("self.main_body_joint_indices: " + str(self.main_body_joint_indices))
         print("##############################################")
         print("\033[0m")
@@ -502,10 +485,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
 
         # ----------------------------
 
-        """
-        Jason 2024-03-23:
-        Only apply the reward to the environment that is in the stand state
-        """
         selector_stand_still = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)  # dims 1
         selector_stand_still[self.env_ids_of_stand_command] = 1
 
@@ -548,10 +527,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
 
         # ----------------------------
 
-        """
-        Jason 2024-03-23:
-        Only apply the reward to the environment that is in the stand state
-        """
         selector_stand = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
         selector_stand[self.env_ids_of_stand_command] = 1
 
@@ -617,9 +592,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
     def _reward_feet_distance_too_close(self):
         """
         Penalty for the distance between the feet being too close.
-
-        Jason 2025-02-16:
-        这个奖赏是为了防止左右脚的交叉运动，防止互相踩脚
         """
         left_foot_pos_in_world_frame = self.rigid_body_states[:, self.feet_indices][:, 0, 0:3]
         right_foot_pos_in_world_frame = self.rigid_body_states[:, self.feet_indices][:, 1, 0:3]
@@ -648,9 +620,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
     def _reward_feet_distance_y_too_close(self):
         """
         Penalty for the distance between the feet in the y direction being too close.
-
-        Jason 2025-02-16:
-        这个奖赏是为了防止左右脚的交叉运动，防止互相踩脚 y 侧方向
         """
         left_foot_pos_in_world_frame = self.rigid_body_states[:, self.feet_indices][:, 0, 0:3]
         right_foot_pos_in_world_frame = self.rigid_body_states[:, self.feet_indices][:, 1, 0:3]
@@ -711,10 +680,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
     def _reward_feet_force_z_close_to_ground(self):
         """
         Reward for keeping the feet close to the ground.
-
-        Jason 2024-11-12:
-        Too high penalty, will cause the robot try to use its foot edge to contact with the ground.
-        过高的接近地面 z 轴接触力惩罚会导致机器人尝试把脚侧向抬高，翘起来走路。
         """
         left_foot_height = self.get_left_foot_height()
         right_foot_height = self.get_right_foot_height()
@@ -722,10 +687,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
         left_foot_height_max = self.get_left_foot_height_max()
         right_foot_height_max = self.get_right_foot_height_max()
 
-        """
-        Jason 2025-01-01:
-        这里计算的 left_foot_height - left_foot_height_max / 4，可能会导致机器人尝试抬高脚面，减少高度差，从而降低 error。
-        """
         error_left_foot_close_to_ground = \
             torch.abs(left_foot_height - left_foot_height_max / 4) \
             * (left_foot_height < left_foot_height_max / 4) \
@@ -764,11 +725,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
         Reward for keeping feet in the air for a certain amount of time
         """
 
-        """
-        Jason 2025-01-06:
-        When the foot first contact with the ground, the air time will be reset to 0.
-        So, we need to use the last air time to calculate the reward.
-        """
         left_foot_air_time = self.feet_air_time_last[:, 0:1]  # dims 2
         right_foot_air_time = self.feet_air_time_last[:, 1:2]  # dims 2
 
@@ -793,10 +749,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
         reward_left_foot_air_time *= condition_left_foot_first_contact_ground
         reward_right_foot_air_time *= condition_right_foot_first_contact_ground
 
-        """
-        Jason 2024-03-23:
-        Only apply the reward to the environment that is in the stand state
-        """
         selector_move = torch.ones(self.num_envs, device=self.device, dtype=torch.bool)
         selector_move[self.env_ids_of_off_command] = 0
         selector_move[self.env_ids_of_stand_command] = 0

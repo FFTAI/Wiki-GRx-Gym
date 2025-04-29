@@ -312,10 +312,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         reward_stand_still = torch.exp(self.cfg.rewards.sigma_stand_still
                                        * error_stand_still)
 
-        """
-        Jason 2024-03-23:
-        Only apply the reward to the environment that is in the stand state
-        """
         selector_stand_still = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
         selector_stand_still[self.env_ids_of_stand_command] = 1
 
@@ -334,10 +330,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         reward_stand_still_pos = torch.exp(self.cfg.rewards.sigma_stand_still_dof_pos
                                            * error_stand_still_pos)
 
-        """
-        Jason 2024-03-23:
-        Only apply the reward to the environment that is in the stand state
-        """
         selector_stand = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)  # dims 1
         selector_stand[self.env_ids_of_stand_command] = 1
 
@@ -356,10 +348,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         reward_stand_still_vel = torch.exp(self.cfg.rewards.sigma_stand_still_dof_vel
                                            * error_stand_still_vel)
 
-        """
-        Jason 2024-03-23:
-        Only apply the reward to the environment that is in the stand state
-        """
         selector_stand = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)  # dims 1
         selector_stand[self.env_ids_of_stand_command] = 1
 

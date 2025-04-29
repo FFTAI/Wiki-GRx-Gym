@@ -181,20 +181,6 @@ class LeggedRobotCfg(BaseConfig):
             "joint_b": 0.0,
         }
 
-        init_from_key_states = False
-        init_from_select_key_states = False
-        init_select_key_states_indices = [
-        ]
-        key_states = [
-            numpy.array(
-                pos + rot + lin_vel + ang_vel \
-                + [
-                    default_joint_angles["joint_a"],
-                    default_joint_angles["joint_b"]
-                ]
-            )
-        ]
-
     class commands:
         command_profile = "base_velocity"  # base_velocity: [lin_vel_x, lin_vel_y, ang_vel_yaw]
 
@@ -280,16 +266,6 @@ class LeggedRobotCfg(BaseConfig):
         randomize_reset_episode_length = False
 
         # randomize friction and restitution
-        """
-        friction:
-        静摩擦力 Coefficient of static friction.
-        Value should be equal or greater than zero.
-
-        restitution:
-        Coefficient of restitution.
-        It’s the ratio of the final to initial velocity after the rigid body collides.
-        Range [0, 1]
-        """
         randomize_friction = True
         friction_range = [0.30, 1.70]  # [0.35, 1.65]  # [0.25, 1.75]
 
@@ -310,9 +286,6 @@ class LeggedRobotCfg(BaseConfig):
         randomize_base_inertia = True
         multiply_base_inertia_range = [0.9, 1.1]
 
-        """
-        base is removed from the torso indexes 
-        """
         # randomize torso mass
         randomize_torso_mass = True
         multiply_torso_mass_range = [0.9, 1.1]  # unit : kg
@@ -341,9 +314,6 @@ class LeggedRobotCfg(BaseConfig):
         randomize_payload_inertia = True
         multiply_payload_inertia_range = [0.1, 5.0]
 
-        """
-        base, torso, payload are removed from the links indexes 
-        """
         # randomize link mass
         randomize_link_mass = True
         multiply_link_mass_range = [0.9, 1.1]  # unit : kg
@@ -362,7 +332,7 @@ class LeggedRobotCfg(BaseConfig):
         randomize_motor_friction = True
         multiply_motor_friction_range = [-1.0, 1.0]
 
-        # randomize mechanism friction (传动机构摩擦)
+        # randomize mechanism friction
         randomize_mechanism_friction = True
         multiply_mechanism_friction_range = [0.0, 1.0]
 
@@ -371,8 +341,6 @@ class LeggedRobotCfg(BaseConfig):
         multiply_motor_armature_range = [0.9, 1.1]
 
         # randomize motor strength
-        # 1. 执行器供电电压不同带来的输出力矩不同
-        # 2. 执行器摩擦力不同带来的输出力矩不同 (Joint_output = PD_output - friction)
         randomize_motor_strength = True
         multiply_motor_strength_range = [0.9, 1.1]
 
@@ -450,7 +418,7 @@ class LeggedRobotCfg(BaseConfig):
 
         # randomize control delay
         randomize_control_delay = True
-        control_delay_s_range = [0.0, 0.005]  # 系统控制循环延时问题 (状态 -> 算法 -> 指令)
+        control_delay_s_range = [0.0, 0.005]
 
         # randomize terrain level placement when meet "move_up"
         # upgrade the terrain level randomly may accelerate the learning process
@@ -487,7 +455,6 @@ class LeggedRobotCfg(BaseConfig):
 
         class noise_scales:
             """
-            Jason 2024-11-17:
             全部为基本国际单位制
 
             base_pos: 位置 m
@@ -513,7 +480,6 @@ class LeggedRobotCfg(BaseConfig):
     class normalization:
         class obs_scales:
             """
-            Jason 2024-11-17:
             全部为基本国际单位制
 
             base_pos: 位置 m
@@ -596,11 +562,6 @@ class LeggedRobotCfgPPO(BaseConfig):
         # rnn_hidden_size = 512
         # rnn_num_layers = 1
 
-        """
-        Jason 2025-01-14:
-        As different joint may have different control mode and Kp, Kd, 
-        so we need to set their init_noise_std separately.
-        """
         init_noise_std = [
             1.0,  # joint_a
             1.0,  # joint_b

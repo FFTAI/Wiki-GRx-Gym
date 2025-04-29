@@ -60,12 +60,12 @@
 1. 启动训练
    ```
    cd legged_gym/legged_gym/scripts
-   python train.py --task=GRMini1T2 --headless
+   python train.py --task=N1 --headless
    ```
 
 2. 演示测试
    ```
-   python play.py --task=GRMini1T2 --num_envs=25
+   python play.py --task=N1 --num_envs=1
    ```
 
 ### 常见问题

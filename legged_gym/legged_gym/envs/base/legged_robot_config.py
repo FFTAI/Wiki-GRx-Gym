@@ -28,8 +28,6 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
-import math
-
 import numpy
 
 from .base_task_config import BaseConfig
@@ -84,14 +82,6 @@ class LeggedRobotCfg(BaseConfig):
         num_cols = 20  # number of terrain cols (types)
         max_init_terrain_level = num_rows - 1  # maximum initial terrain level
 
-        """
-        Jason 2024-10-29:
-        一般地面的摩擦系数‌因地面材质和条件的不同而有所差异。以下是一些常见地面的摩擦系数范围：
-        - 沥青路面‌：在干燥情况下，摩擦系数为0.6，雨天降至0.4，雪天降至0.28，结冰路面为0.18
-        - 混凝土路面‌：在干燥情况下，摩擦系数为0.6，雨天降至0.4，雪天降至0.28，结冰路面为0.1
-        - 碎石路面‌：滚动摩擦系数在0.020至0.025之间‌
-        - 卵石路面‌：优质的卵石路面摩擦系数在0.025至0.030之间，路况较差的卵石路面摩擦系数在0.035至0.050之间‌
-        """
         static_friction = 0.30  # 0.35  # 0.25
         dynamic_friction = 0.30  # 0.35  # 0.25
         restitution = 0.0  # 0.0: no bounce
@@ -125,12 +115,6 @@ class LeggedRobotCfg(BaseConfig):
         # trimesh only:
         slope_threshold = 0.75  # slopes above this threshold will be corrected to vertical surfaces
 
-        """
-        Jason 2024-11-13:
-        terrain_length 和 terrain_width 是地形的长和宽，单位是米。
-        这个值的设置要和 env.episode_length_s 一起考虑，确保机器人在一个 episode 中能够走完地形的长度。
-        同时，也要和 commands.rangs.lin_vel_x commands.rangs.lin_vel_y 一起考虑，确保机器人的速度足够能够走完地形的长度。
-        """
         terrain_length = 8.0
         terrain_width = 8.0
 
@@ -163,31 +147,6 @@ class LeggedRobotCfg(BaseConfig):
 
         flip_visual_attachments = True  # Some .obj meshes must be flipped from y-up to z-up
 
-        """
-        density:
-        Default density parameter used for 
-        calculating mass and inertia tensor when no mass and inertia data are provided, in $kg/m^3$.
-
-        angular_damping:
-        Angular velocity damping for rigid bodies.
-
-        linear_damping:
-        Linear velocity damping for rigid bodies.
-
-        max_angular_velocity:
-        Maximum angular velocity for rigid bodies. In $rad/s$.
-
-        max_linear_velocity:
-        Maximum linear velocity for rigid bodies. In $m/s$.
-
-        armature: 
-        The value added to the diagonal elements of inertia tensors for all of the asset’s rigid bodies/links. 
-        Could improve simulation stability
-
-        thickness:
-        Thickness of the collision shapes. 
-        Sets how far objects should come to rest from the surface of this body
-        """
         density = 0.001
         angular_damping = 0.0
         linear_damping = 0.0
@@ -197,11 +156,6 @@ class LeggedRobotCfg(BaseConfig):
         thickness = 0.01
 
     class dof:
-        """
-        friction: 关节的摩擦系数，无量纲
-        armature: 关节的转子惯性，单位是 kg*m^2
-        mechanism: 传动机构的摩擦系数，无量纲
-        """
         friction = {
             "joint_a": 0.0,
             "joint_b": 0.0,
@@ -302,14 +256,6 @@ class LeggedRobotCfg(BaseConfig):
             "joint_a": 1.0,
             "joint_b": 1.5,
         }  # [N*m*s/rad]
-
-        delay_alpha = {
-            "joint_a": 1.0,
-            "joint_b": 1.5,
-        }
-
-        # add actuator feature to compute torques from target angles
-        add_actuator_feature = False
 
         dof_pos_offset_scale = {
             "joint_a": 1.0,
@@ -437,11 +383,6 @@ class LeggedRobotCfg(BaseConfig):
         # randomize motor damping
         randomize_motor_damping = True
         multiply_motor_damping_range = [0.95, 1.05]
-
-        # randomize motor delay alpha
-        # 1. 执行器柔性结构带来的延迟（如谐波减速机、皮带轮等）
-        randomize_motor_delay_alpha = False
-        multiply_motor_delay_alpha_range = [0.5, 1.0]
 
         # randomize observations
         randomize_obs_lin_vel = False

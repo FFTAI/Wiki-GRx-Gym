@@ -112,12 +112,7 @@ class LeggedRobot(BaseTask):
         self.reward_scales = class_to_dict(self.cfg.rewards.scales)
         self.command_ranges = class_to_dict(self.cfg.commands.ranges)
 
-        """
-        Jason 2025-04-17:
-        针对 curriculum 的处理,
-        """
         if self.cfg.commands.curriculum:
-            # FIXME: not need "if self.cfg.commands.command_profile == "base_velocity":"
             self.command_ranges["lin_vel_x"] = [
                 -self.cfg.commands.curriculum_chg_lin_vel_x,
                 +self.cfg.commands.curriculum_chg_lin_vel_x,
@@ -258,17 +253,13 @@ class LeggedRobot(BaseTask):
         self.dof_vel = self.dof_states.view(self.num_envs, self.num_dofs, 2)[..., 1]
         self.last_dof_vel = torch.zeros_like(self.dof_vel)
 
-        self.dof_acc = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device,
-                                   requires_grad=False)
-        self.dof_pos_offset = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device,
-                                          requires_grad=False)
+        self.dof_acc = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
+        self.dof_pos_offset = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
 
-        self.dof_tor = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device,
-                                   requires_grad=False)
+        self.dof_tor = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
         self.last_dof_tor = torch.zeros_like(self.dof_tor)
 
-        self.dof_pwr = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device,
-                                   requires_grad=False)
+        self.dof_pwr = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
         self.last_dof_pwr = torch.zeros_like(self.dof_pwr)
 
         self.base_pos = self.root_states[:, 0:3]  # in world frame
@@ -307,7 +298,6 @@ class LeggedRobot(BaseTask):
         self.control_types = torch.zeros(self.num_dofs, dtype=torch.int, device=self.device, requires_grad=False)
         self.p_gains = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
         self.d_gains = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
-        self.delay_alpha = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
 
         self.dof_pos_offset_scales = torch.ones(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
         self.dof_vel_scales = torch.ones(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
@@ -412,15 +402,6 @@ class LeggedRobot(BaseTask):
                 self.obs_scales.lin_vel,
                 self.obs_scales.ang_vel,
             ], device=self.device, requires_grad=False, )
-
-        elif self.cfg.commands.command_profile == "relative_pose":
-            self.commands_scale = \
-                torch.tensor(data=[
-                    self.obs_scales.base_pos,
-                    self.obs_scales.base_pos,
-                    self.obs_scales.base_pos,
-                    self.obs_scales.base_ang,
-                ], device=self.device, requires_grad=False, )
 
         else:
             self.commands_scale = torch.ones(self.cfg.commands.num_commands,
@@ -575,20 +556,6 @@ class LeggedRobot(BaseTask):
                         f"{RESET}"
                     )
 
-            # delay
-            delay_alpha_found = False
-
-            for dof_name in self.cfg.control.delay_alpha.keys():
-                if dof_name in name:
-                    self.delay_alpha[i] = self.cfg.control.delay_alpha[dof_name]
-                    delay_alpha_found = True
-
-            if not delay_alpha_found:
-                self.delay_alpha[i] = 1.0
-                print(
-                    f"{RED}Delay alpha of joint {name} were not defined, setting them to one(1){RESET}"
-                )
-
             # dof_pos_offset scales
             dof_pos_offset_scale_found = False
 
@@ -633,14 +600,6 @@ class LeggedRobot(BaseTask):
 
         self.default_dof_pos = self.default_dof_pos.unsqueeze(0)  # add env dim
 
-        """
-        Jason 2025-03-29:
-        reference_dof_pos 为参考关节位置，初始化为全 0.0, 
-        用于记录每一个 env 下一个关键帧的参考关节位置, 
-        用于计算 PD 控制器的输出 reference
-        """
-        self.reference_dof_pos = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
-
         print("self.control_types:")
         for i, control_type in enumerate(self.control_types):
             print(f"  - {self.dof_names[i]}: {control_type}")
@@ -654,11 +613,6 @@ class LeggedRobot(BaseTask):
         print("self.d_gains:")
         for i, gain in enumerate(self.d_gains):
             print(f"  - {self.dof_names[i]}: {gain}")
-        print("")
-
-        print("self.delay_alpha:")
-        for i, alpha in enumerate(self.delay_alpha):
-            print(f"  - {self.dof_names[i]}: {alpha}")
         print("")
 
         print("self.default_dof_pos:")
@@ -698,77 +652,6 @@ class LeggedRobot(BaseTask):
             self.curriculum_count_max_cmd_diff_base_lin_vel_x = 1000
             self.curriculum_count_max_cmd_diff_base_lin_vel_y = 1000
             self.curriculum_count_max_cmd_diff_base_ang_vel_yaw = 1000
-
-    def _init_buffers_key_states(self):
-        """
-        Initialize torch tensors which will contain key states related infos
-        """
-
-        if self.cfg.init_state.init_from_key_states:
-            pass
-        else:
-            return
-
-        """
-        Jason 2025-03-07:
-        key_states_cfg 主要记录关键帧的数组原始数据
-            - base pos
-            - base quat
-            - base lin vel
-            - base ang vel
-            - dof pos
-        key_states 主要记录关键帧的数组处理后的数据
-            - base pos
-            - base projected gravity (from base quat)
-            - base lin vel
-            - base ang vel
-            - dof pos
-        key_states_current 主要记录每一个 env 当前的关键帧
-        key_states_target 主要记录每一个 env 下一个关键帧
-        key_states_current_index 主要记录每一个 env 当前关键帧的索引
-        key_states_target_index 主要记录每一个 env 下一个关键帧的索引
-        """
-        self.key_states_cfg = torch.from_numpy(self.cfg.init_state.key_states).to(dtype=torch.float32,
-                                                                                  device=self.device)  # dims 2
-        self.key_states = torch.zeros(len(self.key_states_cfg), 3 + 3 + 3 + 3 + self.num_dofs, dtype=torch.float,
-                                      device=self.device, requires_grad=False)
-
-        for i in range(len(self.key_states_cfg)):
-            self.key_states[i, 0: 0 + 3] = self.key_states_cfg[i, 0: 0 + 3]
-            self.key_states[i, 3: 3 + 3] = quat_rotate_inverse(self.key_states_cfg[i, 3: 3 + 4].unsqueeze(0),
-                                                               self.gravity_vec[[0]]).squeeze(0)
-            self.key_states[i, 6: 6 + 3] = self.key_states_cfg[i, 7: 7 + 3]
-            self.key_states[i, 9: 9 + 3] = self.key_states_cfg[i, 10: 10 + 3]
-            self.key_states[i, 12:] = self.key_states_cfg[i, 13:]
-
-        self.key_states_current = torch.zeros(self.num_envs, (3 + 3 + 3 + 3 + self.num_dofs), dtype=torch.float,
-                                              device=self.device, requires_grad=False)
-        self.key_states_target = torch.zeros(self.num_envs, (3 + 3 + 3 + 3 + self.num_dofs), dtype=torch.float,
-                                             device=self.device, requires_grad=False)
-
-        self.key_states_current_base_pos = self.key_states_current[:, 0: 0 + 3]
-        self.key_states_current_base_projected_gravity = self.key_states_current[:, 3: 3 + 3]
-        self.key_states_current_base_lin_vel = self.key_states_current[:, 6: 6 + 3]
-        self.key_states_current_base_ang_vel = self.key_states_current[:, 9: 9 + 3]
-        self.key_states_current_dof_pos = self.key_states_current[:, 12:]
-
-        self.key_states_target_base_pos = self.key_states_target[:, 0: 0 + 3]
-        self.key_states_target_base_projected_gravity = self.key_states_target[:, 3: 3 + 3]
-        self.key_states_target_base_lin_vel = self.key_states_target[:, 6: 6 + 3]
-        self.key_states_target_base_ang_vel = self.key_states_target[:, 9: 9 + 3]
-        self.key_states_target_dof_pos = self.key_states_target[:, 12:]
-
-        self.key_states_current_index = torch.zeros(self.num_envs, 1, dtype=torch.int, device=self.device,
-                                                    requires_grad=False)
-        self.key_states_target_index = torch.zeros(self.num_envs, 1, dtype=torch.int, device=self.device,
-                                                   requires_grad=False)
-
-        self.key_states_final = self.key_states[[-1]]
-        self.key_states_final_base_pos = self.key_states_final[:, 0: 0 + 3]
-        self.key_states_final_base_projected_gravity = self.key_states_final[:, 3: 3 + 3]
-        self.key_states_final_base_lin_vel = self.key_states_final[:, 6: 6 + 3]
-        self.key_states_final_base_ang_vel = self.key_states_final[:, 9: 9 + 3]
-        self.key_states_final_dof_pos = self.key_states_final[:, 12:]
 
     def _init_buffers_others(self):
         pass
@@ -2084,12 +1967,6 @@ class LeggedRobot(BaseTask):
                 torques[:, i:i + 1] = torques_P_p + torques_P_d
 
             elif control_type == 2:  # Velocity Control (PD controller)
-                # torques_V_p = self.p_gain_scales[:, i:i + 1] * self.p_gains[i] \
-                #               * (control_target[:, i:i + 1] - self.dof_vel[:, i:i + 1])
-                # torques_V_d = self.d_gain_scales[:, i:i + 1] * self.d_gains[i] \
-                #               * (self.dof_vel[:, i:i + 1] - self.last_dof_vel[:, i:i + 1]) / self.sim_params.dt
-                # torques[:, i:i + 1] = torques_V_p - torques_V_d
-
                 torques_V_p = 0
                 torques_V_d = self.d_gain_scales[:, i:i + 1] * self.d_gains[i] \
                               * (control_target[:, i:i + 1] - self.dof_vel[:, i:i + 1])
@@ -2098,39 +1975,10 @@ class LeggedRobot(BaseTask):
             elif control_type == 3:  # Torque Control
                 torques[:, i:i + 1] = control_target[:, i:i + 1]
 
-            elif control_type == 4:  # Reference Control (PD controller)
-                torques_P_p = self.p_gain_scales[:, i:i + 1] * self.p_gains[i] \
-                              * (control_target[:, i:i + 1] + self.reference_dof_pos[:, i:i + 1] - self.dof_pos[:, i:i + 1])
-                torques_P_d = self.d_gain_scales[:, i:i + 1] * self.d_gains[i] \
-                              * (0 - self.dof_vel[:, i:i + 1])
-                torques[:, i:i + 1] = torques_P_p + torques_P_d
-
             else:
                 raise NameError(f"Unknown controller type: {control_type}")
 
-        if self.cfg.control.add_actuator_feature:
-            # delay
-            torques = self._compute_delay(torques)
-
-            # friction
-            torques = self._compute_friction(torques)
-
         # --------------------------------------------------
-
-        # delay
-        """
-        Jason 2025-02-26:
-        delay_alpha_scales 仅针对非 delay_alpha = 1 的关节，进行随机化处理；
-        如果 delay_alpha = 1，则认为是刚性传动关节，不进行随机化处理
-        """
-        delay_alpha = torch.ones((self.num_envs, self.num_dofs), device=self.device) * self.delay_alpha
-        delay_alpha_scales = torch.where(delay_alpha == 1.0,
-                                         delay_alpha,
-                                         self.delay_alpha_scales)
-        delay_alpha_scales = torch.clip(delay_alpha_scales, min=0.0, max=1.0)
-
-        torques = delay_alpha_scales * self.delay_alpha * torques \
-                  + (1 - delay_alpha_scales * self.delay_alpha) * self.torques
 
         # ratio
         torques *= self.motor_strength_scales
@@ -2143,12 +1991,6 @@ class LeggedRobot(BaseTask):
 
         return torques
 
-    def _compute_delay(self, torques):
-        return torques
-
-    def _compute_friction(self, torques):
-        return torques
-
     def _reset_states(self, env_ids):
         """
         Resets states of selected environments
@@ -2156,85 +1998,8 @@ class LeggedRobot(BaseTask):
         Args:
             env_ids (List[int]): Environment ids
         """
-        self._reset_key_state_initialization(env_ids)
         self._reset_root_states(env_ids)
         self._reset_dof_states(env_ids)
-
-    def _reset_key_state_initialization(self, env_ids):
-        """
-        Resets key states of selected environments
-
-        Args:
-            env_ids (List[int]): Environment ids
-        """
-        if self.cfg.init_state.init_from_key_states:
-            # key states randomize
-            for env_id in env_ids:
-                if self.cfg.init_state.init_from_select_key_states:
-                    # 从 init_select_key_states_indices 中随机选择一个索引值
-                    key_states_random_index = np.random.choice(self.cfg.init_state.init_select_key_states_indices)
-                else:
-                    # 从 self.key_states 的长度范围内随机选择一个索引值
-                    key_states_random_index = np.random.randint(0, len(self.key_states))
-
-                self.key_states_current_index[env_id] = np.clip(key_states_random_index + 0, 0, len(self.key_states) - 1)
-                self.key_states_target_index[env_id] = np.clip(key_states_random_index + 1, 0, len(self.key_states) - 1)
-
-                # set key state current and target based on key states (pos, projected gravity, lin vel, ang vel)
-                self.key_states_current[env_id] = self.key_states[self.key_states_current_index[env_id]]
-                self.key_states_target[env_id] = self.key_states[self.key_states_target_index[env_id]]
-
-                # set robot state based on key states cfg (pos, quat, lin vel, ang vel)
-                self.root_states[env_id, 0:3] = self.key_states_cfg[key_states_random_index][0:3] + self.env_origins[env_id]  # pos: x, y, z
-                self.root_states[env_id, 3:7] = self.key_states_cfg[key_states_random_index][3:7]  # quat: x, y, z, w
-                self.root_states[env_id, 7:10] = self.key_states_cfg[key_states_random_index][7:10]  # lin vel: x, y, z
-                self.root_states[env_id, 10:13] = self.key_states_cfg[key_states_random_index][10:13]  # ang vel: x, y, z
-
-                self.dof_pos[env_id] = self.key_states_cfg[key_states_random_index][13:13 + self.num_dofs]  # dof pos
-
-            # dof pos randomize
-            if self.cfg.domain_rand.randomize_init_dof_pos:
-                multiply_init_dof_pos_range = self.cfg.domain_rand.multiply_init_dof_pos_range
-
-                self.dof_pos[env_ids] *= torch_rand_float(lower=multiply_init_dof_pos_range[0],
-                                                          upper=multiply_init_dof_pos_range[1],
-                                                          shape=(len(env_ids), self.num_dofs),
-                                                          device=self.device)
-            else:
-                pass
-
-            # dof vel randomize
-            if self.cfg.domain_rand.randomize_init_dof_vel:
-                add_init_dof_vel_range = self.cfg.domain_rand.add_init_dof_vel_range
-
-                self.dof_vel[env_ids] = torch_rand_float(lower=add_init_dof_vel_range[0],
-                                                         upper=add_init_dof_vel_range[1],
-                                                         shape=(len(env_ids), self.num_dofs),
-                                                         device=self.device)
-            else:
-                self.dof_vel[env_ids] = 0.0
-
-            # update related buffers
-            self.dof_pos_offset[env_ids] = self.dof_pos[env_ids] - self.default_dof_pos
-
-            # ---------------------------------------
-            # set to simulation
-
-            env_ids_int32 = env_ids.to(dtype=torch.int32)
-
-            # Sets actor root state buffer to values provided for given actor indices.
-            # Full actor root states buffer should be provided for all actors.
-            self.gym.set_actor_root_state_tensor_indexed(self.sim,
-                                                         gymtorch.unwrap_tensor(self.all_actors_root_states),
-                                                         gymtorch.unwrap_tensor(env_ids_int32),
-                                                         len(env_ids_int32))
-
-            # Sets actor root state buffer to values provided for given actor indices.
-            # Full actor root states buffer should be provided for all actors.
-            self.gym.set_dof_state_tensor_indexed(self.sim,
-                                                  gymtorch.unwrap_tensor(self.all_actors_dof_states),
-                                                  gymtorch.unwrap_tensor(env_ids_int32),
-                                                  len(env_ids_int32))
 
     def _reset_root_states(self, env_ids):
         """
@@ -2872,14 +2637,9 @@ class LeggedRobot(BaseTask):
             print(f"  - {name}")
         print("")
 
-        self.motor_strength_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device,
-                                                requires_grad=False)
-        self.p_gain_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device,
-                                        requires_grad=False)
-        self.d_gain_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device,
-                                        requires_grad=False)
-        self.delay_alpha_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device,
-                                             requires_grad=False)
+        self.motor_strength_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
+        self.p_gain_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
+        self.d_gain_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
         self.lin_vel_scales = torch.ones(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
 
         # set up the initial state of the robot
@@ -3023,13 +2783,6 @@ class LeggedRobot(BaseTask):
                                                                     shape=(1, self.num_dofs),
                                                                     device=self.device)
 
-            if self.cfg.domain_rand.randomize_motor_delay_alpha:
-                multiply_motor_delay_alpha_range = self.cfg.domain_rand.multiply_motor_delay_alpha_range
-                self.delay_alpha_scales[env_index, :] = torch_rand_float(lower=multiply_motor_delay_alpha_range[0],
-                                                                         upper=multiply_motor_delay_alpha_range[1],
-                                                                         shape=(1, self.num_dofs),
-                                                                         device=self.device)
-
             if self.cfg.domain_rand.randomize_obs_lin_vel:
                 multiply_obs_lin_vel_range = self.cfg.domain_rand.multiply_obs_lin_vel_range
                 self.lin_vel_scales[env_index, :] = torch_rand_float(lower=multiply_obs_lin_vel_range[0],
@@ -3039,8 +2792,10 @@ class LeggedRobot(BaseTask):
 
             # ----------------------------------
 
-            # Jason 2023-10-11:
-            # must use env_handle to get indices
+            """
+            Jason 2023-10-11:
+            must use env_handle to get indices
+            """
             if env_index == 0:
                 self._create_envs_get_indices(self.body_names, env_handle, actor_handle)
 

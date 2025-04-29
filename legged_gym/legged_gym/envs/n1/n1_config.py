@@ -393,9 +393,6 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
             "wrist_yaw": 2.5,
         }
 
-        # add actuator feature to compute torques from target angles
-        add_actuator_feature = True
-
         dof_pos_offset_scale = {
             # leg
             "hip_pitch": 1,

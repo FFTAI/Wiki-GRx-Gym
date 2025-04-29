@@ -12,6 +12,7 @@ class MLP(nn.Module):
                  activation="relu",
                  norm="none",
                  requires_grad=True,
+                 init_weights=False,
                  **kwargs):
         super(MLP, self).__init__()
 
@@ -38,5 +39,14 @@ class MLP(nn.Module):
         for param in self.parameters():
             param.requires_grad = requires_grad
 
+        if init_weights:
+            self.init_weights()
+
     def forward(self, x):
         return self.model(x)
+
+    def init_weights(self):
+        for layer in self.model:
+            if isinstance(layer, nn.Linear):
+                nn.init.xavier_normal_(layer.weight)
+                nn.init.constant_(layer.bias, 0)

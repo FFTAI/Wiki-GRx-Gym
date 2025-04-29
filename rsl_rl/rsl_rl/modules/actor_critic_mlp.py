@@ -1,5 +1,4 @@
-import numpy as np
-
+import numpy
 import torch
 import torch.nn as nn
 from torch.distributions import Normal
@@ -16,14 +15,14 @@ class ActorCriticMLP(nn.Module):
                  actor_hidden_dims=[256, 256, 256],
                  critic_hidden_dims=[256, 256, 256],
                  activation='elu',
+                 init_weights=False,
                  fixed_std=False,
-                 init_noise_std=1.0,
-                 set_std=True,
-                 set_noise_std=1.0,
-                 actor_output_activation=None,
-                 critic_output_activation=None,
+                 init_noise_std=0.2,
+                 decay_std=False,
+                 decay_ratio=0.999,
+                 decay_std_min=0.05,
                  **kwargs):
-        """Default ActorCritic network
+        """Default ActorCriticMLP network
 
         Args:
             actor_num_input:          input dim to actor network.
@@ -33,7 +32,7 @@ class ActorCriticMLP(nn.Module):
             critic_hidden_dims:     dims of hidden layers in critic network.
             activation:             activation function name.
             output_activation:      name of output layers' activation function
-            init_noise_std:         initial value of ActorCritic.std.
+            init_noise_std:         initial value of ActorCriticMLP.std.
             **kwargs:               Arbitrary keyword arguments.
 
         Returns:
@@ -44,8 +43,8 @@ class ActorCriticMLP(nn.Module):
         print("ActorCriticMLP")
 
         if kwargs:
-            print("ActorCritic.__init__ got unexpected arguments, which will be ignored: " + str(
-                [key for key in kwargs.keys()]))
+            print("ActorCriticMLP.__init__ got unexpected arguments, which will be ignored: "
+                  + str([key for key in kwargs.keys()]))
 
         super(ActorCriticMLP, self).__init__()
 
@@ -56,80 +55,43 @@ class ActorCriticMLP(nn.Module):
         self.num_critic_output = 1
 
         # Policy
-        self.actor = MLP(self.num_actor_input,
-                         self.num_actor_output,
-                         actor_hidden_dims,
-                         activation,
-                         norm="none")
+        self.actor = MLP(input_size=self.num_actor_input,
+                         output_size=self.num_actor_output,
+                         hidden_dims=actor_hidden_dims,
+                         activation=activation,
+                         init_weights=init_weights, )
 
-        print(f"Actor MLP: {self.actor}")
+        print(f"\033[94mActor MLP: {self.actor}\033[0m")
 
         # Value function
-        self.critic = MLP(self.num_critic_input,
-                          1,
-                          critic_hidden_dims,
-                          activation,
-                          norm="none")
+        self.critic = MLP(input_size=self.num_critic_input,
+                          output_size=self.num_critic_output,
+                          hidden_dims=critic_hidden_dims,
+                          activation=activation,
+                          init_weights=init_weights, )
 
-        print(f"Critic MLP: {self.critic}")
+        print(f"\033[94mCritic MLP: {self.critic}\033[0m")
 
         # Action noise
         self.fixed_std = fixed_std
-        self.init_noise_std = init_noise_std
+        self.init_noise_std = numpy.array(init_noise_std)  # numpy.array
 
         # Jason 2023-12-27:
         # every action has the different noise std
-        std = init_noise_std * torch.ones(actor_num_output)
+        std = torch.from_numpy(self.init_noise_std)  # torch.Tensor
+
         self.std = nn.Parameter(std)
         self.distribution = None
 
-        print(f"ActorCritic: fixed_std = {fixed_std})")
-        print(f"ActorCritic: init_noise_std = {init_noise_std})")
-        print(f"ActorCritic: std = {std})")
-
-        # set std when load state_dict
-        self.set_std = set_std
-        self.set_noise_std = set_noise_std
+        print(f"ActorCriticMLP: init_noise_std = {self.init_noise_std})")
+        print(f"ActorCriticMLP: std = {self.std})")
 
         # disable args validation for speedup
         Normal.set_default_validate_args = False
 
-        # seems that we get better performance without init
-        # self.init_memory_weights(self.memory_a, 0.001, 0.)
-        # self.init_memory_weights(self.memory_c, 0.001, 0.)
-
-    @staticmethod
-    # not used at the moment
-    def init_weights(sequential, scales):
-        """Initialize network weights
-
-        Args:
-            sequential (nn.Module): sequential model of network
-            scale   (list): initial weights of model
-
-        Returns:
-            None
-        """
-        [torch.nn.init.orthogonal_(module.weight, gain=scales[idx]) for idx, module in
-         enumerate(mod for mod in sequential if isinstance(mod, nn.Linear))]
-
     def load_state_dict(self, state_dict, strict=True):
-        if self.set_std:
-            print("Warning: Not loading std from state_dict, use init value")
-
-            print(f"original state_dict[std] = {state_dict['std']}")
-
-            # change Mapping class state_dict value
-            state_dict["std"] = torch.ones_like(state_dict["std"]) * self.set_noise_std
-
-            print(f"set state_dict[std] = {state_dict['std']}")
-        else:
-            self.std.data = state_dict["std"]
-
-        # set std to fixed
-        if self.fixed_std:
-            self.std.data = self.init_noise_std * torch.ones_like(self.std.data)
-            self.std.requires_grad = False
+        self.std.data = state_dict["std"]
+        print(f"set state_dict[std] = {state_dict['std']}")
 
         super(ActorCriticMLP, self).load_state_dict(state_dict, strict)
 
@@ -172,11 +134,7 @@ class ActorCriticMLP(nn.Module):
             torch.distributions.Normal: distributions of actions.
         """
         mean = self.actor(observations)
-
-        if self.fixed_std:
-            std = self.init_noise_std
-        else:
-            std = self.std.to(mean.device)
+        std = self.std.to(mean.device)
 
         self.distribution = Normal(mean, mean * 0. + std)
 

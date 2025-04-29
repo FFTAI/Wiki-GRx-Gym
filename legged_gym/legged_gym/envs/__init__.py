@@ -29,22 +29,15 @@
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
 from legged_gym import LEGGED_GYM_ROOT_DIR, LEGGED_GYM_ENVS_DIR
-from .base.legged_robot import LeggedRobot
-
-# Fourier Intelligence GRx Robots
-from .fftai.legged_robot_fftai import LeggedRobotFFTAI
-from .fftai.legged_robot_fftai_config import (
-    LeggedRobotFFTAICfg,
-    LeggedRobotFFTAICfgPPO,
-)
-
-from .grmini1t2.grmini1t2 import GRMini1T2
-from .grmini1t2.grmini1t2_config import (
-    GR1Mini1T2Cfg,
-    GR1Mini1T2CfgPPO,
-)
-
 from legged_gym.utils.task_registry import task_registry
 
-# register Fourier Intelligence GRx robots
-task_registry.register("GRMini1T2", GRMini1T2, GR1Mini1T2Cfg, GR1Mini1T2CfgPPO)
+# ------------------------------------------------------------
+# Base
+import legged_gym.envs.base
+
+# ------------------------------------------------------------
+# Fourier Intelligence GRx Robots
+import legged_gym.envs.fftai
+
+# N1
+import legged_gym.envs.n1

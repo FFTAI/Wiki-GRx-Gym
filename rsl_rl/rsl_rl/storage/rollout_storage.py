@@ -109,4 +109,4 @@ class RolloutStorage(BaseStorage):
 
                 yield (obs_batch, critic_observations_batch, actions_batch,
                        target_values_batch, advantages_batch, returns_batch,
-                       old_actions_log_prob_batch, old_mu_batch, old_sigma_batch, (None, None), None)
+                       old_actions_log_prob_batch, old_mu_batch, old_sigma_batch)

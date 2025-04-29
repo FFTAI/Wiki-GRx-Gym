@@ -150,7 +150,11 @@ class BaseStorage:
         done[-1] = 1
         flat_dones = done.permute(1, 0, 2).reshape(-1, 1)
         done_indices = torch.cat(
-            (flat_dones.new_tensor([-1], dtype=torch.int64), flat_dones.nonzero(as_tuple=False)[:, 0]))
+            (
+                flat_dones.new_tensor([-1], dtype=torch.int64),
+                flat_dones.nonzero(as_tuple=False)[:, 0]
+            )
+        )
         trajectory_lengths = (done_indices[1:] - done_indices[:-1])
         return trajectory_lengths.float().mean(), self.rewards.mean()
 
@@ -195,4 +199,4 @@ class BaseStorage:
 
                 yield (obs_batch, critic_observations_batch, actions_batch,
                        target_values_batch, advantages_batch, returns_batch,
-                       None, None, None, (None, None), None)
+                       None, None, None)

@@ -48,10 +48,10 @@ class BaseTask():
         self.headless = headless
 
         # env device is GPU only if sim is on GPU and use_gpu_pipeline=True, otherwise returned tensors are copied to CPU by physX.
-        if sim_device_type == 'cuda' and sim_params.use_gpu_pipeline:
+        if sim_device_type == "cuda" and sim_params.use_gpu_pipeline:
             self.device = self.sim_device
         else:
-            self.device = 'cpu'
+            self.device = "cpu"
 
         # graphics device for rendering, -1 for no rendering
         self.graphics_device_id = self.sim_device_id
@@ -66,16 +66,24 @@ class BaseTask():
         torch._C._jit_set_profiling_executor(False)
 
         # allocate buffers
-        self.obs_buf = torch.zeros(self.num_envs, self.num_obs, device=self.device, dtype=torch.float)
-        self.rew_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
-        self.reset_buf = torch.ones(self.num_envs, device=self.device, dtype=torch.long)
         self.episode_length_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.long)
         self.time_out_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
+        self.rew_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
+        self.reset_buf = torch.ones(self.num_envs, device=self.device, dtype=torch.long)
+        self.extras = {}
 
+        # actor observations
+        self.obs_buf = torch.zeros(self.num_envs, self.num_obs, device=self.device, dtype=torch.float)
+
+        # actor stacked observations
+        self.obs_stack = torch.zeros(self.num_envs,
+                                     self.cfg.env.num_obs * self.cfg.env.num_stack,
+                                     dtype=torch.float, device=self.device)
+        self.obs_stack_num_stacked = torch.zeros(self.num_envs, dtype=torch.long, device=self.device)
+
+        # critic observations
         if self.num_pri_obs is not None:
             self.pri_obs_buf = torch.zeros(self.num_envs, self.num_pri_obs, device=self.device, dtype=torch.float)
-
-        self.extras = {}
 
         # create envs, sim and viewer
         self.create_sim()
@@ -99,16 +107,65 @@ class BaseTask():
     def _init_cfg(self, cfg):
         self.cfg = cfg
 
+        # ----------------------------------------------
+        # Env
+
+        self.num_all_envs = 0
         self.num_envs = cfg.env.num_envs
+
+        # ----------------------------------------------
+        # Actor-Critic
+
         self.num_obs = cfg.env.num_obs
         self.num_pri_obs = cfg.env.num_pri_obs
         self.num_actions = cfg.env.num_actions
 
+        self.actor_obs_use_stack = cfg.env.use_stack
+        self.num_stack = cfg.env.num_stack
+
+        print("##############################################")
+        print("Config Envs: ")
+        print("- num_envs: ", self.num_envs)
+        print("- num_obs: ", self.num_obs)
+        print("- num_pri_obs: ", self.num_pri_obs)
+        print("- num_actions: ", self.num_actions)
+        print("- actor_obs_use_stack: ", self.actor_obs_use_stack)
+        print("- num_stack: ", self.num_stack)
+        print("##############################################")
+
+    # ----------------------------------------------
+
     def get_observations(self):
-        return self.obs_buf
+        observation = self.obs_buf
+
+        if self.actor_obs_use_stack:
+            observation = self.obs_stack
+
+        return observation
 
     def get_privileged_observations(self):
-        return self.pri_obs_buf
+        privileged_observation = self.pri_obs_buf
+
+        return privileged_observation
+
+    # ----------------------------------------------
+
+    def get_mirror_observations(self, observations):
+        """
+        Returns the mirror observations
+        """
+        return observations
+
+    def get_mirror_actions(self, actions):
+        """
+        Returns the mirror actions
+        """
+        return actions
+
+    # ----------------------------------------------
+
+    def create_sim(self):
+        raise NotImplementedError
 
     def reset_idx(self, env_ids):
         """Reset selected robots"""
@@ -117,7 +174,15 @@ class BaseTask():
     def reset(self):
         """ Reset all robots"""
         self.reset_idx(torch.arange(self.num_envs, device=self.device))
-        obs, privileged_obs, _, _, _ = self.step(torch.zeros(self.num_envs, self.num_actions, device=self.device, requires_grad=False))
+
+        obs, privileged_obs, _, _, _ = \
+            self.step(
+                torch.zeros(self.num_envs,
+                            self.num_actions,
+                            device=self.device,
+                            requires_grad=False)
+            )
+
         return obs, privileged_obs
 
     def step(self, actions):
@@ -135,15 +200,18 @@ class BaseTask():
                     sys.exit()
                 elif evt.action == "toggle_viewer_sync" and evt.value > 0:
                     self.enable_viewer_sync = not self.enable_viewer_sync
+                else:
+                    print("unhandled action", evt.action)
 
             # fetch results
-            if self.device != 'cpu':
+            if self.device != "cpu":
                 self.gym.fetch_results(self.sim, True)
 
             # step graphics
             if self.enable_viewer_sync:
                 self.gym.step_graphics(self.sim)
                 self.gym.draw_viewer(self.viewer, self.sim, True)
+
                 if sync_frame_time:
                     self.gym.sync_frame_time(self.sim)
             else:

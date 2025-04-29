@@ -5,10 +5,19 @@ from typing import Tuple, Union
 
 # minimal interface of the environment
 class VecEnv(ABC):
+    # ----------------------------------------------
+    # Actor-Critic
     num_envs: int
     num_obs: int
     num_pri_obs: int
+
+    actor_obs_use_stack: bool
+    num_stack: int
+
+    actor_num_input: int
+    critic_num_input: int
     actor_num_output: int
+
     max_episode_length: int
     pri_obs_buf: torch.Tensor
     obs_buf: torch.Tensor
@@ -37,4 +46,12 @@ class VecEnv(ABC):
 
     @abstractmethod
     def get_privileged_observations(self) -> Union[torch.Tensor, None]:
+        pass
+
+    @abstractmethod
+    def get_mirror_observations(self, observations) -> Union[torch.Tensor, None]:
+        pass
+
+    @abstractmethod
+    def get_mirror_actions(self, actions) -> Union[torch.Tensor, None]:
         pass

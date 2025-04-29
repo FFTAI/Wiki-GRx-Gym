@@ -385,22 +385,6 @@ class LeggedRobotFFTAI(LeggedRobot):
                                  * error_y_vel)
         return reward_y_vel
 
-    def _reward_cmd_diff_base_avg_lin_vel_x(self):
-        error_x_vel = torch.abs(self.commands_base_lin_vel_x - self.avg_base_lin_vel[:, 0:1])
-        error_x_vel = torch.sum(error_x_vel, dim=1)
-
-        reward_x_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_avg_lin_vel_x
-                                 * error_x_vel)
-        return reward_x_vel
-
-    def _reward_cmd_diff_base_avg_lin_vel_y(self):
-        error_y_vel = torch.abs(self.commands_base_lin_vel_y - self.avg_base_lin_vel[:, 1:2])
-        error_y_vel = torch.sum(error_y_vel, dim=1)
-
-        reward_y_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_avg_lin_vel_y
-                                 * error_y_vel)
-        return reward_y_vel
-
     def _reward_cmd_diff_base_ang_vel_yaw(self):
         error_yaw_vel = torch.abs(self.commands_base_ang_vel_yaw - self.base_ang_vel[:, 2:3])
         error_yaw_vel = torch.sum(error_yaw_vel, dim=1)  # dims 2->1
@@ -408,124 +392,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         reward_yaw_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_ang_vel_yaw
                                    * error_yaw_vel)
         return reward_yaw_vel
-
-    def _reward_cmd_diff_base_avg_ang_vel_yaw(self):
-        error_yaw_vel = torch.abs(self.commands_base_ang_vel_yaw - self.avg_base_ang_vel[:, 2:3])
-        error_yaw_vel = torch.sum(error_yaw_vel, dim=1)
-
-        reward_yaw_vel = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_avg_ang_vel_yaw
-                                   * error_yaw_vel)
-        return reward_yaw_vel
-
-    def _reward_cmd_diff_base_pos_x(self):
-        error_pos_x = torch.abs(self.commands_base_pos_x - self.base_pos[:, 0:1])
-        error_pos_x = torch.sum(error_pos_x, dim=1)  # dims 2->1
-
-        reward_pos_x = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_pos_x
-                                 * error_pos_x)
-        return reward_pos_x
-
-    def _reward_cmd_diff_base_pos_y(self):
-        error_pos_y = torch.abs(self.commands_base_pos_y - self.base_pos[:, 1:2])
-        error_pos_y = torch.sum(error_pos_y, dim=1)
-
-        reward_pos_y = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_pos_y
-                                 * error_pos_y)
-        return reward_pos_y
-
-    def _reward_cmd_diff_base_pos_z(self):
-        error_pos_z = torch.abs(self.commands_base_pos_z - self.base_pos[:, 2:3])
-        error_pos_z = torch.sum(error_pos_z, dim=1)
-
-        reward_pos_z = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_pos_z
-                                 * error_pos_z)
-        return reward_pos_z
-
-    def _reward_cmd_diff_base_ang_roll(self):
-        error_roll = torch.abs(self.commands_base_ang_roll - self.base_ang[:, 0:1])
-        error_roll = torch.sum(error_roll, dim=1)
-
-        reward_roll = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_ang_roll
-                                * error_roll)
-        return reward_roll
-
-    def _reward_cmd_diff_base_ang_pitch(self):
-        error_pitch = torch.abs(self.commands_base_ang_pitch - self.base_ang[:, 1:2])
-        error_pitch = torch.sum(error_pitch, dim=1)
-
-        reward_pitch = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_ang_pitch
-                                 * error_pitch)
-        return reward_pitch
-
-    def _reward_cmd_diff_base_ang_yaw(self):
-        error_yaw = torch.abs(self.commands_base_ang_yaw - self.base_ang[:, 2:3])
-        error_yaw = torch.sum(error_yaw, dim=1)
-
-        reward_yaw = torch.exp(self.cfg.rewards.sigma_cmd_diff_base_ang_yaw
-                               * error_yaw)
-        return reward_yaw
-
-    # ----------------------------------------------
-
-    def _reward_cmd_diff_base_height_offset(self):
-        base_height_offset = \
-            torch.mean(
-                torch.clip(
-                    self.root_states[:, 2:3]
-                    - self.commands_base_height_offset
-                    - self.measured_heights,
-                    min=-1.0,
-                    max=1.0),
-                dim=1).unsqueeze(1)
-
-        error_base_height = torch.abs(base_height_offset)
-        error_base_height = torch.sum(error_base_height, dim=1)  # dims 2->1
-
-        reward_base_height = torch.exp(self.cfg.rewards.sigma_base_height_offset
-                                       * error_base_height)
-        return reward_base_height
-
-    def _reward_cmd_diff_base_height_offset_range(self):
-        base_height_offset = \
-            torch.mean(
-                torch.clip(
-                    self.root_states[:, 2:3]
-                    - self.commands_base_height_offset
-                    - self.measured_heights,
-                    min=-1.0,
-                    max=1.0),
-                dim=1).unsqueeze(1)
-
-        error_base_height = torch.abs(base_height_offset)
-        # 只计算高度超出范围的情况
-        error_base_height = \
-            (error_base_height - self.cfg.rewards.base_height_offset_range_limit) \
-            * (error_base_height > self.cfg.rewards.base_height_offset_range_limit)
-        error_base_height = torch.sum(error_base_height, dim=1)
-
-        reward_base_height = torch.exp(self.cfg.rewards.sigma_base_height_offset
-                                       * error_base_height)
-        return reward_base_height
-
-    def _reward_cmd_diff_base_height_offset_above(self):
-        base_height_offset = \
-            torch.mean(
-                torch.clip(
-                    self.root_states[:, 2:3]
-                    - self.commands_base_height_offset
-                    - self.measured_heights,
-                    min=-1.0,
-                    max=1.0),
-                dim=1).unsqueeze(1)
-
-        error_base_height = torch.abs(base_height_offset)
-        error_base_height = error_base_height \
-                            * (base_height_offset < 0)
-        error_base_height = torch.sum(error_base_height, dim=1)
-
-        reward_base_height = torch.exp(self.cfg.rewards.sigma_base_height_offset
-                                       * error_base_height)
-        return reward_base_height
 
     # ----------------------------------------------
 
@@ -553,30 +419,6 @@ class LeggedRobotFFTAI(LeggedRobot):
                                      * error_pitch_vel)
         return reward_pitch_vel
 
-    def _reward_base_avg_ang_vel_roll(self):
-        error_roll_vel = torch.abs(0 - self.avg_base_ang_vel[:, 0:1])
-        error_roll_vel = torch.sum(error_roll_vel, dim=1)
-
-        reward_roll_vel = torch.exp(self.cfg.rewards.sigma_base_avg_ang_vel_roll
-                                    * error_roll_vel)
-        return reward_roll_vel
-
-    def _reward_base_avg_ang_vel_pitch(self):
-        error_pitch_vel = torch.abs(0 - self.avg_base_ang_vel[:, 1:2])
-        error_pitch_vel = torch.sum(error_pitch_vel, dim=1)
-
-        reward_pitch_vel = torch.exp(self.cfg.rewards.sigma_base_avg_ang_vel_pitch
-                                     * error_pitch_vel)
-        return reward_pitch_vel
-
-    def _reward_base_avg_ang_vel_yaw(self):
-        error_yaw_vel = torch.abs(0 - self.avg_base_ang_vel[:, 2:3])
-        error_yaw_vel = torch.sum(error_yaw_vel, dim=1)
-
-        reward_yaw_vel = torch.exp(self.cfg.rewards.sigma_base_avg_ang_vel_yaw
-                                   * error_yaw_vel)
-        return reward_yaw_vel
-
     def _reward_base_lin_vel_z(self):
         error_z_vel = torch.abs(0 - self.base_lin_vel[:, 2:3])
         error_z_vel = torch.sum(error_z_vel, dim=1)  # dims 2->1
@@ -590,6 +432,8 @@ class LeggedRobotFFTAI(LeggedRobot):
         reward_xy_vel = torch.exp(self.cfg.rewards.sigma_base_lin_vel_xy
                                   * error_xy_vel)
         return reward_xy_vel
+
+    # ----------------------------------------------
 
     def _reward_base_height_offset(self):
         """
@@ -618,105 +462,7 @@ class LeggedRobotFFTAI(LeggedRobot):
                                        * error_base_height)
         return reward_base_height
 
-    def _reward_base_height_offset_above(self):
-        """
-        Reward for base height offset above
-        """
-        error_base_height = torch.abs(self.base_heights_offset)
-        error_base_height = error_base_height \
-                            * (self.base_heights_offset < 0)  # 只计算高度不足的情况
-        error_base_height = torch.sum(error_base_height, dim=1)  # dims 2->1
-
-        reward_base_height = torch.exp(self.cfg.rewards.sigma_base_height_offset
-                                       * error_base_height)
-        return reward_base_height
-
-    def _reward_base_pos_norm(self):
-        error_pos_norm = torch.norm(0 - self.base_pos_offset, dim=1)
-
-        reward_pos_norm = torch.exp(self.cfg.rewards.sigma_base_pos_norm
-                                    * error_pos_norm)
-        return reward_pos_norm
-
-    def _reward_base_heading(self):
-        error_heading = torch.abs(0 - self.base_heading_offset)
-        error_heading = torch.sum(error_heading, dim=1)
-
-        reward_heading = torch.exp(self.cfg.rewards.sigma_base_heading
-                                   * error_heading)
-        return reward_heading
-
     # ----------------------------------------------
-
-    def _reward_base_upward_orient(self):
-        """
-        Reward for base upward orientation
-        """
-        base_projected_gravity = self.base_projected_gravity
-
-        error_base_upward_orient = torch.abs(base_projected_gravity[:, 2:3] - (-1))
-        error_base_upward_orient = torch.sum(error_base_upward_orient, dim=1)  # dims 2->1
-
-        reward_base_upward_orient = torch.exp(self.cfg.rewards.sigma_base_upward_orient
-                                              * error_base_upward_orient)
-        return reward_base_upward_orient
-
-    def _reward_torso_upward_orient(self):
-        """
-        Reward for torso upward orientation
-        """
-        if len(self.torso_indices) > 0:
-            torso_projected_gravity = quat_rotate_inverse(
-                self.rigid_body_states[:, self.torso_indices][:, 0, 3:7],
-                self.gravity_vec)
-
-            error_torso_upward_orient = torch.abs(torso_projected_gravity[:, 2:3] - (-1))
-            error_torso_upward_orient = torch.sum(error_torso_upward_orient, dim=1)
-
-            reward_torso_upward_orient = torch.exp(self.cfg.rewards.sigma_torso_upward_orient
-                                                   * error_torso_upward_orient)
-        else:
-            reward_torso_upward_orient = torch.zeros(self.num_envs, device=self.device)
-
-        return reward_torso_upward_orient
-
-    def _reward_chest_upward_orient(self):
-        """
-        Reward for chest upward orientation
-        """
-        if len(self.chest_indices) > 0:
-            chest_projected_gravity = quat_rotate_inverse(
-                self.rigid_body_states[:, self.chest_indices][:, 0, 3:7],
-                self.gravity_vec)
-
-            error_chest_upward_orient = torch.abs(chest_projected_gravity[:, 2:3] - (-1))
-            error_chest_upward_orient = torch.sum(error_chest_upward_orient, dim=1)
-
-            reward_chest_upward_orient = torch.exp(self.cfg.rewards.sigma_chest_upward_orient
-                                                   * error_chest_upward_orient)
-        else:
-            reward_chest_upward_orient = torch.zeros(self.num_envs, device=self.device)
-
-        return reward_chest_upward_orient
-
-    def _reward_forehead_upward_orient(self):
-        """
-        Reward for forehead upward orientation
-        """
-        if len(self.forehead_indices) > 0:
-            forehead_projected_gravity = quat_rotate_inverse(
-                self.rigid_body_states[:, self.forehead_indices][:, 0, 3:7],
-                self.gravity_vec)
-
-            error_forehead_upward_orient = torch.abs(forehead_projected_gravity[:, 2:3] - (-1))
-            error_forehead_upward_orient = torch.sum(error_forehead_upward_orient, dim=1)
-
-            reward_forehead_upward_orient = torch.exp(self.cfg.rewards.sigma_forehead_upward_orient
-                                                      * error_forehead_upward_orient)
-        else:
-            reward_forehead_upward_orient = torch.zeros(self.num_envs, device=self.device)
-
-        return reward_forehead_upward_orient
 
     def _reward_base_flat_orient(self):
         base_projected_gravity = self.base_projected_gravity
@@ -744,57 +490,6 @@ class LeggedRobotFFTAI(LeggedRobot):
             reward_torso_flat_orient = torch.zeros(self.num_envs, device=self.device)  # dims 1
 
         return reward_torso_flat_orient
-
-    def _reward_chest_flat_orient(self):
-        if len(self.chest_indices) > 0:
-            chest_projected_gravity = quat_rotate_inverse(
-                self.rigid_body_states[:, self.chest_indices][:, 0, 3:7],
-                self.gravity_vec)
-
-            error_chest_flat_orient = torch.abs(chest_projected_gravity[:, 0:2])
-            error_chest_flat_orient = torch.sum(error_chest_flat_orient, dim=1)  # dims 2->1
-
-            reward_chest_flat_orient = torch.exp(self.cfg.rewards.sigma_chest_flat_orient
-                                                 * error_chest_flat_orient)
-
-        else:
-            reward_chest_flat_orient = torch.zeros(self.num_envs, device=self.device)  # dims 1
-
-        return reward_chest_flat_orient
-
-    def _reward_forehead_flat_orient(self):
-        if len(self.forehead_indices) > 0:
-            forehead_projected_gravity = quat_rotate_inverse(
-                self.rigid_body_states[:, self.forehead_indices][:, 0, 3:7],
-                self.gravity_vec)
-
-            error_forehead_flat_orient = torch.abs(forehead_projected_gravity[:, 0:2])
-            error_forehead_flat_orient = torch.sum(error_forehead_flat_orient, dim=1)  # dims 2->1
-
-            reward_forehead_flat_orient = torch.exp(self.cfg.rewards.sigma_forehead_flat_orient
-                                                    * error_forehead_flat_orient)
-        else:
-            reward_forehead_flat_orient = torch.zeros(self.num_envs, device=self.device)  # dims 1
-
-        return reward_forehead_flat_orient
-
-    # ----------------------------------------------
-
-    def _reward_base_lin_acc(self):
-        error_base_lin_acc = torch.abs((self.base_lin_vel - self.last_base_lin_vel) / self.dt)
-        error_base_lin_acc = torch.sum(error_base_lin_acc, dim=1)
-
-        reward_base_lin_acc = 1 - torch.exp(self.cfg.rewards.sigma_base_lin_acc
-                                            * error_base_lin_acc)
-        return reward_base_lin_acc
-
-    def _reward_base_ang_acc(self):
-        error_base_ang_acc = torch.abs((self.base_ang_vel - self.last_base_ang_vel) / self.dt)
-        error_base_ang_acc = torch.sum(error_base_ang_acc, dim=1)
-
-        reward_base_ang_acc = 1 - torch.exp(self.cfg.rewards.sigma_base_ang_acc
-                                            * error_base_ang_acc)
-        return reward_base_ang_acc
 
     # ----------------------------------------------
 
@@ -831,25 +526,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         reward_action_diff_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff_diff
                                                 * error_action_diff_diff)
         return reward_action_diff_diff
-
-    def _reward_action_zero(self):
-        """
-        Reward for zero action
-        Returns:
-            reward_action_zero: reward for zero action
-        """
-        action_zero_scales = torch.where(
-            self.action_scales <= 0.0,
-            torch.ones_like(self.action_scales),
-            torch.zeros_like(self.action_scales)
-        )
-
-        error_action_zero = torch.abs(self.actions) * action_zero_scales
-        error_action_zero = torch.sum(error_action_zero, dim=1)
-
-        reward_action_zero = 1 - torch.exp(self.cfg.rewards.sigma_action_zero
-                                           * error_action_zero)
-        return reward_action_zero
 
     # ----------------------------------------------
 
@@ -994,45 +670,6 @@ class LeggedRobotFFTAI(LeggedRobot):
                                           * error_limits_dof_tor)
 
         return reward_limits_dof_tor
-
-    def _reward_limits_dof_pwr(self):
-        """
-        Reward for pass the dof power limits
-        """
-
-        # ----------------------------------------------
-        # get all controllable joints
-        related_indexes = list(range(self.num_actions))
-        # ----------------------------------------------
-
-        error_limits_dof_pwr = (self.dof_pwr[:, related_indexes]
-                                - self.soft_dof_pwr_limits[related_indexes]).clip(min=0.)
-        error_limits_dof_pwr = torch.sum(error_limits_dof_pwr, dim=1)  # dims 2->1
-
-        reward_limits_dof_pwr = 1 - \
-                                torch.exp(self.cfg.rewards.sigma_limits_dof_pwr
-                                          * error_limits_dof_pwr)
-
-        return reward_limits_dof_pwr
-
-    def _reward_limits_sum_dof_pwr(self):
-        # ----------------------------------------------
-        # get all controllable joints
-        related_indexes = list(range(self.num_actions))
-        # ----------------------------------------------
-
-        sum_of_dof_pwr = \
-            torch.sum(self.dof_pwr[:, related_indexes], dim=1)
-
-        error_limits_sum_dof_pwr = (sum_of_dof_pwr
-                                    - self.soft_sum_dof_pwr_limits).clip(min=0.)
-        error_limits_sum_dof_pwr = torch.sum(error_limits_sum_dof_pwr, dim=1)  # dims 2->1
-
-        reward_limits_sum_dof_pwr = 1 - \
-                                    torch.exp(self.cfg.rewards.sigma_limits_sum_dof_pwr
-                                              * error_limits_sum_dof_pwr)
-
-        return reward_limits_sum_dof_pwr
 
     # ----------------------------------------------
 

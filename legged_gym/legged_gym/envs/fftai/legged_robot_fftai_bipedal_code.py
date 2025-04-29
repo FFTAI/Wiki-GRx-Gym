@@ -492,6 +492,31 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
     # ==========================================================================================================================
     # Reward functions
 
+    def _reward_stand_still_dof_pos_waist_joint(self):
+        """
+        Penalize not standing still
+        """
+        error_stand_still_pos = torch.abs(self.dof_pos[:, self.waist_indices]
+                                          - self.default_dof_pos_tenors[:, self.waist_indices])
+        error_stand_still_pos = torch.sum(error_stand_still_pos, dim=1)  # dims 2->1
+        reward_stand_still_pos = torch.exp(self.cfg.rewards.sigma_stand_still_dof_pos
+                                           * error_stand_still_pos)
+
+        # ----------------------------
+
+        """
+        Jason 2024-03-23:
+        Only apply the reward to the environment that is in the stand state
+        """
+        selector_stand_still = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)  # dims 1
+        selector_stand_still[self.env_ids_of_stand_command] = 1
+
+        # ----------------------------
+
+        reward_stand_still_pos *= selector_stand_still
+
+        return reward_stand_still_pos
+
     def _reward_stand_still_foot_distance(self):
         """
         Reward for tracking the foot distance match with the stand command,
@@ -538,304 +563,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
         reward_stand_still_foot_distance *= selector_stand
 
         return reward_stand_still_foot_distance
-
-    def _reward_stand_still_base_in_the_middle_of_feet(self):
-        """
-        Penalty for not stand in the middle of the two feet when the gait is in the stand state (two feet on the ground).
-
-        Jason 2025-02-16:
-        这个奖赏是为了鼓励机器人在两脚之间站立，而不是侧向一边脚站立.
-        """
-        left_foot_pos_in_world_frame = self.rigid_body_states[:, self.feet_indices][:, 0, 0:3]
-        right_foot_pos_in_world_frame = self.rigid_body_states[:, self.feet_indices][:, 1, 0:3]
-
-        left_foot_pos_to_base_in_world_frame = left_foot_pos_in_world_frame - self.root_states[:, 0:3]
-        right_foot_pos_to_base_in_world_frame = right_foot_pos_in_world_frame - self.root_states[:, 0:3]
-
-        left_foot_pos = quat_rotate_inverse(self.root_states[:, 3:7], left_foot_pos_to_base_in_world_frame)
-        right_foot_pos = quat_rotate_inverse(self.root_states[:, 3:7], right_foot_pos_to_base_in_world_frame)
-
-        foot_distance_y_diff = torch.abs(left_foot_pos[:, 1:2]) - torch.abs(right_foot_pos[:, 1:2])
-
-        error_foot_distance_diff = torch.abs(foot_distance_y_diff)
-        error_foot_distance_diff = torch.sum(error_foot_distance_diff, dim=1)  # dims 2->1
-
-        reward_stand_still_base_in_the_middle_of_feet = torch.exp(self.cfg.rewards.sigma_stand_still_base_in_the_middle_of_feet
-                                                                  * error_foot_distance_diff)
-
-        # ----------------------------
-
-        """
-        Jason 2025-02-18:
-        Only apply the reward to the condition that the feet are at two sides of the base
-        """
-        condition_feet_at_two_sides = left_foot_pos[:, 1:2] * right_foot_pos[:, 1:2] < 0
-        condition_feet_at_two_sides = condition_feet_at_two_sides.squeeze(1)
-
-        # ----------------------------
-
-        """
-        Jason 2024-03-23:
-        Only apply the reward to the environment that is in the stand state
-        """
-        selector_stand = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
-        selector_stand[self.env_ids_of_stand_command] = 1
-
-        # ----------------------------
-
-        reward_stand_still_base_in_the_middle_of_feet *= condition_feet_at_two_sides
-        reward_stand_still_base_in_the_middle_of_feet *= selector_stand
-
-        return reward_stand_still_base_in_the_middle_of_feet
-
-    def _reward_stand_still_dof_pos_hip_roll_joint(self):
-        """
-        Penalize not standing still
-        """
-        error_stand_still_pos = torch.abs(self.dof_pos[:, self.hip_roll_indices]
-                                          - self.default_dof_pos_tenors[:, self.hip_roll_indices])
-        error_stand_still_pos = torch.sum(error_stand_still_pos, dim=1)  # dims 2->1
-        reward_stand_still_pos = torch.exp(self.cfg.rewards.sigma_stand_still_dof_pos
-                                           * error_stand_still_pos)
-
-        # ----------------------------
-
-        """
-        Jason 2024-03-23:
-        Only apply the reward to the environment that is in the stand state
-        """
-        selector_stand_still = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)  # dims 1
-        selector_stand_still[self.env_ids_of_stand_command] = 1
-
-        # ----------------------------
-
-        reward_stand_still_pos *= selector_stand_still
-
-        return reward_stand_still_pos
-
-    def _reward_stand_still_dof_pos_waist_joint(self):
-        """
-        Penalize not standing still
-        """
-        error_stand_still_pos = torch.abs(self.dof_pos[:, self.waist_indices]
-                                          - self.default_dof_pos_tenors[:, self.waist_indices])
-        error_stand_still_pos = torch.sum(error_stand_still_pos, dim=1)  # dims 2->1
-        reward_stand_still_pos = torch.exp(self.cfg.rewards.sigma_stand_still_dof_pos
-                                           * error_stand_still_pos)
-
-        # ----------------------------
-
-        """
-        Jason 2024-03-23:
-        Only apply the reward to the environment that is in the stand state
-        """
-        selector_stand_still = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)  # dims 1
-        selector_stand_still[self.env_ids_of_stand_command] = 1
-
-        # ----------------------------
-
-        reward_stand_still_pos *= selector_stand_still
-
-        return reward_stand_still_pos
-
-    # ----------------------------------------------
-
-    def _reward_action_diff_main_body_joint(self):
-        error_action_diff = (self.actions[:, self.main_body_joint_indices]
-                             - self.last_actions[:, self.main_body_joint_indices]) \
-                            * self.action_scales[self.main_body_joint_indices]
-        error_action_diff = torch.abs(error_action_diff)
-        error_action_diff = torch.sum(error_action_diff, dim=1)  # dims 2->1
-
-        reward_main_body_joint_action_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff
-                                                           * error_action_diff)
-        return reward_main_body_joint_action_diff
-
-    def _reward_action_diff_diff_main_body_joint(self):
-        error_action_diff = (self.actions[:, self.main_body_joint_indices]
-                             - self.last_actions[:, self.main_body_joint_indices]) \
-                            * self.action_scales[self.main_body_joint_indices]
-        error_action_diff_last = (self.last_actions[:, self.main_body_joint_indices]
-                                  - self.last_last_actions[:, self.main_body_joint_indices]) \
-                                 * self.action_scales[self.main_body_joint_indices]
-
-        error_action_diff_diff = torch.abs(error_action_diff - error_action_diff_last)
-        error_action_diff_diff = torch.sum(error_action_diff_diff, dim=1)  # dims 2->1
-
-        reward_action_diff_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff_diff
-                                                * error_action_diff_diff)
-        return reward_action_diff_diff
-
-    def _reward_action_diff_upper_limb_joint(self):
-        error_action_diff = (self.actions[:, self.upper_Limb_joint_indices]
-                             - self.last_actions[:, self.upper_Limb_joint_indices]) \
-                            * self.action_scales[self.upper_Limb_joint_indices]
-        error_action_diff = torch.abs(error_action_diff)
-        error_action_diff = torch.sum(error_action_diff, dim=1)  # dims 2->1
-
-        reward_upper_limb_joint_action_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff
-                                                            * error_action_diff)
-        return reward_upper_limb_joint_action_diff
-
-    def _reward_action_diff_diff_upper_limb_joint(self):
-        error_action_diff = (self.actions[:, self.upper_Limb_joint_indices]
-                             - self.last_actions[:, self.upper_Limb_joint_indices]) \
-                            * self.action_scales[self.upper_Limb_joint_indices]
-        error_action_diff_last = (self.last_actions[:, self.upper_Limb_joint_indices]
-                                  - self.last_last_actions[:, self.upper_Limb_joint_indices]) \
-                                 * self.action_scales[self.upper_Limb_joint_indices]
-
-        error_action_diff_diff = torch.abs(error_action_diff - error_action_diff_last)
-        error_action_diff_diff = torch.sum(error_action_diff_diff, dim=1)  # dims 2->1
-
-        reward_action_diff_diff = 1 - torch.exp(self.cfg.rewards.sigma_action_diff_diff
-                                                * error_action_diff_diff)
-        return reward_action_diff_diff
-
-    # ----------------------------------------------
-
-    def _reward_dof_pos_offset_waist_joint(self):
-        error_dof_pos_offset = torch.abs(self.dof_pos[:, self.waist_indices]
-                                         - self.default_dof_pos_tenors[:, self.waist_indices])
-        error_dof_pos_offset = torch.sum(error_dof_pos_offset, dim=1)  # dims 2->1
-
-        """
-        Jason 2025-04-22:
-        对于指定关节的 dof_pos_offset 的奖赏采用负值，更好地去让 actor 理解
-        """
-        reward_dof_pos_offset = 1 - torch.exp(self.cfg.rewards.sigma_dof_pos_offset
-                                              * error_dof_pos_offset)
-        return reward_dof_pos_offset
-
-    def _reward_dof_pos_offset_hip_roll_joint(self):
-        error_dof_pos_offset = torch.abs(self.dof_pos[:, self.hip_roll_indices]
-                                         - self.default_dof_pos_tenors[:, self.hip_roll_indices])
-        error_dof_pos_offset = torch.sum(error_dof_pos_offset, dim=1)  # dims 2->1
-
-        """
-        Jason 2025-04-22:
-        对于指定关节的 dof_pos_offset 的奖赏采用负值，更好地去让 actor 理解
-        """
-        reward_dof_pos_offset = 1 - torch.exp(self.cfg.rewards.sigma_dof_pos_offset
-                                              * error_dof_pos_offset)
-        return reward_dof_pos_offset
-
-    def _reward_dof_pos_offset_ankle_roll_joint(self):
-        error_dof_pos_offset = torch.abs(self.dof_pos[:, self.ankle_roll_indices]
-                                         - self.default_dof_pos_tenors[:, self.ankle_roll_indices])
-        error_dof_pos_offset = torch.sum(error_dof_pos_offset, dim=1)
-
-        reward_dof_pos_offset = torch.exp(self.cfg.rewards.sigma_dof_pos_offset
-                                          * error_dof_pos_offset)
-        return reward_dof_pos_offset
-
-    def _reward_dof_pos_offset_position_control_joint(self):
-        error_dof_pos_offset = torch.abs(self.dof_pos[:, self.position_control_indices]
-                                         - self.default_dof_pos_tenors[:, self.position_control_indices])
-        error_dof_pos_offset = torch.sum(error_dof_pos_offset, dim=1)
-
-        """
-        Jason 2025-04-22:
-        对于指定关节的 dof_pos_offset 的奖赏采用负值，更好地去让 actor 理解
-        """
-        reward_dof_pos_offset = 1 - torch.exp(self.cfg.rewards.sigma_dof_pos_offset
-                                              * error_dof_pos_offset)
-        return reward_dof_pos_offset
-
-    def _reward_dof_pos_offset_shoulder_roll_joint(self):
-        error_dof_pos_offset = torch.abs(self.dof_pos[:, self.shoulder_roll_indices]
-                                         - self.default_dof_pos_tenors[:, self.shoulder_roll_indices])
-        error_dof_pos_offset = torch.sum(error_dof_pos_offset, dim=1)
-
-        """
-        Jason 2025-04-22:
-        对于指定关节的 dof_pos_offset 的奖赏采用负值，更好地去让 actor 理解
-        """
-        reward_dof_pos_offset = 1 - torch.exp(self.cfg.rewards.sigma_dof_pos_offset_shoulder_roll_joint
-                                              * error_dof_pos_offset)
-        return reward_dof_pos_offset
-
-    # ----------------------------------------------
-
-    def _reward_dof_vel_main_body_joint(self):
-        error_dof_vel = torch.abs(self.dof_vel[:, self.main_body_joint_indices])
-        error_dof_vel = torch.sum(error_dof_vel, dim=1)  # dims 2->1
-
-        reward_dof_vel = 1 - torch.exp(self.cfg.rewards.sigma_dof_vel
-                                       * error_dof_vel)
-        return reward_dof_vel
-
-    def _reward_dof_vel_upper_limb_joint(self):
-        error_dof_vel = torch.abs(self.dof_vel[:, self.upper_Limb_joint_indices])
-        error_dof_vel = torch.sum(error_dof_vel, dim=1)  # dims 2->1
-
-        reward_dof_vel = 1 - torch.exp(self.cfg.rewards.sigma_dof_vel
-                                       * error_dof_vel)
-        return reward_dof_vel
-
-    # ----------------------------------------------
-
-    def _reward_dof_acc_main_body_joint(self):
-        error_dof_acc = torch.abs((self.dof_vel[:, self.main_body_joint_indices]
-                                   - self.last_dof_vel[:, self.main_body_joint_indices])
-                                  / self.dt)
-        error_dof_acc = torch.sum(error_dof_acc, dim=1)  # dims 2->1
-
-        reward_dof_acc = 1 - torch.exp(self.cfg.rewards.sigma_dof_acc
-                                       * error_dof_acc)
-        return reward_dof_acc
-
-    def _reward_dof_acc_upper_limb_joint(self):
-        error_dof_acc = torch.abs((self.dof_vel[:, self.upper_Limb_joint_indices]
-                                   - self.last_dof_vel[:, self.upper_Limb_joint_indices])
-                                  / self.dt)
-        error_dof_acc = torch.sum(error_dof_acc, dim=1)  # dims 2->1
-
-        reward_dof_acc = 1 - torch.exp(self.cfg.rewards.sigma_dof_acc
-                                       * error_dof_acc)
-        return reward_dof_acc
-
-    # ----------------------------------------------
-
-    def _reward_dof_tor_ankle_joint(self):
-        error_dof_tor = torch.abs(self.dof_tor[:, self.ankle_indices])
-        error_dof_tor = torch.sum(error_dof_tor, dim=1)
-
-        reward_dof_tor = 1 - torch.exp(self.cfg.rewards.sigma_dof_tor
-                                       * error_dof_tor)
-        return reward_dof_tor
-
-    def _reward_dof_tor_ankle_pitch_joint(self):
-        error_dof_tor = torch.abs(self.dof_tor[:, self.ankle_pitch_indices])
-        error_dof_tor = torch.sum(error_dof_tor, dim=1)  # dims 2->1
-
-        reward_dof_tor = 1 - torch.exp(self.cfg.rewards.sigma_dof_tor
-                                       * error_dof_tor)
-        return reward_dof_tor
-
-    def _reward_dof_tor_ankle_roll_joint(self):
-        error_dof_tor = torch.abs(self.dof_tor[:, self.ankle_roll_indices])
-        error_dof_tor = torch.sum(error_dof_tor, dim=1)
-
-        reward_dof_tor = 1 - torch.exp(self.cfg.rewards.sigma_dof_tor
-                                       * error_dof_tor)
-        return reward_dof_tor
-
-    def _reward_dof_tor_main_body_joint(self):
-        error_dof_tor = torch.abs(self.dof_tor[:, self.main_body_joint_indices])
-        error_dof_tor = torch.sum(error_dof_tor, dim=1)  # dims 2->1
-
-        reward_dof_tor = 1 - torch.exp(self.cfg.rewards.sigma_dof_tor
-                                       * error_dof_tor)
-        return reward_dof_tor
-
-    def _reward_dof_tor_upper_limb_joint(self):
-        error_dof_tor = torch.abs(self.dof_tor[:, self.upper_Limb_joint_indices])
-        error_dof_tor = torch.sum(error_dof_tor, dim=1)  # dims 2->1
-
-        reward_dof_tor = 1 - torch.exp(self.cfg.rewards.sigma_dof_tor
-                                       * error_dof_tor)
-        return reward_dof_tor
 
     # ----------------------------------------------
 
@@ -983,65 +710,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
                                                          * error_feet_speed_xy_close_to_ground)
         return reward_feet_speed_xy_close_to_ground
 
-    def _reward_feet_speed_yaw_close_to_ground(self):
-        """
-        Reward for keeping the feet speed yaw close to the ground.
-        """
-        left_foot_height = self.get_left_foot_height()
-        right_foot_height = self.get_right_foot_height()
-
-        left_foot_height_max = self.get_left_foot_height_max()
-        right_foot_height_max = self.get_right_foot_height_max()
-
-        error_left_foot_close_to_ground = \
-            torch.abs(left_foot_height - left_foot_height_max / 4) \
-            * (left_foot_height < left_foot_height_max / 4) \
-            / (left_foot_height_max / 4)
-        error_right_foot_close_to_ground = \
-            torch.abs(right_foot_height - right_foot_height_max / 4) \
-            * (right_foot_height < right_foot_height_max / 4) \
-            / (right_foot_height_max / 4)
-
-        error_left_foot_speed_yaw_close_to_ground = \
-            torch.norm(self.avg_feet_speed_rpy[:, 0, 2:3], dim=1).unsqueeze(1) \
-            * error_left_foot_close_to_ground
-        error_right_foot_speed_yaw_close_to_ground = \
-            torch.norm(self.avg_feet_speed_rpy[:, 1, 2:3], dim=1).unsqueeze(1) \
-            * error_right_foot_close_to_ground
-
-        error_feet_speed_yaw_close_to_ground = error_left_foot_speed_yaw_close_to_ground + \
-                                               error_right_foot_speed_yaw_close_to_ground
-        error_feet_speed_yaw_close_to_ground = torch.sum(error_feet_speed_yaw_close_to_ground, dim=1)  # dims 2->1
-
-        reward_feet_speed_yaw_close_to_ground = torch.exp(self.cfg.rewards.sigma_feet_speed_yaw_close_to_ground
-                                                          * error_feet_speed_yaw_close_to_ground)
-
-        return reward_feet_speed_yaw_close_to_ground
-
-    def _reward_feet_force_z_contact(self):
-        """
-        Reward for keeping the contact force within the limit.
-        """
-        error_left_foot_force_z_contact = \
-            torch.clip(self.contact_forces[:, self.feet_indices][:, 0, 2:3]
-                       - self.contact_forces_limit
-                       * self.cfg.rewards.feet_force_z_contact_force_limit_ratio,
-                       min=0)
-        error_right_foot_force_z_contact = \
-            torch.clip(self.contact_forces[:, self.feet_indices][:, 1, 2:3]
-                       - self.contact_forces_limit
-                       * self.cfg.rewards.feet_force_z_contact_force_limit_ratio,
-                       min=0)
-
-        error_feet_force_z_contact = error_left_foot_force_z_contact + \
-                                     error_right_foot_force_z_contact
-        error_feet_force_z_contact = torch.sum(error_feet_force_z_contact, dim=1)  # dims 2->1
-
-        reward_feet_force_z_contact = 1 - torch.exp(self.cfg.rewards.sigma_feet_force_z_contact
-                                                    * error_feet_force_z_contact)
-
-        return reward_feet_force_z_contact
-
     def _reward_feet_force_z_close_to_ground(self):
         """
         Reward for keeping the feet close to the ground.
@@ -1090,59 +758,6 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
                                                             * error_feet_force_z_close_to_ground)
 
         return reward_feet_force_z_close_to_ground
-
-    def _reward_feet_force_z_first_contact_ground(self):
-        """
-        Reward for keeping the low contact force when the feet first contact with the ground.
-
-        Jason 2024-11-12:
-        Too high penalty, will cause the robot try to use its foot edge to contact with the ground.
-        过高的接近地面 z 轴接触力惩罚会导致机器人尝试把脚侧向抬高，翘起来走路。
-        """
-        # ----------------------------
-
-        # FIXME:
-        #  Find a bug that self.feet_contact_time[:, 0] <= 0.1 will set False when time == 0.1
-        #  In order to fix this bug, change the condition to self.feet_contact_time[:, 0] <= 0.101
-        condition_left_foot_first_contact_ground_start = \
-            0 < self.feet_contact_time[:, 0]
-        condition_right_foot_first_contact_ground_start = \
-            0 < self.feet_contact_time[:, 1]
-        condition_left_foot_first_contact_ground_end = \
-            self.feet_contact_time[:, 0] < self.cfg.rewards.feet_force_z_first_contact_ground_count_time
-        condition_right_foot_first_contact_ground_end = \
-            self.feet_contact_time[:, 1] < self.cfg.rewards.feet_force_z_first_contact_ground_count_time
-
-        condition_left_foot_first_contact_ground = \
-            condition_left_foot_first_contact_ground_start \
-            * condition_left_foot_first_contact_ground_end
-        condition_right_foot_first_contact_ground = \
-            condition_right_foot_first_contact_ground_start \
-            * condition_right_foot_first_contact_ground_end
-
-        # ----------------------------
-
-        error_left_foot_force_z_first_contact_ground = \
-            torch.clip(self.contact_forces[:, self.feet_indices][:, 0, 2:3]
-                       - self.contact_forces_limit
-                       * self.cfg.rewards.feet_force_z_first_contact_ground_contact_force_limit_ratio,
-                       min=0) \
-            * condition_left_foot_first_contact_ground
-        error_right_foot_force_z_first_contact_ground = \
-            torch.clip(self.contact_forces[:, self.feet_indices][:, 1, 2:3]
-                       - self.contact_forces_limit
-                       * self.cfg.rewards.feet_force_z_first_contact_ground_contact_force_limit_ratio,
-                       min=0) \
-            * condition_right_foot_first_contact_ground
-
-        error_feet_force_z_first_contact_ground = error_left_foot_force_z_first_contact_ground + \
-                                                  error_right_foot_force_z_first_contact_ground
-        error_feet_force_z_first_contact_ground = torch.sum(error_feet_force_z_first_contact_ground, dim=1)
-
-        reward_feet_force_z_first_contact_ground = 1 - torch.exp(self.cfg.rewards.sigma_feet_force_z_first_contact_ground
-                                                                 * error_feet_force_z_first_contact_ground)
-
-        return reward_feet_force_z_first_contact_ground
 
     # ----------------------------------------------
 

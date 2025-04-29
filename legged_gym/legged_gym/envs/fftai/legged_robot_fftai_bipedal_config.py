@@ -105,19 +105,12 @@ class LeggedRobotFFTAIBipedalCfg(LeggedRobotFFTAICfg):
         # ---------------------------------------------------------------
         # Reward coefficients
         sigma_stand_still_foot_distance = -10.0 * torch.e
-        sigma_stand_still_base_in_the_middle_of_feet = -5.0 * torch.e
-
-        sigma_dof_pos_offset_shoulder_roll_joint = -2.0 * torch.e
 
         sigma_feet_distance_too_close = -10.0 * torch.e
         sigma_feet_distance_y_too_close = -10.0 * torch.e
 
         sigma_feet_speed_xy_close_to_ground = -10.0
-        sigma_feet_speed_yaw_close_to_ground = -10.0
-
-        sigma_feet_force_z_contact = -0.01 * torch.e
         sigma_feet_force_z_close_to_ground = -0.01 * torch.e
-        sigma_feet_force_z_first_contact_ground = -0.01 * torch.e
 
         sigma_feet_air_time = -1.0 * torch.e
 

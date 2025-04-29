@@ -34,30 +34,15 @@ class N1MainBodyCfg(N1BaseCfg):
         # gap, pit,
         # ]
         terrain_proportions = [
-            0.4, 0.6,
+            0.5, 0.5,
             0.0, 0.0,
             0.0, 0.0,
             0.0, 0.0,
             0.0, 0.0,
             0.0, 0.0,
         ]
-
-    class commands(N1BaseCfg.commands):
-        gait_patterns = [
-            "stand", "walk",
-        ]
-
-        class ranges(N1BaseCfg.commands.ranges):
-            lin_vel_x = [-0.50, 0.60]  # min max [m/s]
-            lin_vel_y = [-0.50, 0.50]  # min max [m/s]
-            ang_vel_yaw = [-1.00, 1.00]  # min max [rad/s]
 
     class rewards(N1BaseCfg.rewards):
-        robot_foot_length = 0.18  # m
-        robot_foot_width = 0.0125 * 6  # m
-        robot_foot_thickness = 0.035 + 0.0125  # m
-        robot_ankle2toe_horizontal_distance = robot_foot_length / 2.0 + 0.033
-
         class scales(N1BaseCfg.rewards.scales):
             stand_still_dof_pos_waist_joint = 0.50
             stand_still_foot_distance = 0.25

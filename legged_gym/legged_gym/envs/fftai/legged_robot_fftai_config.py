@@ -39,10 +39,7 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
 
         sigma_cmd_diff_base_lin_vel_x = -1.0 * torch.e * (1.0 / 0.50)
         sigma_cmd_diff_base_lin_vel_y = -1.0 * torch.e * (1.0 / 1.00)
-        sigma_cmd_diff_base_avg_lin_vel_x = -1.0 * torch.e
-        sigma_cmd_diff_base_avg_lin_vel_y = -1.0 * torch.e
         sigma_cmd_diff_base_ang_vel_yaw = -1.0 * torch.e * (1.0 / 3.00)
-        sigma_cmd_diff_base_avg_ang_vel_yaw = -1.0 * torch.e * (1.0 / 3.00)
 
         sigma_base_lin_vel_xy = -1.0 * torch.e
         sigma_base_lin_vel_z = -1.0 * torch.e
@@ -50,39 +47,14 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
         sigma_base_ang_vel_roll = -1.0 * torch.e
         sigma_base_ang_vel_pitch = -1.0 * torch.e
 
-        sigma_base_avg_ang_vel_roll = -1.0 * torch.e
-        sigma_base_avg_ang_vel_pitch = -1.0 * torch.e
-        sigma_base_avg_ang_vel_yaw = -1.0 * torch.e
-
-        sigma_cmd_diff_base_pos_x = -1.0 * torch.e
-        sigma_cmd_diff_base_pos_y = -1.0 * torch.e
-        sigma_cmd_diff_base_pos_z = -1.0 * torch.e
-        sigma_cmd_diff_base_ang_roll = -1.0 * torch.e
-        sigma_cmd_diff_base_ang_pitch = -1.0 * torch.e
-        sigma_cmd_diff_base_ang_yaw = -1.0 * torch.e
-
-        sigma_base_pos_norm = -1.0 * torch.e
-        sigma_base_heading = -1.0 * torch.e
-
         sigma_base_height_offset = -10.0 * torch.e
         sigma_base_orient_offset = -1.0 * torch.e
 
-        sigma_base_upward_orient = -5.0 * torch.e
-        sigma_torso_upward_orient = -5.0 * torch.e
-        sigma_chest_upward_orient = -5.0 * torch.e
-        sigma_forehead_upward_orient = -5.0 * torch.e
-
         sigma_base_flat_orient = -5.0 * torch.e
         sigma_torso_flat_orient = -5.0 * torch.e
-        sigma_chest_flat_orient = -5.0 * torch.e
-        sigma_forehead_flat_orient = -5.0 * torch.e
-
-        sigma_base_lin_acc = -0.001 * torch.e
-        sigma_base_ang_acc = -0.001 * torch.e
 
         sigma_action_diff = -0.1
         sigma_action_diff_diff = -1.0
-        sigma_action_zero = -0.1
 
         sigma_dof_pos_offset = -0.1
         sigma_dof_vel = -0.01
@@ -93,8 +65,6 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
         sigma_limits_dof_pos = -1.0
         sigma_limits_dof_vel = -10.0
         sigma_limits_dof_tor = -0.1
-        sigma_limits_dof_pwr = -1.0
-        sigma_limits_sum_dof_pwr = -0.1
 
         sigma_feet_stumble = -1.0
 

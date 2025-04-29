@@ -123,7 +123,7 @@ class N1MainBodyCfg(N1BaseCfg):
         - dof roll, yaw 的值进行反向处理，即取负值。
         - dof_pos_offset, dof_vel, actions 的值进行左右对调处理。
         """
-        enable_mirror = False
+        enable_mirror = True
         actions_coefficient = \
             numpy.array(
                 [

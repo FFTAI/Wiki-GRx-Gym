@@ -567,7 +567,7 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         observations_exchange = \
             numpy.array([])
         actions_coefficient = \
-            numpy.ones(32)
+            numpy.ones(23)
         actions_exchange = \
             numpy.array([])
 

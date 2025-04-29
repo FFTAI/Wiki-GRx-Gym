@@ -135,11 +135,8 @@ class LeggedRobot(BaseTask):
 
         self.resample_command_interval = int(self.cfg.commands.resample_command_interval_s / self.dt)
 
-        self.cfg.domain_rand.push_interval = np.ceil(self.cfg.domain_rand.push_interval_s / self.dt)
         self.cfg.domain_rand.drag_interval = np.ceil(self.cfg.domain_rand.drag_interval_s / self.dt)
         self.cfg.domain_rand.drag_keep = np.ceil(self.cfg.domain_rand.drag_keep_s / self.dt)
-        self.cfg.domain_rand.kick_interval = np.ceil(self.cfg.domain_rand.kick_interval_s / self.dt)
-        self.cfg.domain_rand.kick_keep = np.ceil(self.cfg.domain_rand.kick_keep_s / self.dt)
 
     def _init_episode_length(self, episode_length_s=None):
         """
@@ -1759,13 +1756,6 @@ class LeggedRobot(BaseTask):
                                         shape=(len(env_ids), 1),
                                         device=self.device)
             euler_rpy[:, 2] = rand_yaw.squeeze(1)
-
-        if self.cfg.domain_rand.randomize_init_base_orientation_roll \
-                or self.cfg.domain_rand.randomize_init_base_orientation_pitch \
-                or self.cfg.domain_rand.randomize_init_base_orientation_yaw:
-            self.root_states[env_ids, 3:7] = quat_from_euler_xyz(euler_rpy[:, 0],
-                                                                 euler_rpy[:, 1],
-                                                                 euler_rpy[:, 2])
 
         # ---------------------------------------
 

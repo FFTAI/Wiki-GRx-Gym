@@ -1,7 +1,4 @@
-import torch
-
 from isaacgym.torch_utils import *
-from isaacgym import gymtorch, gymapi, gymutil
 
 from legged_gym.envs.base.legged_robot_code import LeggedRobot
 from legged_gym.envs.fftai.legged_robot_fftai_config import LeggedRobotFFTAICfg
@@ -22,76 +19,37 @@ class LeggedRobotFFTAI(LeggedRobot):
         super()._init_buffers_others()
 
         # env_ids for different commands
-        self.env_ids_of_off_command = torch.arange(self.num_envs, dtype=torch.int, device=self.device,
-                                                   requires_grad=False)
-        self.env_ids_of_stand_command = torch.arange(self.num_envs, dtype=torch.int, device=self.device,
-                                                     requires_grad=False)
+        self.env_ids_of_off_command = torch.arange(self.num_envs, dtype=torch.int, device=self.device, requires_grad=False)
+        self.env_ids_of_stand_command = torch.arange(self.num_envs, dtype=torch.int, device=self.device, requires_grad=False)
 
         # robot info
-        self.default_dof_pos_tenors = torch.ones(self.num_envs,
-                                                 self.num_dofs,
-                                                 dtype=torch.float, device=self.device, requires_grad=False) \
+        self.default_dof_pos_tenors = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False) \
                                       * self.default_dof_pos
 
         # average values
-        self.avg_base_lin_vel = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device,
-                                            requires_grad=False)
-        self.avg_base_ang_vel = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device,
-                                            requires_grad=False)
-
-        self.avg_feet_contact_force = torch.zeros(self.num_envs,
-                                                  len(self.feet_indices),
-                                                  dtype=torch.float, device=self.device, requires_grad=False)
-        self.avg_feet_speed_xyz = torch.zeros(self.num_envs,
-                                              len(self.feet_indices), 3,
-                                              device=self.device, requires_grad=False)
-        self.avg_feet_speed_rpy = torch.zeros(self.num_envs,
-                                              len(self.feet_indices), 3,
-                                              device=self.device, requires_grad=False)
+        self.avg_feet_contact_force = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
+        self.avg_feet_speed_xyz = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
 
         # contact
-        self.feet_contact = torch.zeros(self.num_envs,
-                                        len(self.feet_indices),
-                                        dtype=torch.bool, device=self.device, requires_grad=False)
-        self.feet_contact_last = torch.zeros(self.num_envs,
-                                             len(self.feet_indices),
-                                             dtype=torch.bool, device=self.device, requires_grad=False)
-        self.feet_contact_trig = torch.zeros(self.num_envs,
-                                             len(self.feet_indices),
-                                             dtype=torch.bool, device=self.device, requires_grad=False)
-        self.feet_contact_time = torch.zeros(self.num_envs,
-                                             len(self.feet_indices),
-                                             dtype=torch.float, device=self.device, requires_grad=False)
-        self.feet_contact_time_last = torch.zeros(self.num_envs,
-                                                  len(self.feet_indices),
-                                                  dtype=torch.float, device=self.device, requires_grad=False)
-        self.feet_air_time = torch.zeros(self.num_envs,
-                                         len(self.feet_indices),
-                                         dtype=torch.float, device=self.device, requires_grad=False)
-        self.feet_air_time_last = torch.zeros(self.num_envs,
-                                              len(self.feet_indices),
-                                              dtype=torch.float, device=self.device, requires_grad=False)
+        self.feet_contact = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.bool, device=self.device, requires_grad=False)
+        self.feet_contact_last = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.bool, device=self.device, requires_grad=False)
+        self.feet_contact_trig = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.bool, device=self.device, requires_grad=False)
+        self.feet_contact_time = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
+        self.feet_contact_time_last = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
+        self.feet_air_time = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
+        self.feet_air_time_last = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
 
         # feet pos, height
         self.feet_pos = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
         self.feet_quat = torch.zeros(self.num_envs, len(self.feet_indices), 4, device=self.device, requires_grad=False)
 
-        self.feet_height = torch.zeros(self.num_envs,
-                                       len(self.feet_indices),
-                                       dtype=torch.float, device=self.device, requires_grad=False)
+        self.feet_height = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
 
     # ----------------------------------------------
 
     def before_physics_step(self):
-        self.avg_feet_contact_force = torch.zeros(self.num_envs,
-                                                  len(self.feet_indices),
-                                                  dtype=torch.float, device=self.device, requires_grad=False)
-        self.avg_feet_speed_xyz = torch.zeros(self.num_envs,
-                                              len(self.feet_indices), 3,
-                                              device=self.device, requires_grad=False)
-        self.avg_feet_speed_rpy = torch.zeros(self.num_envs,
-                                              len(self.feet_indices), 3,
-                                              device=self.device, requires_grad=False)
+        self.avg_feet_contact_force = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
+        self.avg_feet_speed_xyz = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
 
     def during_physics_step(self):
         super().during_physics_step()
@@ -104,15 +62,12 @@ class LeggedRobotFFTAI(LeggedRobot):
             torch.norm(self.contact_forces[:, self.feet_indices, 0:3], dim=-1)
         self.avg_feet_speed_xyz += \
             torch.abs(self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 7:10])
-        self.avg_feet_speed_rpy += \
-            torch.abs(self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 10:13])
 
     def _during_physics_step_after_sim(self):
         super()._during_physics_step_after_sim()
 
         self.avg_feet_contact_force /= self.cfg.control.decimation
         self.avg_feet_speed_xyz /= self.cfg.control.decimation
-        self.avg_feet_speed_rpy /= self.cfg.control.decimation
 
     def post_physics_step_update_state(self):
         super().post_physics_step_update_state()
@@ -176,7 +131,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
         self.avg_feet_contact_force[env_ids] = 0.0
         self.avg_feet_speed_xyz[env_ids] = 0.0
-        self.avg_feet_speed_rpy[env_ids] = 0.0
 
         self.feet_contact[env_ids] = 0.0
         self.feet_contact_last[env_ids] = 0.0
@@ -337,24 +291,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
         return reward_stand_still_pos
 
-    def _reward_stand_still_dof_vel(self):
-        """
-        Penalize not standing still
-        """
-        error_stand_still_vel = torch.abs(self.dof_vel) \
-                                * self.dof_vel_scales
-        error_stand_still_vel = torch.sum(error_stand_still_vel, dim=1)  # dims 2->1
-
-        reward_stand_still_vel = torch.exp(self.cfg.rewards.sigma_stand_still_dof_vel
-                                           * error_stand_still_vel)
-
-        selector_stand = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)  # dims 1
-        selector_stand[self.env_ids_of_stand_command] = 1
-
-        reward_stand_still_vel *= selector_stand
-
-        return reward_stand_still_vel
-
     # ----------------------------------------------
 
     def _reward_cmd_diff_base_lin_vel_x(self):
@@ -383,30 +319,6 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     # ----------------------------------------------
 
-    def _reward_base_avg_lin_vel_z(self):
-        error_z_vel = torch.abs(0 - self.avg_base_lin_vel[:, 2:3])
-        error_z_vel = torch.sum(error_z_vel, dim=1)
-
-        reward_z_vel = torch.exp(self.cfg.rewards.sigma_base_avg_lin_vel_z
-                                 * error_z_vel)
-        return reward_z_vel
-
-    def _reward_base_ang_vel_roll(self):
-        error_roll_vel = torch.abs(0 - self.base_ang_vel[:, 0:1])
-        error_roll_vel = torch.sum(error_roll_vel, dim=1)  # dims 2->1
-
-        reward_roll_vel = torch.exp(self.cfg.rewards.sigma_base_ang_vel_roll
-                                    * error_roll_vel)
-        return reward_roll_vel
-
-    def _reward_base_ang_vel_pitch(self):
-        error_pitch_vel = torch.abs(0 - self.base_ang_vel[:, 1:2])
-        error_pitch_vel = torch.sum(error_pitch_vel, dim=1)  # dims 2->1
-
-        reward_pitch_vel = torch.exp(self.cfg.rewards.sigma_base_ang_vel_pitch
-                                     * error_pitch_vel)
-        return reward_pitch_vel
-
     def _reward_base_lin_vel_z(self):
         error_z_vel = torch.abs(0 - self.base_lin_vel[:, 2:3])
         error_z_vel = torch.sum(error_z_vel, dim=1)  # dims 2->1
@@ -414,12 +326,6 @@ class LeggedRobotFFTAI(LeggedRobot):
         reward_z_vel = torch.exp(self.cfg.rewards.sigma_base_lin_vel_z
                                  * error_z_vel)
         return reward_z_vel
-
-    def _reward_base_lin_vel_xy(self):
-        error_xy_vel = torch.norm(0 - self.base_lin_vel[:, 0:2], dim=1)
-        reward_xy_vel = torch.exp(self.cfg.rewards.sigma_base_lin_vel_xy
-                                  * error_xy_vel)
-        return reward_xy_vel
 
     # ----------------------------------------------
 

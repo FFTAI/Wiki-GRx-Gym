@@ -321,22 +321,22 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         # PD Drive parameters:
         stiffness = {
             # leg
-            "hip_pitch": 180.0,  # 80-29E
-            "hip_roll": 120.0,  # 60-43E
-            "hip_yaw": 90.0,  # 60-43E
-            "knee_pitch": 120.0,  # 80-29E
-            "ankle_roll": 45.0,  # 45-30E
-            "ankle_pitch": 45.0,  # 45-30E
+            "hip_pitch": 180.0,
+            "hip_roll": 120.0,
+            "hip_yaw": 90.0,
+            "knee_pitch": 120.0,
+            "ankle_roll": 45.0,
+            "ankle_pitch": 45.0,
 
             # waist
-            "waist_yaw": 90.0,  # 60-43E
+            "waist_yaw": 90.0,
 
             # arm
-            "shoulder_pitch": 90.0,  # 60-43E
-            "shoulder_roll": 45.0,  # 45-30E
-            "shoulder_yaw": 45.0,  # 45-30E
-            "elbow_pitch": 45.0,  # 45-30E
-            "wrist_yaw": 45.0,  # 45-30E
+            "shoulder_pitch": 90.0,
+            "shoulder_roll": 45.0,
+            "shoulder_yaw": 45.0,
+            "elbow_pitch": 45.0,
+            "wrist_yaw": 45.0,
         }  # [N*m/rad]
         damping = {
             # leg

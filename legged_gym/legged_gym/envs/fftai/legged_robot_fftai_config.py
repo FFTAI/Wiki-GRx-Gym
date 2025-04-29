@@ -35,17 +35,12 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
 
         sigma_stand_still = -1.0 * torch.e
         sigma_stand_still_dof_pos = -1.0 * torch.e
-        sigma_stand_still_dof_vel = -1.0 * torch.e
 
         sigma_cmd_diff_base_lin_vel_x = -1.0 * torch.e * (1.0 / 0.50)
         sigma_cmd_diff_base_lin_vel_y = -1.0 * torch.e * (1.0 / 1.00)
         sigma_cmd_diff_base_ang_vel_yaw = -1.0 * torch.e * (1.0 / 3.00)
 
-        sigma_base_lin_vel_xy = -1.0 * torch.e
         sigma_base_lin_vel_z = -1.0 * torch.e
-        sigma_base_avg_lin_vel_z = -1.0 * torch.e
-        sigma_base_ang_vel_roll = -1.0 * torch.e
-        sigma_base_ang_vel_pitch = -1.0 * torch.e
 
         sigma_base_height_offset = -10.0 * torch.e
         sigma_base_orient_offset = -1.0 * torch.e
@@ -70,7 +65,7 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
 
     class normalization(LeggedRobotCfg.normalization):
         actions_max = numpy.array([
-            1.0, 1.0,
+            +1.0, +1.0,
         ])
         actions_min = numpy.array([
             -1.0, -1.0,

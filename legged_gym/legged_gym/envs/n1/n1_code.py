@@ -25,6 +25,8 @@ class N1(LeggedRobotFFTAIBipedal):
                 # dof related
                 self.dof_pos_offset * self.obs_scales.dof_pos,
                 self.dof_vel * self.obs_scales.dof_vel,
+
+                # action related
                 self.actions * self.obs_scales.action,
             ), dim=-1)
 
@@ -63,8 +65,6 @@ class N1(LeggedRobotFFTAIBipedal):
 
         noise_vec = torch.zeros_like(self.obs_buf[0])
 
-        # ----------------------------------------------
-        # OBSERVATIONS
         # command
         start_index_of_commands = 0
         index_offset_of_commands = self.cfg.commands.num_commands
@@ -87,7 +87,7 @@ class N1(LeggedRobotFFTAIBipedal):
 
         # dof related
         start_index_of_dof_related = start_index_of_base_related + index_offset_of_base_related
-        index_offset_of_dof_related = 3 * self.num_dofs
+        index_offset_of_dof_related = 2 * self.num_dofs
         noise_vec[start_index_of_dof_related + 0 * self.num_dofs:
                   start_index_of_dof_related + 1 * self.num_dofs] = \
             self.noise_scales.dof_pos \
@@ -98,8 +98,12 @@ class N1(LeggedRobotFFTAIBipedal):
             self.noise_scales.dof_vel \
             * self.noise_level \
             * self.obs_scales.dof_vel  # dof_vel
-        noise_vec[start_index_of_dof_related + 2 * self.num_dofs:
-                  start_index_of_dof_related + 3 * self.num_dofs] = \
+
+        # action related
+        start_index_of_action_related = start_index_of_dof_related + index_offset_of_dof_related
+        index_offset_of_action_related = 1 * self.num_actions
+        noise_vec[start_index_of_action_related + 0 * self.num_actions:
+                  start_index_of_action_related + 1 * self.num_actions] = \
             self.noise_scales.action \
             * self.noise_level \
             * self.obs_scales.action  # actions

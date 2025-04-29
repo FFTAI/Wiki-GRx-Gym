@@ -307,24 +307,13 @@ class LeggedRobot(BaseTask):
 
         # commands
         self.commands = torch.zeros(self.num_envs, self.cfg.commands.num_commands, dtype=torch.float, device=self.device, requires_grad=False)
-        self.commands_base_pos = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
-        self.commands_base_pos_x = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)
-        self.commands_base_pos_y = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)
-        self.commands_base_pos_z = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)
-        self.commands_base_ang = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
-        self.commands_base_ang_roll = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)
-        self.commands_base_ang_pitch = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)
-        self.commands_base_ang_yaw = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)  # 期望的 ang yaw
         self.commands_base_heading = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)  # 期望的 heading
-        self.commands_base_height_offset = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)  # 期望的高度偏差
 
         self._init_commands_scale()
 
         # base related buffers
         self.base_lin_vel = quat_rotate_inverse(self.base_quat, self.root_states[:, 7:10])
         self.base_ang_vel = quat_rotate_inverse(self.base_quat, self.root_states[:, 10:13])
-        self.last_base_lin_vel = torch.zeros_like(self.base_lin_vel)
-        self.last_base_ang_vel = torch.zeros_like(self.base_ang_vel)
 
         self.base_heights_offset = torch.zeros(self.num_envs,
                                                1,
@@ -336,12 +325,6 @@ class LeggedRobot(BaseTask):
 
         self.base_projected_gravity = quat_rotate_inverse(self.base_quat, self.gravity_vec)
         self.torso_projected_gravity = quat_rotate_inverse(self.base_quat, self.gravity_vec)
-
-        self.base_ang = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)  # roll pitch yaw
-        self.base_ang_pitch = torch.asin(+self.base_projected_gravity[:, 0:1])
-        self.base_ang_roll = torch.asin(-self.base_projected_gravity[:, 1:2])
-        self.base_ang[:, 0:1] = self.base_ang_roll
-        self.base_ang[:, 1:2] = self.base_ang_pitch
 
         # ----------------------------------------------------------------------------------------------------
 
@@ -359,8 +342,6 @@ class LeggedRobot(BaseTask):
         # ----------------------------------------------------------------------------------------------------
         # DOF related buffers
         self._init_buffers_dofs()
-
-        # ----------------------------------------------------------------------------------------------------
 
         # ----------------------------------------------------------------------------------------------------
         # get joint indices
@@ -864,11 +845,6 @@ class LeggedRobot(BaseTask):
             self.gravity_vec
         )
 
-        self.base_ang_pitch = torch.asin(+self.base_projected_gravity[:, 0:1])
-        self.base_ang_roll = torch.asin(-self.base_projected_gravity[:, 1:2])
-        self.base_ang[:, 0:1] = self.base_ang_roll
-        self.base_ang[:, 1:2] = self.base_ang_pitch
-
         self.dof_pos_offset[:] = self.dof_pos - self.default_dof_pos
         self.dof_vel[:] = self.dof_vel[:]
         self.dof_pwr[:] = self.dof_tor * self.dof_vel
@@ -1152,18 +1128,12 @@ class LeggedRobot(BaseTask):
         self.last_dof_pwr[env_ids] = 0.0
         self.last_actions[env_ids] = 0.0
 
-        self.last_base_lin_vel[env_ids] = 0.0
-        self.last_base_ang_vel[env_ids] = 0.0
-
     def record_last_values(self):
         self.last_dof_pos[:] = self.dof_pos[:]  # auto update
         self.last_dof_vel[:] = self.dof_vel[:]  # auto update
         self.last_dof_tor[:] = self.dof_tor[:]
         self.last_dof_pwr[:] = self.dof_pwr[:]
         self.last_actions[:] = self.actions[:]
-
-        self.last_base_lin_vel[:] = self.base_lin_vel[:]
-        self.last_base_ang_vel[:] = self.base_ang_vel[:]
 
     # ------------- Callbacks --------------
 

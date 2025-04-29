@@ -1,6 +1,8 @@
 [English](README.en.md) | 简体中文
 
-(注意：FourierN1 开源训练代码仍处于开发中，尚未正式发布!)
+> ![注意]
+> 
+> FourierN1 开源训练代码仍处于开发完善中，因此可能存在运行不稳定问题!
 
 # Wiki-GRx-Gym
 

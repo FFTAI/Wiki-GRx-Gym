@@ -15,16 +15,11 @@ class N1MainBodyCfg(N1BaseCfg):
         num_pri_obs = 181
         num_actions = (6 + 6 + 1)
 
-        # Jason 2024-07-20:
-        # The deeper the stack, the more smooth of the action
         use_stack = True
         num_stack = 5
 
     class asset(N1BaseCfg.asset):
         file = "{LEGGED_GYM_ROOT_DIR}/resources/robots/N1/urdf/N1_main_body_raw.urdf"
-
-        self_collisions = 0  # 1 to disable, 0 to enable...bitwise filter
-        replace_cylinder_with_capsule = False
 
     class terrain(N1BaseCfg.terrain):
         mesh_type = "trimesh"  # "plane" or "trimesh"
@@ -90,13 +85,6 @@ class N1MainBodyCfg(N1BaseCfg):
             dof_pos_offset = 0.50
             # dof_vel = -0.20
             dof_acc = -0.25
-
-            """
-            dof_tor: 
-            Penalty for the output torque, 
-            may cause the robot to stand very straight, 
-            not good for stability.
-            """
             dof_tor = -0.05
 
             limits_dof_pos_without_ankle = -10.00
@@ -143,18 +131,13 @@ class N1MainBodyCfg(N1BaseCfg):
             ])
 
     class mirror(N1BaseCfg.mirror):
+        """"""
         """
-        Jason 2024-11-01:
         做镜像处理时，主要是需要将:
         - base y, roll, yaw 的值进行反向处理，即取负值。
         - dof roll, yaw 的值进行反向处理，即取负值。
         - dof_pos_offset, dof_vel, actions 的值进行左右对调处理。
-
-        Jason 2024-11-02:
-        需要注意的是，mirror 的设计针对的是节律性对称性的动作进行设计的，
-        如果某项动作不具备节律性和对称性的特点，则不能加入这部分的计算 loss 中。
         """
-
         enable_mirror = False
         actions_coefficient = \
             numpy.array(

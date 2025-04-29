@@ -46,20 +46,6 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
             0.0, 0.0,
         ]
 
-        """
-        Jason 2024-11-13:
-        terrain_length 和 terrain_width 是地形的长和宽，单位是米。
-        这个值的设置要和 env.episode_length_s 一起考虑，确保机器人在一个 episode 中能够走完地形的长度。
-        同时，也要和 commands.rangs.lin_vel_x commands.rangs.lin_vel_y 一起考虑，确保机器人的速度足够能够走完地形的长度。
-
-        应该满足条件:
-        (terrain_length / 2) <= env.episode_length_s * lin_vel_x
-        (terrain_width / 2) <= env.episode_length_s * lin_vel_y
-
-        经验值：
-        terrain_length = (1.0 / 2.0) * env.episode_length_s * lin_vel_x
-        terrain_width = (1.0 / 2.0) * env.episode_length_s * lin_vel_y
-        """
         terrain_length = (1.0 / 2.0) * 20 * 0.5
         terrain_width = (1.0 / 2.0) * 20 * 0.5
 
@@ -86,27 +72,12 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         disable_gravity = False
         collapse_fixed_joints = False  # 显示 fixed joint 的信息
 
-        """
-        Jason 2024-10-16:
-        可以通过 play.py 和 fix_base_link = True 来确认机器人模型的 URDF 以及 PD 设置是否有问题。
-        如果有问题的话，机器会不由自主地颤动。
-        - 如果颤动的话，可以尝试降低 Kp 和 Kd 的值。
-        - Kp 是由于刚度太高导致的，Kd 是由于阻尼太高导致的。
-
-        可以通过 play.py 和 fix_base_link = False 来确认机器人的默认关节角度的大小。
-        """
         fix_base_link = False
 
         self_collisions = 0  # 1 to disable, 0 to enable...bitwise filter
         replace_cylinder_with_capsule = False
         flip_visual_attachments = False
 
-        """
-        Must be the same as in the URDF file !!!
-
-        Jason 2024-10-17:
-        如果这里高度不准确的话，可能训练出来的机器人会斜着脚底板走路。
-        """
         foot_thickness = 0.035 + 0.0125
 
     class dof(LeggedRobotFFTAIBipedalCfg.dof):
@@ -307,7 +278,6 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
             "wrist_yaw",
         ]
 
-        # action scale: target angle = actionScale * action + defaultAngle
         action_scale = {
             # leg
             "hip_pitch": 1,
@@ -511,43 +481,9 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         feet_distance_y_too_close = max(stand_still_foot_distance / 2.0, 0.10)  # unit: m
 
         base_height_offset_range_limit = 0.01  # unit: m
-        base_height_offset_range_limit_walk = 0.01  # unit: m
-        base_height_offset_range_limit_run = 0.10  # unit: m
-        base_height_offset_range_limit_jump = 0.15  # unit: m
-        base_height_offset_range_limit_hop = 0.15  # unit: m
 
         # 脚接触地面的力的限制比例（相对于重力）
         contact_force_limit_ratio = 1.0
-
-        feet_force_z_close_to_ground_contact_force_limit_ratio_walk = 1.0
-        feet_force_z_close_to_ground_contact_force_limit_ratio_run = 2.0
-        feet_force_z_close_to_ground_contact_force_limit_ratio_jump = 1.5
-        feet_force_z_close_to_ground_contact_force_limit_ratio_hop = 2.5
-
-        feet_force_z_first_contact_ground_contact_force_limit_ratio_walk = 1.0
-        feet_force_z_first_contact_ground_contact_force_limit_ratio_run = 2.0
-        feet_force_z_first_contact_ground_contact_force_limit_ratio_jump = 1.5
-        feet_force_z_first_contact_ground_contact_force_limit_ratio_hop = 2.5
-
-        # ---------------------------------------------------------------
-
-        sigma_stand_still_base_ang_vel_pitch = -1.0 * torch.e
-
-        sigma_tracking_gait_foot_contact = -100.0
-        sigma_tracking_gait_foot_height = -10.0 * torch.e * (0.10 / swing_feet_height_target)
-        sigma_tracking_gait_foot_orient = -1.0 * torch.e
-        sigma_tracking_gait_foot_distance = -10.0 * torch.e
-        sigma_tracking_gait_hip_yaw_dof_vel = -0.1 * torch.e
-        sigma_tracking_gait_shoulder_swing = -2.0 * torch.e
-
-        sigma_symmetry_shoulder_swing = -20.0 * torch.e
-
-        sigma_base_heading_close_to_target = -1.0 * torch.e
-        sigma_base_lin_vel_xy_too_high = -1.0 * torch.e
-        sigma_stall_far_from_target = -1.0 * torch.e
-        sigma_face_goal_far_from_target = -1.0 * torch.e
-        sigma_towards_goal_far_from_target = -1.0 * torch.e
-        sigma_towards_heading_close_to_target = -1.0 * torch.e
 
         # ---------------------------------------------------------------
 
@@ -561,9 +497,7 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         class noise_scales(LeggedRobotFFTAIBipedalCfg.noise.noise_scales):
             """ """
             """
-            Jason 2024-11-17:
             全部为基本国际单位制
-
             action: 动作 rad
             dof_pos: 关节位置 rad
             dof_vel: 关节速度 rad/s

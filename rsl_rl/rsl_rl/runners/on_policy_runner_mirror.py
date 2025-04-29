@@ -150,10 +150,6 @@ class OnPolicyRunnerMirror(OnPolicyRunner):
                 for i in range(self.num_steps_per_env):
 
                     # rl -> env: calculate ppo act
-                    """
-                    Jason 2024-11-30:
-                    在此处完成 obs, critic_obs, actions 的记录
-                    """
                     actions = self.algorithm.act(obs, critic_obs)
 
                     # env -> rl: env step
@@ -165,10 +161,6 @@ class OnPolicyRunnerMirror(OnPolicyRunner):
                         obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
 
                     # process env step
-                    """
-                    Jason 2024-11-30:
-                    在此处完成 rewards, dones, infos 的记录
-                    """
                     self.algorithm.process_env_step(rewards, dones, infos)
 
                     # logging

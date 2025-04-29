@@ -385,18 +385,12 @@ class LeggedRobotCfg(BaseConfig):
         robot_mass = 1.0  # kg
 
         only_positive_rewards = True  # if true negative total rewards are clipped at zero (avoids early termination problems)
-        tracking_sigma = 0.25  # tracking reward = exp(-error^2/sigma)
 
         soft_dof_pos_limit = 1.  # percentage of urdf limits, values above this limit are penalized
         soft_dof_vel_limit = 1.
         soft_dof_tor_limit = 1.
-        soft_dof_pwr_limit = 1.
-
-        soft_sum_dof_pwr_limit = 1.
-        sum_dof_pwr_limit = 1000.  # sum of all joint powers (W)
 
         base_height_target = 1.
-        max_contact_force = 100.  # forces above this value are penalized
 
         close_distance = 0.5  # distance to target to consider it reached nearby
         too_high_velocity = 10.0  # velocity above this value is penalized

@@ -429,53 +429,26 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         """
         机器人相关参数信息：
         robot_mass: 机器人的质量
-        robot_foot_length: 机器人脚底板的长度
-        robot_foot_width: 机器人脚底板的宽度
-        robot_foot_thickness: 从脚底板到踝关节的距离
-        robot_ankle2toe_horizontal_distance: 从脚踝关节到脚尖的水平距离，水平投影距离
         """
         robot_mass = 39.727  # kg
-        robot_foot_length = 0.18  # m
-        robot_foot_width = 0.0125 * 6  # m
-        robot_foot_thickness = 0.035 + 0.0125  # m
-        robot_ankle2toe_horizontal_distance = robot_foot_length / 2.0 + 0.033
 
         """
         奖赏设计的一些期望值：
         base_height_target: 期望的机器人身体高度，可以通过设置 fix_base_link = True 来确认
         stand_still_foot_distance: 站立阶段脚的横向距离，可以通过设置 fix_base_link = True 来确认
-        swing_feet_height_target: 期望的脚抬高度，通过设计 45度 抬脚时高度计算得出
-        swing_contact_force_limit: 期望的脚着地力限制
-        swing_feet_orient_move_forward: 期望的抬脚方向 (前进) 
-        swing_feet_orient_move_backward: 期望的抬脚方向 (后退)
         """
         base_height_target = 0.68  # unit: m
         stand_still_foot_distance = 0.24  # unit: m
-        swing_feet_height_target = robot_ankle2toe_horizontal_distance * math.sqrt(2) / 2 \
-                                   + robot_foot_thickness * math.sqrt(2) / 2 \
-                                   - robot_foot_thickness  # 期望的脚抬高度
-        swing_contact_force_limit = robot_mass * 9.81 * 1.1
-        swing_feet_orient_move_forward = [0.0, 0.0, -1.0]  # 期望的抬脚方向 (前进)
-        swing_feet_orient_move_backward = [0.0, 0.0, -1.0]  # 期望的抬脚方向 (后退)
-
-        tracking_sigma = 1.0  # tracking reward = exp(-error^2/sigma)
 
         """
         运动约束相关：
         soft_dof_pos_limit: 关节位置限制
         soft_dof_vel_limit: 关节速度限制
         soft_dof_tor_limit: 关节力矩限制
-        soft_dof_pwr_limit: 关节功率限制
         """
         soft_dof_pos_limit = 0.95
         soft_dof_vel_limit = 0.95
         soft_dof_tor_limit = 0.95
-        soft_dof_pwr_limit = 0.95
-
-        soft_sum_dof_pwr_limit = 1.00
-        sum_dof_pwr_limit = 2000.0  # rated total power [W] - from battery
-
-        max_contact_force = 500.
 
         feet_distance_too_close = max(stand_still_foot_distance - 0.10, 0.10)  # unit: m
         feet_distance_y_too_close = max(stand_still_foot_distance / 2.0, 0.10)  # unit: m

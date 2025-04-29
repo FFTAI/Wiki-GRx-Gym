@@ -201,17 +201,11 @@ class LeggedRobotCfg(BaseConfig):
         resample_command_interval_s = 10.  # -1: not resample, >0: time before command are changed[s]
         heading_command = False  # if true: compute ang vel command from heading error
 
-        resample_ofc_dof_pos_interval_s = -1  # -1: not resample, >0: resample every x seconds
-
         class ranges:
             lin_vel_x = [-1.0, 1.0]  # min max [m/s]
             lin_vel_y = [-1.0, 1.0]  # min max [m/s]
             ang_vel_yaw = [-1.0, 1.0]  # min max [rad/s]
             heading = [-3.14, 3.14]  # min max [rad]
-
-            pos_x = [-2.0, 2.0]  # min max [m]
-            pos_y = [-2.0, 2.0]  # min max [m]
-            pos_z = [-0.2, 0.2]  # min max [m]
 
     class control:
         # action sequence: match the dof sequence in the urdf
@@ -352,26 +346,11 @@ class LeggedRobotCfg(BaseConfig):
         randomize_motor_damping = True
         multiply_motor_damping_range = [0.95, 1.05]
 
-        # randomize observations
-        randomize_obs_lin_vel = False
-        multiply_obs_lin_vel_range = [0.9, 1.1]
-
-        # randomize push robot
-        push_robots = False
-        push_interval_s = 10.0  # unit: second
-        max_push_vel_xy = 0.5  # unit: m/s
-
         # randomize drag robot
         drag_robots = True
         drag_interval_s = 10.0  # unit: second
         drag_keep_s = 2.50  # unit: second
         max_drag_force = 100.0  # unit: N
-
-        # randomize kick robot
-        kick_robots = False
-        kick_interval_s = 16.6  # unit: second
-        kick_keep_s = 0.50
-        max_kick_force = 200.0  # unit: N
 
         # --------------------------------------------------------------------
 
@@ -379,40 +358,17 @@ class LeggedRobotCfg(BaseConfig):
         randomize_init_base_position_xy = True
         add_init_base_position_xy_range = [-1.0, +1.0]  # unit : m
 
-        randomize_init_base_position_z = False
-        multiply_init_base_position_z_range = [0.9, 1.1]
-
-        randomize_init_base_orientation_roll = False
         randomize_init_base_orientation_yaw = True
-        randomize_init_base_orientation_pitch = False
 
         randomize_init_base_linear_velocity = True
         randomize_init_base_angular_velocity = True
 
         # randomize init dof
-        randomize_init_dof_pos_full_range = False
-
         randomize_init_dof_pos_near_default = True
         randomize_init_dof_pos_near_default_add = False
         add_init_dof_pos_near_default_range = [-0.2, +0.2]  # unit : rad
         randomize_init_dof_pos_near_default_multiply = True
         multiply_init_dof_pos_near_default_range = [0.5, 1.5]
-
-        randomize_init_ofc_dof_pos = False
-
-        randomize_init_dof_pos_near_coach = False
-        randomize_init_dof_pos_near_coach_multiply = False
-        multiply_init_dof_pos_near_coach_range = [0.8, 1.2]
-
-        randomize_init_dof_pos = False
-        multiply_init_dof_pos_range = [0.5, 1.5]
-
-        randomize_init_dof_vel = False
-        add_init_dof_vel_range = [-0.5, +0.5]  # unit : rad/s
-
-        # randomize init action
-        randomize_init_action = False
-        multiply_init_action_range = [0.5, 1.5]
 
         # --------------------------------------------------------------------
 

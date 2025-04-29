@@ -134,7 +134,6 @@ class LeggedRobot(BaseTask):
         self._init_episode_length()
 
         self.resample_command_interval = int(self.cfg.commands.resample_command_interval_s / self.dt)
-        self.resample_ofc_dof_pos_interval = int(self.cfg.commands.resample_ofc_dof_pos_interval_s / self.dt)
 
         self.cfg.domain_rand.push_interval = np.ceil(self.cfg.domain_rand.push_interval_s / self.dt)
         self.cfg.domain_rand.drag_interval = np.ceil(self.cfg.domain_rand.drag_interval_s / self.dt)
@@ -841,26 +840,11 @@ class LeggedRobot(BaseTask):
                   == 0).nonzero(as_tuple=False).flatten())
             self._resample_commands(resample_commands_env_ids)
 
-        # using time to resample ofc_dof_pos
-        if self.resample_ofc_dof_pos_interval > 0:
-            resample_ofc_dof_pos_env_ids = \
-                ((self.episode_length_buf
-                  % self.resample_ofc_dof_pos_interval
-                  == 0).nonzero(as_tuple=False).flatten())
-            self._resample_ofc_dof_pos(resample_ofc_dof_pos_env_ids)
-
         self._auto_heading()
 
         # measure height
         if self.cfg.terrain.measure_heights:
             self.measured_heights = self._get_heights()
-
-        # push robots
-        if (
-                self.cfg.domain_rand.push_robots
-                and (self.common_step_counter % self.cfg.domain_rand.push_interval == 0)
-        ):
-            push_lin_vels = self._push_robots()
 
         # drag robots
         if (
@@ -869,14 +853,6 @@ class LeggedRobot(BaseTask):
                      (self.cfg.domain_rand.drag_interval - self.cfg.domain_rand.drag_keep))
         ):
             drag_forces, drag_torques = self._drag_robots()
-
-        # kick robots
-        if (
-                self.cfg.domain_rand.kick_robots
-                and ((self.common_step_counter % self.cfg.domain_rand.kick_interval) >
-                     (self.cfg.domain_rand.kick_interval - self.cfg.domain_rand.kick_keep))
-        ):
-            kick_forces, kick_torques = self._kick_robots()
 
     def check_termination(self):
         """
@@ -1640,24 +1616,6 @@ class LeggedRobot(BaseTask):
 
             self._command_refinement(env_ids)
 
-    def _resample_ofc_dof_pos(self, env_ids=None):
-        """
-        Update the OFC DOF position of the given env_ids.
-        """
-        if env_ids is None:
-            env_ids = torch.arange(start=0, end=self.num_envs, step=1, device=self.device)
-
-        # 随机化未受控关节
-        temp_all_dof_pos = self.dof_pos_limits[:, 0:1].view(1, -1) \
-                           + (self.dof_pos_limits[:, 1:2] - self.dof_pos_limits[:, 0:1]).view(1, -1) \
-                           * torch_rand_float(lower=0.0,
-                                              upper=1.0,
-                                              shape=(len(env_ids), self.num_dofs),
-                                              device=self.device)
-
-        # update the OFC DOF position
-        self.ofc_dof_pos[env_ids] = temp_all_dof_pos[:, self.ofc_indices]
-
     def _command_refinement(self, env_ids=None, command_profile=None):
         """
         Refine commands of some environments
@@ -1790,34 +1748,9 @@ class LeggedRobot(BaseTask):
                                                                shape=(len(env_ids), 2),
                                                                device=self.device)
 
-        if self.cfg.domain_rand.randomize_init_base_position_z:
-            multiply_init_base_position_z_range = self.cfg.domain_rand.multiply_init_base_position_z_range
-
-            # z position within 0.5m of the center
-            self.root_states[env_ids, 2:3] *= torch_rand_float(lower=multiply_init_base_position_z_range[0],
-                                                               upper=multiply_init_base_position_z_range[1],
-                                                               shape=(len(env_ids), 1),
-                                                               device=self.device)
-
         # base orientation
         self.root_states[env_ids, 3:7] = self.base_init_state[3:7]  # quat: x, y, z, w
         euler_rpy = torch.zeros(len(env_ids), 3, device=self.device)
-
-        if self.cfg.domain_rand.randomize_init_base_orientation_roll:
-            euler_rpy = torch.zeros(len(env_ids), 3, device=self.device)
-            rand_roll = torch_rand_float(lower=-0.25 * np.pi,
-                                         upper=+0.25 * np.pi,
-                                         shape=(len(env_ids), 1),
-                                         device=self.device)
-            euler_rpy[:, 0] = rand_roll.squeeze(1)
-
-        if self.cfg.domain_rand.randomize_init_base_orientation_pitch:
-            euler_rpy = torch.zeros(len(env_ids), 3, device=self.device)
-            rand_pitch = torch_rand_float(lower=-0.50 * np.pi,
-                                          upper=+0.50 * np.pi,
-                                          shape=(len(env_ids), 1),
-                                          device=self.device)
-            euler_rpy[:, 1] = rand_pitch.squeeze(1)
 
         if self.cfg.domain_rand.randomize_init_base_orientation_yaw:
             euler_rpy = torch.zeros(len(env_ids), 3, device=self.device)
@@ -1886,21 +1819,9 @@ class LeggedRobot(BaseTask):
                                      device=self.device)
 
         """
-        Jason 2025-02-28:
-        randomize_init_dof_pos_full_range: 关节全范围随机化
         randomize_init_dof_pos_near_default: 关节初始位置附近随机化
-        randomize_init_ofc_dof_pos: uncontrolled dof 随机化
         """
         # dof_pos randomize
-        if self.cfg.domain_rand.randomize_init_dof_pos_full_range:
-            # randomly select default dof_pos between limits
-            dof_pos = self.dof_pos_limits[:, 0:1].view(1, -1) \
-                      + (self.dof_pos_limits[:, 1:2] - self.dof_pos_limits[:, 0:1]).view(1, -1) \
-                      * torch_rand_float(lower=0.0,
-                                         upper=1.0,
-                                         shape=(len(env_ids), self.num_dofs),
-                                         device=self.device)
-
         if self.cfg.domain_rand.randomize_init_dof_pos_near_default:
             # 加法
             if self.cfg.domain_rand.randomize_init_dof_pos_near_default_add:
@@ -1922,19 +1843,6 @@ class LeggedRobot(BaseTask):
                                              shape=(len(env_ids), self.num_dofs),
                                              device=self.device)
 
-        if self.cfg.domain_rand.randomize_init_ofc_dof_pos:
-            self._resample_ofc_dof_pos(env_ids)
-
-            dof_pos[:, self.ofc_indices] = self.ofc_dof_pos[env_ids]
-
-        if self.cfg.domain_rand.randomize_init_dof_pos:
-            multiply_init_dof_pos_range = self.cfg.domain_rand.multiply_init_dof_pos_range
-
-            dof_pos *= torch_rand_float(lower=multiply_init_dof_pos_range[0],
-                                        upper=multiply_init_dof_pos_range[1],
-                                        shape=(len(env_ids), self.num_dofs),
-                                        device=self.device)
-
         # dof_pos clip
         dof_pos = torch.clip(dof_pos,
                              self.dof_pos_limits[:, 0:1].view(1, -1),
@@ -1944,15 +1852,7 @@ class LeggedRobot(BaseTask):
         self.dof_pos[env_ids] = dof_pos
 
         # dof_vel randomize
-        if self.cfg.domain_rand.randomize_init_dof_vel:
-            add_init_dof_vel_range = self.cfg.domain_rand.add_init_dof_vel_range
-
-            dof_vel = torch_rand_float(lower=add_init_dof_vel_range[0],
-                                       upper=add_init_dof_vel_range[1],
-                                       shape=(len(env_ids), self.num_dofs),
-                                       device=self.device)
-        else:
-            dof_vel = 0.0
+        dof_vel = 0.0
 
         # 只对 env_ids 对应的环境 actor 做修改
         self.dof_vel[env_ids] = dof_vel
@@ -2002,38 +1902,6 @@ class LeggedRobot(BaseTask):
         # critic observations
         self.pri_obs_buf[env_ids] = 0.0
 
-    def _push_robots(self):
-        """
-        Random pushes the robots. Emulates an impulse by setting a randomized base velocity.
-
-        using set_actor_root_state_tensor to set the base velocity
-
-        Output:
-        - lin_vel: the linear velocity applied to the robot
-        """
-        max_vel = self.cfg.domain_rand.max_push_vel_xy
-        lin_vels = \
-            torch_rand_float(-max_vel,
-                             +max_vel,
-                             (self.num_envs, 2),
-                             device=self.device)  # lin vel x/y
-
-        self.root_states[:, 7:9] = lin_vels
-
-        env_ids_int32 = torch.arange(start=0,
-                                     end=self.num_envs,
-                                     step=1,
-                                     device=self.device).to(dtype=torch.int32)
-
-        # Sets actor root state buffer to values provided for given actor indices.
-        # Full actor root states buffer should be provided for all actors.
-        self.gym.set_actor_root_state_tensor_indexed(self.sim,
-                                                     gymtorch.unwrap_tensor(self.all_actors_root_states),
-                                                     gymtorch.unwrap_tensor(env_ids_int32),
-                                                     len(env_ids_int32))
-
-        return lin_vels
-
     def _drag_robots(self):
         """
         Randomly drags the robots. Emulates a force by setting a randomized base externel force.
@@ -2049,40 +1917,6 @@ class LeggedRobot(BaseTask):
 
         # only apply force to tosro link, at x/y direction
         max_force = self.cfg.domain_rand.max_drag_force
-        all_actors_forces[0: self.num_envs, self.torso_indices, 0] = \
-            torch_rand_float(-max_force,
-                             +max_force,
-                             (self.num_envs, len(self.torso_indices)),
-                             device=self.device)
-        all_actors_forces[0: self.num_envs, self.torso_indices, 1] = \
-            torch_rand_float(-max_force,
-                             +max_force,
-                             (self.num_envs, len(self.torso_indices)),
-                             device=self.device)
-
-        # Applies forces and/or torques to rigid bodies for the immediate timestep, in Newtons.
-        self.gym.apply_rigid_body_force_tensors(self.sim,
-                                                gymtorch.unwrap_tensor(all_actors_forces),
-                                                gymtorch.unwrap_tensor(all_actors_torques),
-                                                gymapi.ENV_SPACE)
-
-        return all_actors_forces, all_actors_torques
-
-    def _kick_robots(self):
-        """
-        Randomly kicks the robots. Emulates an impulse by setting a randomized base external force.
-
-        using apply_body_forces to set the base external force
-
-        Output:
-        - force: the force applied to the robot
-        """
-        # Full actor forces and torques buffer should be provided for all actors.
-        all_actors_forces = torch.zeros((self.num_all_envs, self.num_bodies, 3), device=self.device, dtype=torch.float)
-        all_actors_torques = torch.zeros((self.num_all_envs, self.num_bodies, 3), device=self.device, dtype=torch.float)
-
-        # only apply force to tosro link, at x/y direction
-        max_force = self.cfg.domain_rand.max_kick_force
         all_actors_forces[0: self.num_envs, self.torso_indices, 0] = \
             torch_rand_float(-max_force,
                              +max_force,
@@ -2401,7 +2235,6 @@ class LeggedRobot(BaseTask):
         self.motor_strength_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
         self.p_gain_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
         self.d_gain_scales = torch.ones(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
-        self.lin_vel_scales = torch.ones(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
 
         # set up the initial state of the robot
         base_init_state_list = self.cfg.init_state.pos + \
@@ -2536,13 +2369,6 @@ class LeggedRobot(BaseTask):
                                                                     upper=multiply_motor_damping_range[1],
                                                                     shape=(1, self.num_dofs),
                                                                     device=self.device)
-
-            if self.cfg.domain_rand.randomize_obs_lin_vel:
-                multiply_obs_lin_vel_range = self.cfg.domain_rand.multiply_obs_lin_vel_range
-                self.lin_vel_scales[env_index, :] = torch_rand_float(lower=multiply_obs_lin_vel_range[0],
-                                                                     upper=multiply_obs_lin_vel_range[1],
-                                                                     shape=(1, 3),
-                                                                     device=self.device)
 
             # ----------------------------------
 

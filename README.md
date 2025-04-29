@@ -68,6 +68,9 @@
    python play.py --task=N1 --num_envs=1
    ```
 
+3. 导出策略：
+   - 运行 `play.py` 的时候，会自动导出策略网络模型到 `logs/N1/exported/policy_jit.pt`
+
 ### 常见问题
 
 1. Ubuntu 22.04报错 "libpython3.8.so.1.0: 无法打开共享对象文件"

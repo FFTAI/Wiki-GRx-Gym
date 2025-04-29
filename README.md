@@ -70,8 +70,9 @@
    python play.py --task=N1 --num_envs=1
    ```
 
-3. 导出策略：
+3. 导出策略
    - 运行 `play.py` 的时候，会自动导出策略网络模型到 `logs/N1/exported/policy_jit.pt`
+   - 该策略模型可用于后续真实机器人的部署。
 
 ### 常见问题
 

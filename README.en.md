@@ -70,8 +70,9 @@ This repository provides a training environment based on NVIDIA Isaac Gym, combi
    python play.py --task=N1 --num_envs=1
    ```
 
-3. Export Policy:
+3. Export Policy
     - When running `play.py`, the policy network model will be automatically exported to `logs/N1/exported/policy_jit.pt`
+    - This policy model can be used for subsequent deployment on real robots.
 
 ### Frequently Asked Questions
 

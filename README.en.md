@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > The FourierN1 open-source training code is still under development and improvement, so there may be some instability issues during operation!
+> If meet issues, feel free to raise an issue 😊
 
 # Wiki-GRx-Gym
 

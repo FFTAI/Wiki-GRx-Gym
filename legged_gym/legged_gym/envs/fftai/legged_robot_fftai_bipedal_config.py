@@ -20,12 +20,6 @@ class LeggedRobotFFTAIBipedalCfg(LeggedRobotFFTAICfg):
         # imu
         imu_name = 'imu'
 
-        # camera
-        camera_name = 'camera'
-
-        # lidar
-        lidar_name = 'lidar'
-
         # waist (for link and joint, with _link and _joint)
         waist_name = 'waist'
         waist_yaw_name = "waist_yaw"

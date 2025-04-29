@@ -73,7 +73,6 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         penalize_contacts_on = []
         terminate_contacts_on = [
             LeggedRobotFFTAIBipedalCfg.asset.imu_name,
-            LeggedRobotFFTAIBipedalCfg.asset.camera_name,
             LeggedRobotFFTAIBipedalCfg.asset.torso_name,
             LeggedRobotFFTAIBipedalCfg.asset.waist_name,
             LeggedRobotFFTAIBipedalCfg.asset.thigh_name,
@@ -151,10 +150,6 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
             "right_elbow_pitch_joint": 0.02,
             "right_wrist_yaw_joint": 0.02,
         }
-        """
-        Jason 2024-11-01:
-        转子的惯性，由电机设计工程师提供，单位是 kg*m^2
-        """
         armature = {
             # left leg
             "left_hip_pitch_joint": 0.12109824,
@@ -483,9 +478,6 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         swing_contact_force_limit: 期望的脚着地力限制
         swing_feet_orient_move_forward: 期望的抬脚方向 (前进) 
         swing_feet_orient_move_backward: 期望的抬脚方向 (后退)
-        
-        Jason 2024-11-20:
-        这些数值可以在 urdf 导入 webots 后，在 webots 仿真器中确认。
         """
         base_height_target = 0.68  # unit: m
         stand_still_foot_distance = 0.24  # unit: m
@@ -516,12 +508,6 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         max_contact_force = 500.
 
         feet_distance_too_close = max(stand_still_foot_distance - 0.10, 0.10)  # unit: m
-
-        """
-        Jason 2024-02-16:
-        这里选取 feet_distance_y_too_close = stand_still_foot_distance / 2，
-        是因为我们如果腿迈过 1/2 的两腿宽度，就意味着我们的平衡性已经受到了挑战。
-        """
         feet_distance_y_too_close = max(stand_still_foot_distance / 2.0, 0.10)  # unit: m
 
         base_height_offset_range_limit = 0.01  # unit: m
@@ -593,11 +579,6 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
             dof_pos = 0.04  # rad, 0.04 rad -> 2.3 deg
             dof_vel = 0.20  # rad/s, 0.20 rad/s -> 11.5 deg/s
             height_measurements = 0.05  # m
-
-            """
-            camera: 深度距离误差百分比 %
-            """
-            camera = 0.02
 
     class normalization(LeggedRobotFFTAIBipedalCfg.normalization):
         class obs_scales(LeggedRobotFFTAIBipedalCfg.normalization.obs_scales):

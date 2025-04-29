@@ -128,10 +128,6 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
             numpy.ones(0)
         actions_exchange = \
             numpy.array([])
-        camera_coefficient = \
-            numpy.ones(0)
-        camera_exchange = \
-            numpy.array([])
 
 
 class LeggedRobotFFTAICfgPPO(LeggedRobotCfgPPO, LeggedRobotFFTAICfg):

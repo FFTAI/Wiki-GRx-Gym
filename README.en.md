@@ -85,5 +85,5 @@ This repository provides a training environment based on NVIDIA Isaac Gym, combi
 
 ---
 
-Thank you for your interest in Fourier Intelligence's N1 robot project!
+Thank you for your interest in Fourier's N1 robot project!
 We hope this resource will provide strong support for your robotics development!

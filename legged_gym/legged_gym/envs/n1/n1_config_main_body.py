@@ -150,9 +150,11 @@ class N1MainBodyCfg(N1BaseCfg):
                 [
                     # commands
                     # base related
+                    # dof related
                     *[(9 + i, 9 + 6 + i) for i in range(6)],  # dof related (dof_pos_offset)
                     *[(22 + i, 22 + 6 + i) for i in range(6)],  # dof related (dof_vel)
-                    *[(35 + i, 35 + 6 + i) for i in range(6)],  # action related
+                    # action related
+                    *[(35 + i, 35 + 6 + i) for i in range(6)],
                 ]
             )
         actions_coefficient = \

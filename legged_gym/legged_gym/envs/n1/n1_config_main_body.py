@@ -124,11 +124,40 @@ class N1MainBodyCfg(N1BaseCfg):
         - dof_pos_offset, dof_vel, actions 的值进行左右对调处理。
         """
         enable_mirror = True
+        observations_coefficient = \
+            numpy.array(
+                [
+                    # commands
+                    1.0, -1.0, -1.0,  # x, y, yaw
+                    # base related
+                    -1.0, 1.0, -1.0,  # base_ang_vel, roll, pitch, yaw
+                    1.0, -1.0, 1.0,  # base_projected_gravity, x, y, z
+                    # dof related
+                    1.0, -1.0, -1.0, 1.0, -1.0, 1.0,  # dof_pos_offset (left leg)
+                    1.0, -1.0, -1.0, 1.0, -1.0, 1.0,  # dof_pos_offset (right leg)
+                    -1.0,  # dof_pos_offset (waist)
+                    1.0, -1.0, -1.0, 1.0, -1.0, 1.0,  # dof_vel (left leg)
+                    1.0, -1.0, -1.0, 1.0, -1.0, 1.0,  # dof_vel (right leg)
+                    -1.0,  # dof_vel (waist)
+                    # action related
+                    1.0, -1.0, -1.0, 1.0, -1.0, 1.0,  # actions (left leg)
+                    1.0, -1.0, -1.0, 1.0, -1.0, 1.0,  # actions (right leg)
+                    -1.0,  # actions (waist)
+                ]
+            )
+        observations_exchange = \
+            numpy.array(
+                [
+                    # commands
+                    # base related
+                    *[(9 + i, 9 + 6 + i) for i in range(6)],  # dof related (dof_pos_offset)
+                    *[(22 + i, 22 + 6 + i) for i in range(6)],  # dof related (dof_vel)
+                    *[(35 + i, 35 + 6 + i) for i in range(6)],  # action related
+                ]
+            )
         actions_coefficient = \
             numpy.array(
                 [
-                    # ----------------
-                    # ACT
                     1.0, -1.0, -1.0, 1.0, -1.0, 1.0,  # actions (left leg)
                     1.0, -1.0, -1.0, 1.0, -1.0, 1.0,  # actions (right leg)
                     -1.0,  # actions (waist)

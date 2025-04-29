@@ -1,11 +1,11 @@
 [简体中文](README.md) | English
 
-(Notice: The open-source training code for FourierN1 is still under development and has not been officially released!)
+> [!NOTE]
+> The FourierN1 open-source training code is still under development and improvement, so there may be some instability issues during operation!
 
 # Wiki-GRx-Gym
 
-This repository provides a training environment based on NVIDIA Isaac Gym, integrating the legged_gym and rsl_rl libraries from ETH Zurich's Legged Robotics team, designed for training GRx robots to
-walk on complex terrains.
+This repository provides a training environment based on NVIDIA Isaac Gym, combined with ETH Zurich's Legged Robotics team's legged_gym and rsl_rl libraries, for training Fourier N1 robot's locomotion capabilities on complex terrains.
 
 ### Related Resources
 
@@ -25,24 +25,35 @@ walk on complex terrains.
    bash Miniconda3-latest-Linux-x86_64.sh
 
    # Create training environment
-   conda create -n grx-gym python=3.8
-   conda activate grx-gym
+   conda create -n wiki-grx-gym python=3.8 -y
+   conda activate wiki-grx-gym
    ```
 
 3. Dependency Installation
    ```
+   # Navigate to project directory
+   cd path/to/your/project
+   
    # Install Isaac Gym
    cd IsaacGym_Preview_4_Package/isaacgym/python/
    pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
-   # Install rsl_rl and legged_gym
-   cd project_path/rsl_rl
-   pip install -e .
-   cd project_path/legged_gym
-   pip install -e .
+   # Navigate to project directory
+   cd path/to/your/project
+
+   # Install rsl_rl
+   cd rsl_rl
+   pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+
+   # Navigate to project directory
+   cd path/to/your/project
+   
+   # Install legged_gym
+   cd legged_gym 
+   pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
    # Install other dependencies
-   pip install numpy==1.20.0 tensorboard protobuf==3.20.3
+   pip install tensorboard protobuf==3.20.3
    ```
 
 ### Usage Instructions
@@ -50,20 +61,28 @@ walk on complex terrains.
 1. Start Training
    ```
    cd legged_gym/legged_gym/scripts
-   python train.py --task=GRMini1T2 --headless
+   python train.py --task=N1 --headless
    ```
 
 2. Run Demo
    ```
-   python play.py --task=GRMini1T2 --num_envs=25
+   python play.py --task=N1 --num_envs=1
    ```
 
-### FAQ
+3. Export Policy:
+    - When running `play.py`, the policy network model will be automatically exported to `logs/N1/exported/policy_jit.pt`
 
-1. Ubuntu 22.04 error "libpython3.8.so.1.0: cannot open shared object file"
+### Frequently Asked Questions
+
+1. Ubuntu 22.04 Error "libpython3.8.so.1.0: cannot open shared object file"
+    - Error message: ImportError: libpython3.8.so.1.0: cannot open shared object file: No such file or directory
     - Solution reference: https://blog.csdn.net/weixin_43989965/article/details/136612205
+    - You can try running the automatic configuration script in this project, then exit the conda environment and reactivate it:
+        - `bash shell/conda_import_libpython.sh`
+        - `conda deactivate`
+        - `conda activate wiki-grx-gym`
 
 ---
 
-Thank you for your interest in Fourier Intelligence's GRx robot project!  
+Thank you for your interest in Fourier Intelligence's N1 robot project!
 We hope this resource will provide strong support for your robotics development!

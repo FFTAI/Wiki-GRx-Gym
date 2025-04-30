@@ -79,10 +79,14 @@ This repository provides a training environment based on NVIDIA Isaac Gym, combi
 1. Ubuntu 22.04 Error "libpython3.8.so.1.0: cannot open shared object file"
     - Error message: ImportError: libpython3.8.so.1.0: cannot open shared object file: No such file or directory
     - Solution reference: https://blog.csdn.net/weixin_43989965/article/details/136612205
-    - You can try running the automatic configuration script in this project, then exit the conda environment and reactivate it:
-        - `bash shell/conda_import_libpython.sh`
-        - `conda deactivate`
-        - `conda activate wiki-grx-gym`
+    - You can try activate `wiki-grx-gym` at first, then running the automatic configuration script in this project, then exit the conda environment and reactivate it:
+
+   ```
+   conda activate wiki-grx-gym
+   bash shell/conda_import_libpython.sh
+   conda deactivate
+   conda activate wiki-grx-gym
+   ```
 
 ---
 

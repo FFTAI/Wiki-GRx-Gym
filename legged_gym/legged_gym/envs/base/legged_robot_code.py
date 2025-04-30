@@ -239,9 +239,6 @@ class LeggedRobot(BaseTask):
         self.dof_tor = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
         self.last_dof_tor = torch.zeros_like(self.dof_tor)
 
-        self.dof_pwr = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
-        self.last_dof_pwr = torch.zeros_like(self.dof_pwr)
-
         self.base_pos = self.root_states[:, 0:3]  # in world frame
         self.base_quat = self.root_states[:, 3:7]  # in world frame
         self.base_heading = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)
@@ -827,7 +824,6 @@ class LeggedRobot(BaseTask):
 
         self.dof_pos_offset[:] = self.dof_pos - self.default_dof_pos
         self.dof_vel[:] = self.dof_vel[:]
-        self.dof_pwr[:] = self.dof_tor * self.dof_vel
 
         # using time to resample commands
         if self.resample_command_interval > 0:
@@ -1082,14 +1078,12 @@ class LeggedRobot(BaseTask):
         self.last_dof_pos[env_ids] = 0.0
         self.last_dof_vel[env_ids] = 0.0
         self.last_dof_tor[env_ids] = 0.0
-        self.last_dof_pwr[env_ids] = 0.0
         self.last_actions[env_ids] = 0.0
 
     def record_last_values(self):
         self.last_dof_pos[:] = self.dof_pos[:]  # auto update
         self.last_dof_vel[:] = self.dof_vel[:]  # auto update
         self.last_dof_tor[:] = self.dof_tor[:]
-        self.last_dof_pwr[:] = self.dof_pwr[:]
         self.last_actions[:] = self.actions[:]
 
     # ------------- Callbacks --------------
@@ -1170,13 +1164,10 @@ class LeggedRobot(BaseTask):
             self.dof_pos_limits = torch.zeros(self.num_dofs, 2, dtype=torch.float, device=self.device, requires_grad=False)
             self.dof_vel_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
             self.dof_tor_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
-            self.dof_pwr_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
 
             self.soft_dof_pos_limits = torch.zeros(self.num_dofs, 2, dtype=torch.float, device=self.device, requires_grad=False)
             self.soft_dof_vel_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
             self.soft_dof_tor_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
-            self.soft_dof_pwr_limits = torch.zeros(self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
-            self.soft_sum_dof_pwr_limits = self.cfg.rewards.sum_dof_pwr_limit * self.cfg.rewards.soft_sum_dof_pwr_limit
 
             for i in range(len(props)):
                 """
@@ -1192,7 +1183,6 @@ class LeggedRobot(BaseTask):
                 self.dof_pos_limits[i, 1] = props["upper"][i].item()
                 self.dof_vel_limits[i] = props["velocity"][i].item()
                 self.dof_tor_limits[i] = props["effort"][i].item()
-                self.dof_pwr_limits[i] = props["effort"][i].item() / 3 * props["velocity"][i].item()
 
                 # soft limits
                 m = (self.dof_pos_limits[i, 0] + self.dof_pos_limits[i, 1]) / 2
@@ -1201,18 +1191,14 @@ class LeggedRobot(BaseTask):
                 self.soft_dof_pos_limits[i, 1] = m + 0.5 * r * self.cfg.rewards.soft_dof_pos_limit
                 self.soft_dof_vel_limits[i] = self.dof_vel_limits[i] * self.cfg.rewards.soft_dof_vel_limit
                 self.soft_dof_tor_limits[i] = self.dof_tor_limits[i] * self.cfg.rewards.soft_dof_tor_limit
-                self.soft_dof_pwr_limits[i] = self.dof_pwr_limits[i] * self.cfg.rewards.soft_dof_pwr_limit
 
             print("self.dof_pos_limits: \n", self.dof_pos_limits)
             print("self.dof_vel_limits: \n", self.dof_vel_limits)
             print("self.dof_tor_limits: \n", self.dof_tor_limits)
-            print("self.dof_pwr_limits: \n", self.dof_pwr_limits)
 
             print("self.soft_dof_pos_limits: \n", self.soft_dof_pos_limits)
             print("self.soft_dof_vel_limits: \n", self.soft_dof_vel_limits)
             print("self.soft_dof_tor_limits: \n", self.soft_dof_tor_limits)
-            print("self.soft_dof_pwr_limits: \n", self.soft_dof_pwr_limits)
-            print("self.soft_sum_dof_pwr_limits: \n", self.soft_sum_dof_pwr_limits)
 
         # randomize motor friction
         multiply_motor_friction_range = self.cfg.domain_rand.multiply_motor_friction_range

@@ -16,7 +16,7 @@ This repository provides a training environment based on NVIDIA Isaac Gym, combi
 
 ### Installation Guide
 
-1. Install Ubuntu 22.04 system
+1. Install Ubuntu 20.04 / Ubuntu 22.04 system
 
 2. Conda Environment Setup
    ```

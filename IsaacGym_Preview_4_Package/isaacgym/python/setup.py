@@ -5,12 +5,14 @@ import os
 
 from setuptools import setup, find_packages
 
+
 def collect_files(target_dir):
     file_list = []
-    for (root, dirs, files) in os.walk(target_dir,followlinks=True):
+    for (root, dirs, files) in os.walk(target_dir, followlinks=True):
         for filename in files:
             file_list.append(os.path.join('..', root, filename))
     return file_list
+
 
 def _do_setup():
     root_dir = os.path.dirname(os.path.realpath(__file__))
@@ -28,28 +30,30 @@ def _do_setup():
     elif sys.platform.startswith("linux"):
         package_files = package_files + collect_files("isaacgym/_bindings/linux-x86_64")
 
-    setup(name='isaacgym',
-          version='1.0.preview4',
-          description='GPU-accelerated simulation and reinforcement learning toolkit',
-          author='NVIDIA CORPORATION',
-          author_email='',
-          url='http://developer.nvidia.com/isaac-gym',
-          license='Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.',
-          packages=packages,
-          package_data={
-              "isaacgym": package_files
-          },
-          python_requires='>=3.6,<3.9',
-          install_requires = [
-              "torch>=1.8.0",
-              "torchvision>=0.9.0",
-              "numpy==1.21.1",
-              "scipy>=1.5.0",
-              "pyyaml>=5.3.1",
-              "pillow",
-              "imageio",
-              "ninja",
-          ],
-         )
+    setup(
+        name='isaacgym',
+        version='1.0.preview4',
+        description='GPU-accelerated simulation and reinforcement learning toolkit',
+        author='NVIDIA CORPORATION',
+        author_email='',
+        url='http://developer.nvidia.com/isaac-gym',
+        license='Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.',
+        packages=packages,
+        package_data={
+            "isaacgym": package_files
+        },
+        python_requires='>=3.6,<3.9',
+        install_requires=[
+            "torch>=1.8.0",
+            "torchvision>=0.9.0",
+            "numpy==1.21.1",
+            "scipy>=1.5.0",
+            "pyyaml>=5.3.1",
+            "pillow",
+            "imageio",
+            "ninja",
+        ],
+    )
+
 
 _do_setup()

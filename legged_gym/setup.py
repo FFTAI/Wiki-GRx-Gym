@@ -4,11 +4,11 @@ from distutils.core import setup
 setup(
     name="legged_gym",
     version="1.0.0",
+    description="Isaac Gym environments for Fourier Robots",
     author="Jason Chen",
-    license="BSD-3-Clause",
-    packages=find_packages(),
     author_email="xin.chen@fftai.com",
-    description="Isaac Gym environments for Legged Robots",
+    license="LGPL-3.0",
+    packages=find_packages(),
     install_requires=[
         "isaacgym",
         "rsl-rl",

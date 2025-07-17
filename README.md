@@ -65,6 +65,10 @@
    python train.py --task=N1 --headless
    ```
 
+   > 【!NOTE】
+   > - 使用 NVIDIA RTX 4090 的平均训练时间，每个 iteration 约为 9.5 秒。
+   > - ![training_time.png](training_time.png)
+
 2. 演示测试
    ```
    python play.py --task=N1 --num_envs=1

@@ -1,9 +1,5 @@
 [English](README.en.md) | 简体中文
 
-> [!NOTE]
-> FourierN1 开源训练代码仍处于开发完善中，因此可能存在运行不稳定问题!
-> 如遇问题，欢迎提 Issue 😊
-
 # Wiki-GRx-Gym
 
 本仓库提供基于 NVIDIA Isaac Gym 的训练环境，结合苏黎世联邦理工 Legged Robotics 团队的 legged_gym 和 rsl_rl 库，用于训练 Fourier N1 机器人在复杂地形上的行走能力。
@@ -67,7 +63,6 @@
 
    > 【!NOTE】
    > - 使用 NVIDIA RTX 4090 的平均训练时间，每个 iteration 约为 9.5 秒。
-   > - ![training_time.png](training_time.png)
 
 2. 演示测试
    ```

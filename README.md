@@ -51,10 +51,10 @@
    
    # 安装 legged_gym
    cd legged_gym 
-   pip install -e . -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+   pip install -e . `-i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple`
 
    # 安装其他依赖
-   pip install tensorboard protobuf==3.20.3
+   pip install tensorboard protobuf==3.20.3 -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
    ```
 
 ### 使用说明

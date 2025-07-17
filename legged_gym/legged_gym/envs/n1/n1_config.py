@@ -14,7 +14,7 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
 
     class env(LeggedRobotFFTAIBipedalCfg.env):
         # NVIDIA 4090 has 16384 CUDA cores
-        num_envs = 8192
+        num_envs = 4096
 
         # episode length in seconds
         episode_length_s = 20

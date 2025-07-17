@@ -70,7 +70,7 @@
     - 运行 `play.py` 的时候，会自动导出策略网络模型到 `logs/N1/exported/policy_jit.pt`
     - 该策略模型可用于后续真实机器人的部署。
 
-> 【!NOTE】
+> [!NOTE]
 > 
 > 使用 NVIDIA RTX 4090 的平均训练时间，每个 iteration 约为 9.5 秒。
 > 完成 5000 个 iteration 需要大约 12 小时。实际训练时间可根据奖赏增长情况和训练目标进行调整。

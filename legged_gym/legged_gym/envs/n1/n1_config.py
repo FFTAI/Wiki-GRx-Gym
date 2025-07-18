@@ -10,7 +10,7 @@ from legged_gym.envs.fftai.legged_robot_fftai_bipedal_config import (
 
 class N1Cfg(LeggedRobotFFTAIBipedalCfg):
     class sim(LeggedRobotFFTAIBipedalCfg.sim):
-        dt = 0.002  # simulation time step [s]
+        dt = 0.005  # simulation time step [s]
 
     class env(LeggedRobotFFTAIBipedalCfg.env):
         # NVIDIA 4090 has 16384 CUDA cores
@@ -419,7 +419,7 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         }
 
         # decimation: Number of control action updates @ sim DT per policy DT
-        decimation = 10
+        decimation = 4
 
     class rewards(LeggedRobotFFTAIBipedalCfg.rewards):
         only_positive_rewards = False

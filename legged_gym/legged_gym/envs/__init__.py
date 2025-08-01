@@ -39,5 +39,5 @@ import legged_gym.envs.base
 # Fourier Intelligence GRx Robots
 import legged_gym.envs.fftai
 
-# N1
-import legged_gym.envs.n1
+# GR2
+import legged_gym.envs.gr2

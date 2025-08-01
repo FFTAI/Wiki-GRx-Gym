@@ -533,6 +533,8 @@ class GR2Cfg(LeggedRobotFFTAIBipedalCfg):
         feet_distance_too_close = max(stand_still_foot_distance - 0.10, 0.10)  # unit: m
         feet_distance_y_too_close = max(stand_still_foot_distance / 2.0, 0.10)  # unit: m
 
+        feet_air_time_target = 0.45  # unit: s
+
         base_height_offset_range_limit = 0.01  # unit: m
 
         # 脚接触地面的力的限制比例（相对于重力）

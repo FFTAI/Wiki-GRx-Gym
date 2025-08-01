@@ -178,4 +178,4 @@ class GR2MainBodyCfgPPO(GR2BaseCfgPPO, GR2MainBodyCfg):
         class_name = "PPOMirror"
 
     class policy(GR2BaseCfgPPO.policy):
-        init_noise_std = [0.2] * GR2MainBodyCfg.env.num_actions
+        init_noise_std = [0.4] * GR2MainBodyCfg.env.num_actions

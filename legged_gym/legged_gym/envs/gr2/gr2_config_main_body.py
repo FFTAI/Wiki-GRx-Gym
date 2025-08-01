@@ -50,7 +50,7 @@ class GR2MainBodyCfg(GR2BaseCfg):
             """
             base related
             """
-            cmd_diff_base_lin_vel_x = 1.00
+            cmd_diff_base_lin_vel_x = 2.00
             cmd_diff_base_lin_vel_y = 0.50
             cmd_diff_base_ang_vel_yaw = 0.75
 
@@ -178,4 +178,4 @@ class GR2MainBodyCfgPPO(GR2BaseCfgPPO, GR2MainBodyCfg):
         class_name = "PPOMirror"
 
     class policy(GR2BaseCfgPPO.policy):
-        init_noise_std = [0.4] * GR2MainBodyCfg.env.num_actions
+        init_noise_std = [0.5] * GR2MainBodyCfg.env.num_actions

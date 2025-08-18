@@ -87,12 +87,12 @@ class GR2MainBodyCfg(GR2BaseCfg):
             feet_air_time = 2.00  # two feet -> 1.0
 
     class normalization(GR2BaseCfg.normalization):
-        actions_max = numpy.array([
+        actions_min = numpy.array([
             -2.6180, -0.5934, -0.6981, -0.0873, -0.7854, -0.38397,  # left leg
             -2.6180, -1.5708, -1.5708, -0.0873, -0.7854, -0.38397,  # right leg
             -2.6180,  # waist
         ])
-        actions_min = numpy.array([
+        actions_max = numpy.array([
             2.6180, 1.5708, 1.5708, 2.3562, 0.7854, 0.38397,  # left leg
             2.6180, 0.5934, 0.6981, 2.3562, 0.7854, 0.38397,  # right leg
             2.6180,  # waist
@@ -100,16 +100,16 @@ class GR2MainBodyCfg(GR2BaseCfg):
 
         clip_observations = 100.0
 
-        clip_actions_max = \
-            actions_max \
-            + numpy.array([
+        clip_actions_min = \
+            actions_min \
+            - numpy.array([
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # left leg
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # right leg
                 1.0,  # waist
             ])
-        clip_actions_min = \
-            actions_min \
-            - numpy.array([
+        clip_actions_max = \
+            actions_max \
+            + numpy.array([
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # left leg
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # right leg
                 1.0,  # waist

@@ -2,7 +2,7 @@
 
 # Wiki-GRx-Gym
 
-本仓库提供基于 NVIDIA Isaac Gym 的训练环境，结合苏黎世联邦理工 Legged Robotics 团队的 legged_gym 和 rsl_rl 库，用于训练 Fourier N1 机器人在复杂地形上的行走能力。
+本仓库提供基于 NVIDIA Isaac Gym 的训练环境，结合苏黎世联邦理工 Legged Robotics 团队的 legged_gym 和 rsl_rl 库，用于训练 Fourier GR2 机器人在复杂地形上的行走能力。
 
 ### 相关资源
 
@@ -58,16 +58,16 @@
 1. 启动训练
    ```
    cd legged_gym/legged_gym/scripts
-   python train.py --task=N1 --headless
+   python train.py --task=GR2 --headless
    ```
 
 2. 演示测试
    ```
-   python play.py --task=N1 --num_envs=1
+   python play.py --task=GR2 --num_envs=1
    ```
 
 3. 导出策略
-    - 运行 `play.py` 的时候，会自动导出策略网络模型到 `logs/N1/exported/policy_jit.pt`
+    - 运行 `play.py` 的时候，会自动导出策略网络模型到 `logs/GR2/exported/policy_jit.pt`
     - 该策略模型可用于后续真实机器人的部署。
 
 > [!NOTE]
@@ -92,5 +92,5 @@
 
 ---
 
-感谢您对傅利叶智能 N1 机器人项目的关注！
+感谢您对傅利叶智能 GR2 机器人项目的关注！
 希望本资源能为您的机器人开发提供有力支持！

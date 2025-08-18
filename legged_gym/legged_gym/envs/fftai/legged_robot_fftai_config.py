@@ -64,22 +64,22 @@ class LeggedRobotFFTAICfg(LeggedRobotCfg):
         sigma_feet_stumble = -1.0
 
     class normalization(LeggedRobotCfg.normalization):
-        actions_max = numpy.array([
-            +1.0, +1.0,
-        ])
         actions_min = numpy.array([
             -1.0, -1.0,
         ])
+        actions_max = numpy.array([
+            +1.0, +1.0,
+        ])
 
         clip_observations = 100.0
-        clip_actions_max = \
-            actions_max \
-            + numpy.array([
-                1.0, 1.0,
-            ])
         clip_actions_min = \
             actions_min \
             - numpy.array([
+                1.0, 1.0,
+            ])
+        clip_actions_max = \
+            actions_max \
+            + numpy.array([
                 1.0, 1.0,
             ])
 

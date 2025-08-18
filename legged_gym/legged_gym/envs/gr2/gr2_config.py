@@ -579,7 +579,7 @@ class GR2Cfg(LeggedRobotFFTAIBipedalCfg):
             dof_vel = 0.10  # map 6.28 rad/s -> 0.628
             height_measurements = 5.0  # map 0.2 m -> 1.0
 
-        actions_max = numpy.array([
+        actions_min = numpy.array([
             -2.6180, -0.5934, -0.6981, -0.0873, -0.7854, -0.38397,  # left leg
             -2.6180, -1.5708, -1.5708, -0.0873, -0.7854, -0.38397,  # right leg
             -2.6180,  # waist
@@ -587,7 +587,7 @@ class GR2Cfg(LeggedRobotFFTAIBipedalCfg):
             -2.9671, -0.5236, -1.8326, -1.5272, -1.8326, -0.6109, -0.9600,  # left arm
             -2.9671, -2.7925, -1.8326, -1.5272, -1.8326, -0.6109, -0.9600,  # right arm
         ])
-        actions_min = numpy.array([
+        actions_max = numpy.array([
             2.6180, 1.5708, 1.5708, 2.3562, 0.7854, 0.38397,  # left leg
             2.6180, 0.5934, 0.6981, 2.3562, 0.7854, 0.38397,  # right leg
             2.6180,  # waist
@@ -598,9 +598,9 @@ class GR2Cfg(LeggedRobotFFTAIBipedalCfg):
 
         clip_observations = 100.0
 
-        clip_actions_max = \
-            actions_max \
-            + numpy.array([
+        clip_actions_min = \
+            actions_min \
+            - numpy.array([
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # left leg
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # right leg
                 1.0,  # waist
@@ -608,9 +608,9 @@ class GR2Cfg(LeggedRobotFFTAIBipedalCfg):
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # left arm
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # right arm
             ])
-        clip_actions_min = \
-            actions_min \
-            - numpy.array([
+        clip_actions_max = \
+            actions_max \
+            + numpy.array([
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # left leg
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # right leg
                 1.0,  # waist

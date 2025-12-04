@@ -99,7 +99,7 @@ class LeggedRobotFFTAIBipedalCfg(LeggedRobotFFTAICfg):
         sigma_feet_speed_xy_close_to_ground = -10.0
         sigma_feet_force_z_close_to_ground = -0.01 * torch.e
 
-        sigma_feet_air_time = -1.0 * torch.e
+        sigma_feet_air_time = -0.75 * torch.e
 
         class scales(LeggedRobotFFTAICfg.rewards.scales):
             pass

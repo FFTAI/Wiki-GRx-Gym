@@ -40,16 +40,18 @@ class LeggedRobotFFTAI(LeggedRobot):
         self.feet_air_time_last = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
 
         # feet pos, height
-        self.feet_pos = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
-        self.feet_quat = torch.zeros(self.num_envs, len(self.feet_indices), 4, device=self.device, requires_grad=False)
+        self.feet_pos = torch.zeros(self.num_envs, len(self.feet_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
+        self.feet_quat = torch.zeros(self.num_envs, len(self.feet_indices), 4, dtype=torch.float, device=self.device, requires_grad=False)
 
         self.feet_height = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
+        self.feet_pos_to_base = torch.zeros(self.num_envs, len(self.feet_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
+        self.feet_pos_to_base_flatten = torch.zeros(self.num_envs, len(self.feet_indices) * 3, dtype=torch.float, device=self.device, requires_grad=False)
 
     # ----------------------------------------------
 
     def before_physics_step(self):
         self.avg_feet_contact_force = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.float, device=self.device, requires_grad=False)
-        self.avg_feet_speed_xyz = torch.zeros(self.num_envs, len(self.feet_indices), 3, device=self.device, requires_grad=False)
+        self.avg_feet_speed_xyz = torch.zeros(self.num_envs, len(self.feet_indices), 3, dtype=torch.float, device=self.device, requires_grad=False)
 
     def during_physics_step(self):
         super().during_physics_step()
@@ -74,6 +76,7 @@ class LeggedRobotFFTAI(LeggedRobot):
 
         self._calculate_feet_contact()
         self._calculate_feet_height()
+        self._calculate_feet_distance()
 
     def _calculate_feet_contact(self):
         self.feet_contact_last = self.feet_contact.clone()
@@ -100,11 +103,9 @@ class LeggedRobotFFTAI(LeggedRobot):
 
     def _calculate_feet_height(self):
         self.feet_pos = self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 0:3]  # in world frame
-        self.feet_quat = self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices),
-                         3:7]  # in world frame
+        self.feet_quat = self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 3:7]  # in world frame
 
-        self.feet_elevation = torch.zeros(self.num_envs, len(self.feet_indices), device=self.device,
-                                          requires_grad=False)
+        self.feet_elevation = torch.zeros(self.num_envs, len(self.feet_indices), device=self.device, requires_grad=False)
 
         for i in range(len(self.feet_indices)):
             feet_forward = quat_apply(self.feet_quat[:, i], self.forward_vec)
@@ -123,6 +124,22 @@ class LeggedRobotFFTAI(LeggedRobot):
                 dim=1)
 
             self.feet_height[:, i] = foot_height
+
+    def _calculate_feet_distance(self):
+        feet_pos_in_world_frame = self.rigid_body_states[:, self.feet_indices][:, 0:len(self.feet_indices), 0:3]  # in world frame
+        base_pos_in_world_frame = self.root_states[:, None, 0:3]  # in world frame, view in [N, 1, 3]
+        feet_pos_to_base_in_world_frame = feet_pos_in_world_frame - base_pos_in_world_frame  # in world frame
+
+        for i in range(len(self.feet_indices)):
+            feet_pos_to_base_in_base_frame = quat_rotate_inverse(
+                self.root_states[:, 3:7],
+                feet_pos_to_base_in_world_frame[:, i]
+            )
+
+            self.feet_pos_to_base[:, i, :] = feet_pos_to_base_in_base_frame
+
+        # flatten feet_pos_to_base
+        self.feet_pos_to_base_flatten = self.feet_pos_to_base.view(self.num_envs, len(self.feet_indices) * 3)
 
     # ----------------------------------------------
 

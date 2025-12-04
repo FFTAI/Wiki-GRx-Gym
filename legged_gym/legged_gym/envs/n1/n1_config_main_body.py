@@ -12,11 +12,11 @@ class N1MainBodyCfg(N1BaseCfg):
         episode_length_s = 20
 
         num_obs = 48
-        num_pri_obs = 181
+        num_pri_obs = 189
         num_actions = (6 + 6 + 1)
 
         use_stack = True
-        num_stack = 5
+        num_stack = 20
 
     class asset(N1BaseCfg.asset):
         file = "{LEGGED_GYM_ROOT_DIR}/resources/robots/N1/urdf/N1_main_body_raw.urdf"
@@ -34,9 +34,9 @@ class N1MainBodyCfg(N1BaseCfg):
         # gap, pit,
         # ]
         terrain_proportions = [
-            0.5, 0.5,
-            0.0, 0.0,
-            0.0, 0.0,
+            0.2, 0.2,
+            0.2, 0.2,
+            0.1, 0.1,
             0.0, 0.0,
             0.0, 0.0,
             0.0, 0.0,
@@ -64,8 +64,8 @@ class N1MainBodyCfg(N1BaseCfg):
             """
             dof related
             """
-            action_diff = -5.00
-            action_diff_diff = -1.10
+            action_diff = -4.00
+            action_diff_diff = -0.50
 
             dof_pos_offset = 0.50
             # dof_vel = -0.20
@@ -84,7 +84,7 @@ class N1MainBodyCfg(N1BaseCfg):
             feet_stumble = -0.20
             feet_distance_too_close = -0.50
 
-            feet_air_time = 2.00  # two feet -> 1.0
+            feet_air_time = 4.00  # two feet -> 2.0
 
     class normalization(N1BaseCfg.normalization):
         actions_max = numpy.array([
@@ -176,6 +176,7 @@ class N1MainBodyCfgPPO(N1BaseCfgPPO, N1MainBodyCfg):
 
     class algorithm(N1BaseCfgPPO.algorithm):
         class_name = "PPOMirror"
+        mirror_coef = 0.25
 
     class policy(N1BaseCfgPPO.policy):
-        init_noise_std = [0.2] * N1MainBodyCfg.env.num_actions
+        init_noise_std = [0.25] * N1MainBodyCfg.env.num_actions

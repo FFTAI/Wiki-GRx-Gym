@@ -82,8 +82,8 @@ class LeggedRobotCfg(BaseConfig):
         num_cols = 20  # number of terrain cols (types)
         max_init_terrain_level = num_rows - 1  # maximum initial terrain level
 
-        static_friction = 0.30  # 0.35  # 0.25
-        dynamic_friction = 0.30  # 0.35  # 0.25
+        static_friction = 0.25
+        dynamic_friction = 0.25
         restitution = 0.0  # 0.0: no bounce
 
         # rough terrain only: 1mx1m rectangle (without center line)
@@ -261,7 +261,7 @@ class LeggedRobotCfg(BaseConfig):
 
         # randomize friction and restitution
         randomize_friction = True
-        friction_range = [0.30, 1.70]  # [0.35, 1.65]  # [0.25, 1.75]
+        friction_range = [0.25, 1.25]  # [0.35, 1.65]  # [0.25, 1.75]
 
         randomize_restitution = True
         restitution_range = [0.0, 0.7]  # 0.0: no bounce, 1.0: perfect bounce

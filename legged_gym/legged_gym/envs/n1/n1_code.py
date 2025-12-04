@@ -39,7 +39,9 @@ class N1(LeggedRobotFFTAIBipedal):
                 self.base_heights_offset * self.obs_scales.height_measurements,
 
                 # foot related
+                self.feet_pos_to_base_flatten,
                 self.feet_contact,
+                self.feet_air_time,
                 self.feet_height * self.obs_scales.height_measurements,
                 self.avg_feet_speed_xyz[:, 0, 0:1] * self.obs_scales.lin_vel,
                 self.avg_feet_speed_xyz[:, 1, 0:1] * self.obs_scales.lin_vel,

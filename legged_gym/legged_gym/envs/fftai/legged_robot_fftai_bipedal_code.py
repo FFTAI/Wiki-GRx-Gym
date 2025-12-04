@@ -728,6 +728,7 @@ class LeggedRobotFFTAIBipedal(LeggedRobotFFTAI):
         left_foot_air_time = self.feet_air_time_last[:, 0:1]  # dims 2
         right_foot_air_time = self.feet_air_time_last[:, 1:2]  # dims 2
 
+        # default normalized to be 1.0
         error_left_foot_air_time = torch.abs(left_foot_air_time - self.cfg.rewards.feet_air_time_target) \
                                    / self.cfg.rewards.feet_air_time_target  # dims 2
         error_right_foot_air_time = torch.abs(right_foot_air_time - self.cfg.rewards.feet_air_time_target) \

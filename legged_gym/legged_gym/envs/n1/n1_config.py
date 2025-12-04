@@ -253,7 +253,7 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         ]
 
         class ranges(LeggedRobotFFTAIBipedalCfg.commands.ranges):
-            lin_vel_x = [-0.50, 0.75]  # min max [m/s]
+            lin_vel_x = [-0.50, 1.00]  # min max [m/s]
             lin_vel_y = [-0.50, 0.50]  # min max [m/s]
             ang_vel_yaw = [-1.00, 1.00]  # min max [rad/s]
 
@@ -481,7 +481,7 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
             """
             action = 0.00  # rad
             lin_vel = 0.10  # m/s
-            ang_vel = 0.05  # rad/s, 0.05 rad/s -> 2.87 deg/s
+            ang_vel = 0.10  # rad/s, 0.10 rad/s -> 5.73 deg/s
             gravity = 0.03  # m/s^2
             dof_pos = 0.04  # rad, 0.04 rad -> 2.3 deg
             dof_vel = 0.20  # rad/s, 0.20 rad/s -> 11.5 deg/s
@@ -491,7 +491,7 @@ class N1Cfg(LeggedRobotFFTAIBipedalCfg):
         class obs_scales(LeggedRobotFFTAIBipedalCfg.normalization.obs_scales):
             action = 1.00
             lin_vel = 1.00  # map 1.0 m/s -> 1.0
-            ang_vel = 1.00  # map 1.0 rad/s -> 1.0
+            ang_vel = 0.25  # map 1.0 rad/s -> 1.0
             gravity = 1.00
             dof_pos = 1.00
             dof_vel = 0.10  # map 6.28 rad/s -> 0.628
@@ -575,8 +575,8 @@ class N1CfgPPO(LeggedRobotFFTAIBipedalCfgPPO, N1Cfg):
         class_name = "ActorCriticMLP"
 
         # policy params
-        actor_hidden_dims = [1024, 512, 256, 128]
-        critic_hidden_dims = [1024, 512, 256, 128]
+        actor_hidden_dims = [512, 256, 128]
+        critic_hidden_dims = [512, 256, 128]
         activation = "elu"  # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
         init_weights = False
 
